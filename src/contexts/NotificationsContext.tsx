@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from "sonner";
 
@@ -37,6 +36,7 @@ interface NotificationsContextType {
   clearAll: () => void;
   showEcgAlert: () => void;
   showHeartRateAlert: (heartRate: number) => void;
+  showTemperatureAlert: (temperature: number, type: 'high' | 'low') => void;
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
@@ -285,6 +285,50 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     });
   };
 
+  const showTemperatureAlert = (temperature: number, type: 'high' | 'low') => {
+    const tempF = (temperature * 9/5) + 32;
+    const isHigh = type === 'high';
+    
+    const title = isHigh ? "High Temperature Alert" : "Low Temperature Alert";
+    const description = isHigh 
+      ? `Your body temperature is ${temperature}°C (${tempF.toFixed(1)}°F), which is above normal range.`
+      : `Your body temperature is ${temperature}°C (${tempF.toFixed(1)}°F), which is below normal range.`;
+    
+    const iconBgColor = isHigh ? "bg-red-100" : "bg-blue-100";
+    const iconColor = isHigh ? "text-red-600" : "text-blue-600";
+    
+    toast.warning(title, {
+      description: description,
+      duration: 0,
+      action: {
+        label: "Track",
+        onClick: () => console.log("Track temperature")
+      },
+      closeButton: true,
+    });
+    
+    addNotification({
+      title: title,
+      description: description,
+      type: "health",
+      icon: isHigh ? "temperature-high" : "temperature-low",
+      iconBgColor: iconBgColor,
+      iconColor: iconColor,
+      time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+      date: "Today",
+      actions: {
+        primary: {
+          label: "Track",
+          action: () => console.log("Track temperature")
+        },
+        secondary: {
+          label: "Dismiss",
+          action: () => console.log("Dismiss temperature notification")
+        }
+      }
+    });
+  };
+
   // Simulate an ECG anomaly after the component mounts (only for demo purposes)
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -303,7 +347,8 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     deleteNotification,
     clearAll,
     showEcgAlert,
-    showHeartRateAlert
+    showHeartRateAlert,
+    showTemperatureAlert
   };
 
   return (
