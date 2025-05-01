@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowLeft, Check, HeartPulse, WaveSquare, Droplet, RotateCw } from 'lucide-react';
+import { ArrowLeft, Check, HeartPulse, Waveform, Droplet, RotateCw } from 'lucide-react';
 import OnboardingLayout from '../components/OnboardingLayout';
 import { Button } from '@/components/ui/button';
 
@@ -114,7 +114,7 @@ const WearCalibrationScreen = ({ onNext }: WearCalibrationScreenProps) => {
             
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center">
-                <WaveSquare size={16} className="text-purple-500 mr-2" />
+                <Waveform size={16} className="text-purple-500 mr-2" />
                 <span className="text-sm text-nestor-gray-700">ECG</span>
               </div>
               <span className="text-sm font-medium text-green-500">Active</span>
@@ -142,7 +142,8 @@ const WearCalibrationScreen = ({ onNext }: WearCalibrationScreenProps) => {
         </Button>
       </div>
 
-      <style jsx global>{`
+      <style>
+        {`
         @keyframes dash {
           from {
             stroke-dashoffset: 1000;
@@ -157,7 +158,8 @@ const WearCalibrationScreen = ({ onNext }: WearCalibrationScreenProps) => {
           stroke-dasharray: 1000;
           stroke-dashoffset: 1000;
         }
-      `}</style>
+        `}
+      </style>
     </OnboardingLayout>
   );
 };
