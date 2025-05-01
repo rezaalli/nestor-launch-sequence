@@ -1,7 +1,8 @@
 
 import React from 'react';
+import { ArrowLeft, Check, HeartPulse, WaveSquare, Droplet, RotateCw } from 'lucide-react';
 import OnboardingLayout from '../components/OnboardingLayout';
-import SignalStrength from '../components/SignalStrength';
+import { Button } from '@/components/ui/button';
 
 interface WearCalibrationScreenProps {
   onNext: () => void;
@@ -10,56 +11,153 @@ interface WearCalibrationScreenProps {
 const WearCalibrationScreen = ({ onNext }: WearCalibrationScreenProps) => {
   return (
     <OnboardingLayout>
-      <h1 className="text-2xl font-semibold text-nestor-gray-900 mb-8">How to Wear Nestor</h1>
-      
-      <div className="flex-1 mb-8">
-        <div className="mb-10">
-          <div className="relative h-64 mb-4">
-            <img 
-              className="w-full h-full object-cover rounded-lg" 
-              src="https://storage.googleapis.com/uxpilot-auth.appspot.com/713f1d1bc7-68248692bd7270b9f1f1.png" 
-              alt="Step 1: Place device on wrist" 
-            />
-            <div className="absolute bottom-4 left-4 bg-nestor-blue text-white px-3 py-1 rounded-full text-sm">
-              Step 1
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          <ArrowLeft size={20} className="text-gray-700" />
+        </button>
+        <h2 className="text-lg font-medium text-nestor-gray-900">Wear & Calibration</h2>
+        <div className="w-10"></div>
+      </div>
+
+      {/* Wear Instructions */}
+      <div className="mt-6">
+        <h3 className="text-sm font-medium text-nestor-gray-500 mb-4">PROPER WEAR GUIDE</h3>
+        
+        <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6">
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" 
+                height="24" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="text-nestor-blue"
+              >
+                <circle cx="12" cy="12" r="6" />
+                <path d="M12 8v4l1.5 2" />
+                <path d="M6 12a6 6 0 0 0 11.78 1.778c.16-.396.296-.8.306-1.221L18 13" />
+                <path d="M17.7 8.3A6 6 0 0 0 6.21 9.7l-.047.095L6 10" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="font-medium text-nestor-gray-900">Position</h4>
+              <p className="text-sm text-nestor-gray-600">Place sensor under your watch</p>
             </div>
           </div>
-          <p className="text-nestor-gray-600">Place Nestor on your wrist with the sensor facing down.</p>
-        </div>
-        
-        <div className="mb-10">
-          <div className="relative h-64 mb-4">
+          
+          <div className="relative h-48 mb-4 bg-gray-100 rounded-lg overflow-hidden">
             <img 
-              className="w-full h-full object-cover rounded-lg" 
-              src="https://storage.googleapis.com/uxpilot-auth.appspot.com/33e428c7ed-cbabb865c2fa44c117d6.png" 
-              alt="Step 2: Place watch over device" 
+              className="w-full h-full object-cover" 
+              src="https://storage.googleapis.com/uxpilot-auth.appspot.com/b3162c5b9a-2dcbd77625ce4c328765.png" 
+              alt="Proper wear position of health sensor under watch" 
             />
-            <div className="absolute bottom-4 left-4 bg-nestor-blue text-white px-3 py-1 rounded-full text-sm">
-              Step 2
+          </div>
+          
+          <ul className="space-y-3">
+            <li className="flex items-start">
+              <Check size={16} className="text-green-500 mt-1 mr-2 shrink-0" />
+              <span className="text-sm text-nestor-gray-700">Ensure sensor sits flat against skin</span>
+            </li>
+            <li className="flex items-start">
+              <Check size={16} className="text-green-500 mt-1 mr-2 shrink-0" />
+              <span className="text-sm text-nestor-gray-700">Watch strap should be snug but comfortable</span>
+            </li>
+            <li className="flex items-start">
+              <Check size={16} className="text-green-500 mt-1 mr-2 shrink-0" />
+              <span className="text-sm text-nestor-gray-700">Position above wrist bone for best results</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Signal Quality */}
+      <div>
+        <h3 className="text-sm font-medium text-nestor-gray-500 mb-4">SIGNAL QUALITY CHECK</h3>
+        
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+              <span className="font-medium text-nestor-gray-900">Excellent Signal</span>
+            </div>
+            <span className="text-sm text-nestor-gray-600">98% Quality</span>
+          </div>
+          
+          <div className="h-24 mb-6">
+            <div className="relative h-full">
+              <svg viewBox="0 0 300 100" className="w-full h-full">
+                <path 
+                  d="M0,50 L20,50 L30,20 L40,80 L50,50 L60,50 L80,50 L90,20 L100,80 L110,50 L120,50 L140,50 L150,20 L160,80 L170,50 L180,50 L200,50 L210,20 L220,80 L230,50 L240,50 L260,50 L270,20 L280,80 L290,50 L300,50" 
+                  fill="none" 
+                  stroke="#22c55e" 
+                  strokeWidth="2"
+                  className="animate-dash"
+                />
+              </svg>
             </div>
           </div>
-          <p className="text-nestor-gray-600">Place your watch over Nestor and fasten securely.</p>
-        </div>
-        
-        <div className="bg-blue-50 p-4 rounded-lg flex items-center space-x-3 mb-8">
-          <div className="nestor-icon-container">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-nestor-blue" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M17.778 8.222c-4.296-4.296-11.26-4.296-15.556 0A1 1 0 01.808 6.808c5.076-5.077 13.308-5.077 18.384 0a1 1 0 01-1.414 1.414zM14.95 11.05a7 7 0 00-9.9 0 1 1 0 01-1.414-1.414 9 9 0 0112.728 0 1 1 0 01-1.414 1.414zm-2.83 2.83a3 3 0 00-4.242 0 1 1 0 01-1.415-1.415 5 5 0 017.072 0 1 1 0 01-1.415 1.415zM9 16a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="font-medium text-nestor-gray-900">Signal Strength</h3>
-            <SignalStrength strength="strong" />
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center">
+                <HeartPulse size={16} className="text-red-500 mr-2" />
+                <span className="text-sm text-nestor-gray-700">Heart Rate</span>
+              </div>
+              <span className="text-sm font-medium text-green-500">Active</span>
+            </div>
+            
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center">
+                <WaveSquare size={16} className="text-purple-500 mr-2" />
+                <span className="text-sm text-nestor-gray-700">ECG</span>
+              </div>
+              <span className="text-sm font-medium text-green-500">Active</span>
+            </div>
+            
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center">
+                <Droplet size={16} className="text-blue-500 mr-2" />
+                <span className="text-sm text-nestor-gray-700">Blood Oxygen</span>
+              </div>
+              <span className="text-sm font-medium text-green-500">Active</span>
+            </div>
           </div>
         </div>
       </div>
-      
-      <button 
-        className="nestor-btn"
-        onClick={onNext}
-      >
-        Continue
-      </button>
+
+      {/* Calibration Button */}
+      <div className="mt-8">
+        <Button 
+          onClick={onNext}
+          className="w-full py-4 bg-nestor-blue text-white font-medium rounded-lg flex items-center justify-center"
+        >
+          <RotateCw size={18} className="mr-2" />
+          Start Calibration
+        </Button>
+      </div>
+
+      <style jsx global>{`
+        @keyframes dash {
+          from {
+            stroke-dashoffset: 1000;
+          }
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+        
+        .animate-dash {
+          animation: dash 2s linear infinite;
+          stroke-dasharray: 1000;
+          stroke-dashoffset: 1000;
+        }
+      `}</style>
     </OnboardingLayout>
   );
 };
