@@ -36,6 +36,7 @@ interface NotificationsContextType {
   deleteNotification: (id: string) => void;
   clearAll: () => void;
   showEcgAlert: () => void;
+  showHeartRateAlert: (heartRate: number) => void;
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
@@ -251,6 +252,39 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     });
   };
 
+  const showHeartRateAlert = (heartRate: number) => {
+    toast.warning("High Heart Rate Alert", {
+      description: `Your heart rate is ${heartRate} BPM, which is above your normal resting range.`,
+      duration: 0,
+      action: {
+        label: "Monitor",
+        onClick: () => console.log("Monitor heart rate")
+      },
+      closeButton: true,
+    });
+    
+    addNotification({
+      title: "High Heart Rate Alert",
+      description: `Your heart rate was ${heartRate} BPM, which is above your normal resting range.`,
+      type: "health",
+      icon: "heart-pulse",
+      iconBgColor: "bg-red-100",
+      iconColor: "text-red-600",
+      time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+      date: "Today",
+      actions: {
+        primary: {
+          label: "Monitor",
+          action: () => console.log("Monitor heart rate")
+        },
+        secondary: {
+          label: "Dismiss",
+          action: () => console.log("Dismiss heart rate notification")
+        }
+      }
+    });
+  };
+
   // Simulate an ECG anomaly after the component mounts (only for demo purposes)
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -268,7 +302,8 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     markAllAsRead,
     deleteNotification,
     clearAll,
-    showEcgAlert
+    showEcgAlert,
+    showHeartRateAlert
   };
 
   return (

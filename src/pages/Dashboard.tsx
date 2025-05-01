@@ -7,14 +7,18 @@ import { useNotifications } from "@/contexts/NotificationsContext";
 import StatusBar from '@/components/StatusBar';
 import BottomNavbar from '@/components/BottomNavbar';
 import EcgAlertDialog from '@/components/EcgAlertDialog';
+import HeartRateAlertDialog from '@/components/HeartRateAlertDialog';
 import { detectIrregularEcg } from '@/utils/ecgUtils';
+import { detectHighHeartRate } from '@/utils/healthUtils';
 
 const Dashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { showEcgAlert } = useNotifications();
+  const { showEcgAlert, addNotification } = useNotifications();
   const [loading, setLoading] = useState(true);
   const [showEcgDialog, setShowEcgDialog] = useState(false);
+  const [showHeartRateDialog, setShowHeartRateDialog] = useState(false);
+  const [currentHeartRate, setCurrentHeartRate] = useState(72);
   const [gridLayout, setGridLayout] = useState<'3x2' | '2x3'>(() => {
     // Check if the user has a saved preference
     const savedLayout = localStorage.getItem('metricsLayout');
@@ -43,10 +47,20 @@ const Dashboard = () => {
         setShowEcgDialog(true);
       }
     }, 15000);
+
+    // Simulate heart rate alert detection after some time
+    const heartRateTimer = setTimeout(() => {
+      const { detected, heartRate } = detectHighHeartRate();
+      if (detected) {
+        setCurrentHeartRate(heartRate);
+        setShowHeartRateDialog(true);
+      }
+    }, 8000);
     
     return () => {
       clearTimeout(timer);
       clearTimeout(ecgTimer);
+      clearTimeout(heartRateTimer);
     };
   }, [toast]);
   
@@ -225,6 +239,19 @@ const Dashboard = () => {
     
     // Add to notifications even if dismissed from dialog
     showEcgAlert();
+  };
+
+  const handleMonitorHeartRate = () => {
+    // This would navigate to a heart rate monitoring screen in a real app
+    toast({
+      title: "Heart Rate Monitoring",
+      description: "Navigating to heart rate monitoring screen...",
+    });
+    setShowHeartRateDialog(false);
+  };
+  
+  const handleDismissHeartRate = () => {
+    setShowHeartRateDialog(false);
   };
   
   const handleNotificationsClick = () => {
@@ -529,6 +556,15 @@ const Dashboard = () => {
         onOpenChange={setShowEcgDialog}
         onTakeEcg={handleTakeEcg}
         onDismiss={handleDismissEcg}
+      />
+
+      {/* Heart Rate Alert Dialog */}
+      <HeartRateAlertDialog
+        open={showHeartRateDialog}
+        onOpenChange={setShowHeartRateDialog}
+        heartRate={currentHeartRate}
+        onDismiss={handleDismissHeartRate}
+        onMonitor={handleMonitorHeartRate}
       />
     </>
   );
