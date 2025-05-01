@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { HeartPulse, Droplet, WaveSquare, Thermometer } from 'lucide-react';
+import { HeartPulse, Droplet, Activity, Thermometer } from 'lucide-react';
 
 const HealthMetrics = () => {
   return (
@@ -51,7 +51,7 @@ const HealthMetrics = () => {
       
       <div className="p-4 bg-white border border-gray-200 rounded-xl">
         <div className="flex items-center mb-2">
-          <WaveSquare className="text-purple-500 mr-2" size={16} />
+          <Activity className="text-purple-500 mr-2" size={16} />
           <span className="text-xs text-gray-600">ECG</span>
         </div>
         <div className="text-sm text-nestor-gray-900 font-medium">Normal Sinus</div>
