@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Bell, Star, ArrowUp, ClipboardList, ChevronDown } from 'lucide-react';
+import { Bell, Star, ArrowUp, ClipboardList, ChevronDown, Grid3x3 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/contexts/NotificationsContext";
@@ -15,6 +15,11 @@ const Dashboard = () => {
   const { showEcgAlert } = useNotifications();
   const [loading, setLoading] = useState(true);
   const [showEcgDialog, setShowEcgDialog] = useState(false);
+  const [gridLayout, setGridLayout] = useState<'3x2' | '2x3'>(() => {
+    // Check if the user has a saved preference
+    const savedLayout = localStorage.getItem('metricsLayout');
+    return (savedLayout === '3x2' ? '3x2' : '2x3') as '3x2' | '2x3';
+  });
   
   useEffect(() => {
     // Show welcome toast
@@ -41,6 +46,12 @@ const Dashboard = () => {
       clearTimeout(ecgTimer);
     };
   }, [toast]);
+  
+  const toggleGridLayout = () => {
+    const newLayout = gridLayout === '2x3' ? '3x2' : '2x3';
+    setGridLayout(newLayout);
+    localStorage.setItem('metricsLayout', newLayout);
+  };
   
   const handleLifestyleCheckIn = () => {
     navigate("/lifestyle-checkin");
@@ -138,12 +149,15 @@ const Dashboard = () => {
         <div className="px-6 mt-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-nestor-gray-500">REAL-TIME METRICS</h3>
-            <button className="text-xs text-blue-900 font-medium flex items-center">
+            <button 
+              className="text-xs text-blue-900 font-medium flex items-center"
+              onClick={toggleGridLayout}
+            >
               <i className="fa-solid fa-grip-vertical mr-1"></i>
-              Customize
+              Customize {gridLayout === '2x3' ? '(2×3)' : '(3×2)'}
             </button>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className={`grid ${gridLayout === '2x3' ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
             <div id="heart-rate-card" className="p-4 bg-white border border-gray-200 rounded-xl">
               <div className="flex items-center mb-2">
                 <i className="fa-solid fa-heart-pulse text-red-500 mr-2"></i>
