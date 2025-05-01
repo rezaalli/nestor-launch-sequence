@@ -24,10 +24,10 @@ const BottomNavbar = () => {
           <span className={`text-xs ${location.pathname === '/reports' ? "text-blue-900 font-medium" : "text-gray-400"} mt-1`}>Reports</span>
         </Link>
         
-        <button className="flex flex-col items-center w-16">
-          <i className="fa-regular fa-user text-gray-400 text-lg"></i>
-          <span className="text-xs text-gray-400 mt-1">Profile</span>
-        </button>
+        <Link to="/profile" className="flex flex-col items-center w-16">
+          <i className={`fa-regular fa-user ${location.pathname === '/profile' ? "text-blue-900" : "text-gray-400"} text-lg`}></i>
+          <span className={`text-xs ${location.pathname === '/profile' ? "text-blue-900 font-medium" : "text-gray-400"} mt-1`}>Profile</span>
+        </Link>
       </div>
     </div>
   );

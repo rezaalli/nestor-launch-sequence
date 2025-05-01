@@ -11,6 +11,7 @@ import LifestyleCheckIn from "./pages/LifestyleCheckIn";
 import TrendsAndInsights from "./pages/TrendsAndInsights";
 import Notifications from "./pages/Notifications";
 import Reports from "./pages/Reports";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import DeviceConnectionLostScreen from "./screens/DeviceConnectionLostScreen";
 import DeviceReconnectedScreen from "./screens/DeviceReconnectedScreen";
@@ -60,6 +61,7 @@ const App = () => {
               <Route path="/trends" element={<TrendsAndInsights />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/profile" element={<Profile />} />
               <Route 
                 path="/connection-lost" 
                 element={
