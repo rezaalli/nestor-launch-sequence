@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import OnboardingLayout from '../components/OnboardingLayout';
-import { Apple, Google } from 'lucide-react';
+import { Apple, ArrowRight } from 'lucide-react';
 
 interface AccountCreationScreenProps {
   onNext: () => void;
@@ -48,8 +48,7 @@ const AccountCreationScreen = ({ onNext }: AccountCreationScreenProps) => {
         </button>
         
         <button className="nestor-btn-outline">
-          <Google size={20} />
-          <span className="font-medium text-nestor-gray-800 ml-2">Continue with Google</span>
+          <span className="font-medium text-nestor-gray-800">Continue with Google</span>
         </button>
       </div>
       
