@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Onboarding from "./components/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import DeviceConnectionLostScreen from "./screens/DeviceConnectionLostScreen";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,15 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route 
+            path="/connection-lost" 
+            element={
+              <DeviceConnectionLostScreen 
+                onRetry={() => window.location.href = '/dashboard'} 
+                onContinueWithoutDevice={() => window.location.href = '/dashboard'} 
+              />
+            } 
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

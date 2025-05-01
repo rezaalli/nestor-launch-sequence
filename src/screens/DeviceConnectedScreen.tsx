@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Check, ArrowRight, Battery } from 'lucide-react';
+import { Check, ArrowRight, Battery, RefreshCw } from 'lucide-react';
 import OnboardingLayout from '../components/OnboardingLayout';
+import { useNavigate } from 'react-router-dom';
 
 interface DeviceConnectedScreenProps {
   onNext: () => void;
@@ -9,6 +10,7 @@ interface DeviceConnectedScreenProps {
 
 const DeviceConnectedScreen = ({ onNext }: DeviceConnectedScreenProps) => {
   const [currentScreen, setCurrentScreen] = useState<'splash' | 'syncing' | 'connected'>('splash');
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Show splash screen briefly, then move to syncing
@@ -26,6 +28,10 @@ const DeviceConnectedScreen = ({ onNext }: DeviceConnectedScreenProps) => {
       clearTimeout(syncingTimer);
     };
   }, []);
+
+  const simulateConnectionLoss = () => {
+    navigate('/connection-lost');
+  };
 
   const renderSplashScreen = () => (
     <div className="flex flex-col items-center justify-center min-h-screen">
@@ -103,6 +109,14 @@ const DeviceConnectedScreen = ({ onNext }: DeviceConnectedScreenProps) => {
         >
           Continue to Dashboard
           <ArrowRight size={16} className="ml-2" />
+        </button>
+        
+        <button 
+          onClick={simulateConnectionLoss}
+          className="w-full max-w-xs mt-2 text-red-500 text-sm py-2 flex items-center justify-center"
+        >
+          <RefreshCw size={14} className="mr-2" />
+          Test Connection Loss Screen
         </button>
       </div>
     </div>
