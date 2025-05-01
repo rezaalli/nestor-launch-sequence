@@ -1,45 +1,113 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Bell, Star, ArrowUp, ClipboardList } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import StatusBar from '@/components/StatusBar';
+import HealthMetrics from '@/components/HealthMetrics';
+import WeeklyTrend from '@/components/WeeklyTrend';
+import BottomNavbar from '@/components/BottomNavbar';
 
 const Dashboard = () => {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
   
-  React.useEffect(() => {
+  useEffect(() => {
+    // Show welcome toast
     toast({
       title: "Welcome to Nestor",
       description: "Your device is now connected and ready to use.",
     });
+    
+    // Simulate loading splash screen
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
   }, [toast]);
-
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-md mx-auto">
-        <h1 className="text-2xl font-semibold text-nestor-gray-900 mb-6">Dashboard</h1>
-        
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-medium mb-4">Health Overview</h2>
-          <p className="text-nestor-gray-600">Your Nestor device is collecting data. Check back soon for insights.</p>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-medium mb-4">Device Status</h2>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="nestor-icon-container">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-nestor-blue" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M17.778 8.222c-4.296-4.296-11.26-4.296-15.556 0A1 1 0 01.808 6.808c5.076-5.077 13.308-5.077 18.384 0a1 1 0 01-1.414 1.414zM14.95 11.05a7 7 0 00-9.9 0 1 1 0 01-1.414-1.414 9 9 0 0112.728 0 1 1 0 01-1.414 1.414zm-2.83 2.83a3 3 0 00-4.242 0 1 1 0 01-1.415-1.415 5 5 0 017.072 0 1 1 0 01-1.415 1.415zM9 16a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-medium text-nestor-gray-900">My Nestor</h3>
-                <p className="text-sm text-nestor-gray-600">Connected</p>
-              </div>
-            </div>
-            <span className="text-sm text-green-600">98% battery</span>
-          </div>
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <div className="w-24 h-24 mb-8">
+          <img 
+            className="w-full h-full" 
+            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/58cdf9e9fa-b129f3f632a0845a007d.png" 
+            alt="Nestor logo" 
+          />
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-white">
+      <StatusBar />
+      
+      {/* Header */}
+      <div className="px-6 pt-4 pb-2 flex items-center justify-between">
+        <div className="flex items-center">
+          <img 
+            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" 
+            alt="Profile" 
+            className="w-10 h-10 rounded-full mr-3" 
+          />
+          <div>
+            <h2 className="text-lg font-medium text-nestor-gray-900">Hi, Emma</h2>
+            <div className="flex items-center">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-1.5"></div>
+              <span className="text-xs text-nestor-gray-600">Rolex Datejust • Connected</span>
+            </div>
+          </div>
+        </div>
+        <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          <Bell className="text-nestor-gray-700" size={18} />
+        </button>
+      </div>
+      
+      {/* Daily Summary Card */}
+      <div className="mx-6 mt-4 p-5 bg-blue-50 rounded-xl">
+        <div className="flex items-center mb-3">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+            <Star className="text-nestor-blue" size={18} />
+          </div>
+          <div>
+            <h3 className="font-medium text-nestor-gray-900">Wellness Score</h3>
+            <div className="flex items-center">
+              <span className="text-sm font-medium text-blue-900 mr-1">82</span>
+              <span className="text-xs text-nestor-gray-600">/ 100</span>
+            </div>
+          </div>
+          <div className="ml-auto flex items-center text-green-600 text-xs font-medium">
+            <ArrowUp className="mr-1" size={14} />
+            <span>4%</span>
+          </div>
+        </div>
+        <p className="text-sm text-nestor-gray-700">Your sleep quality improved, but heart rate variability is slightly lower today.</p>
+      </div>
+      
+      {/* Real-time Metrics */}
+      <div className="px-6 mt-5">
+        <h3 className="text-sm font-medium text-nestor-gray-500 mb-3">REAL-TIME METRICS</h3>
+        <HealthMetrics />
+      </div>
+      
+      {/* Lifestyle Check-In Button */}
+      <button className="mx-6 mt-6 py-3.5 bg-nestor-blue text-white font-medium rounded-lg flex items-center justify-center">
+        <ClipboardList className="mr-2" size={18} />
+        Log Lifestyle Check-In
+      </button>
+      
+      {/* Trends Preview */}
+      <div className="px-6 mt-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-medium text-nestor-gray-500">WEEKLY TRENDS</h3>
+          <span className="text-xs text-blue-900 font-medium">View All</span>
+        </div>
+        <WeeklyTrend />
+      </div>
+      
+      <BottomNavbar />
     </div>
   );
 };
