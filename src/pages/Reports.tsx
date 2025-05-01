@@ -1,12 +1,13 @@
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FileExport, FilePdf, FileCsv, Heart, Bed, PersonWalking, RotateCw, Eye, Share2, Trash2, ArrowLeft, MoreVertical, CalendarDays, CalendarIcon, CalendarCheck, Sliders } from 'lucide-react';
+import { FileText, FileType, Heart, Bed, Activity, RotateCw, Eye, Share2, Trash2, ArrowLeft, MoreVertical, CalendarDays, Calendar, CheckSquare, Sliders } from 'lucide-react';
 import StatusBar from '@/components/StatusBar';
 import BottomNavbar from '@/components/BottomNavbar';
-import { Toggle } from '@/components/Toggle';
+import Toggle from '@/components/Toggle';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/sonner';
+import ReportFormatToggle from '@/components/ReportFormatToggle';
 
 const Reports = () => {
   const navigate = useNavigate();
@@ -68,7 +69,7 @@ const Reports = () => {
         <div className="flex space-x-4 mb-6 overflow-x-auto pb-2">
           <div className="flex-shrink-0 w-36 bg-white rounded-xl shadow-sm p-4 border border-gray-100">
             <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mb-3">
-              <CalendarCheck className="text-blue-900" size={18} />
+              <CheckSquare className="text-blue-900" size={18} />
             </div>
             <h3 className="text-sm font-medium text-gray-900 mb-1">Weekly</h3>
             <p className="text-xs text-gray-500">Last: Apr 24</p>
@@ -97,7 +98,7 @@ const Reports = () => {
             document.getElementById('report-generator')?.scrollIntoView({ behavior: 'smooth' });
           }}
         >
-          <FileExport className="mr-2" size={18} />
+          <FileText className="mr-2" size={18} />
           Generate Full Report
         </button>
       </div>
@@ -113,11 +114,11 @@ const Reports = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="relative">
                 <input type="text" className="w-full p-3.5 border border-gray-300 rounded-lg pl-10" placeholder="Start Date" defaultValue="Apr 1, 2025" />
-                <CalendarIcon className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
+                <Calendar className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
               </div>
               <div className="relative">
                 <input type="text" className="w-full p-3.5 border border-gray-300 rounded-lg pl-10" placeholder="End Date" defaultValue="Apr 30, 2025" />
-                <CalendarIcon className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
+                <Calendar className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
               </div>
             </div>
           </div>
@@ -133,7 +134,7 @@ const Reports = () => {
                   </div>
                   <span className="text-gray-800">Heart Rate</span>
                 </div>
-                <Toggle checked={metrics.heartRate} onCheckedChange={(checked) => setMetrics({...metrics, heartRate: checked})} />
+                <Toggle checked={metrics.heartRate} onChange={(checked) => setMetrics({...metrics, heartRate: checked})} />
               </div>
               
               <div className="flex items-center justify-between">
@@ -143,17 +144,17 @@ const Reports = () => {
                   </div>
                   <span className="text-gray-800">Sleep Data</span>
                 </div>
-                <Toggle checked={metrics.sleep} onCheckedChange={(checked) => setMetrics({...metrics, sleep: checked})} />
+                <Toggle checked={metrics.sleep} onChange={(checked) => setMetrics({...metrics, sleep: checked})} />
               </div>
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
-                    <PersonWalking className="text-blue-900" size={16} />
+                    <Activity className="text-blue-900" size={16} />
                   </div>
                   <span className="text-gray-800">Activity</span>
                 </div>
-                <Toggle checked={metrics.activity} onCheckedChange={(checked) => setMetrics({...metrics, activity: checked})} />
+                <Toggle checked={metrics.activity} onChange={(checked) => setMetrics({...metrics, activity: checked})} />
               </div>
               
               <div className="flex items-center justify-between">
@@ -163,7 +164,7 @@ const Reports = () => {
                   </div>
                   <span className="text-gray-800">Body Temperature</span>
                 </div>
-                <Toggle checked={metrics.temperature} onCheckedChange={(checked) => setMetrics({...metrics, temperature: checked})} />
+                <Toggle checked={metrics.temperature} onChange={(checked) => setMetrics({...metrics, temperature: checked})} />
               </div>
             </div>
           </div>
@@ -171,22 +172,7 @@ const Reports = () => {
           {/* Format Selection */}
           <div className="space-y-2">
             <label className="text-sm text-gray-600 font-medium">Format</label>
-            <div className="flex space-x-3">
-              <button 
-                className={`flex-1 py-3 ${reportFormat === 'pdf' ? 'bg-nestor-blue text-white' : 'bg-white text-gray-700 border border-gray-300'} font-medium rounded-lg flex items-center justify-center`}
-                onClick={() => setReportFormat('pdf')}
-              >
-                <FilePdf className="mr-2" size={18} />
-                PDF
-              </button>
-              <button 
-                className={`flex-1 py-3 ${reportFormat === 'csv' ? 'bg-nestor-blue text-white' : 'bg-white text-gray-700 border border-gray-300'} font-medium rounded-lg flex items-center justify-center`}
-                onClick={() => setReportFormat('csv')}
-              >
-                <FileCsv className="mr-2" size={18} />
-                CSV
-              </button>
-            </div>
+            <ReportFormatToggle value={reportFormat} onChange={setReportFormat} />
           </div>
         </div>
         
@@ -213,7 +199,7 @@ const Reports = () => {
                 <p className="text-xs text-gray-500">Last sync: Today, 10:45 AM</p>
               </div>
             </div>
-            <Toggle checked={true} />
+            <Toggle checked={true} onChange={() => {}} />
           </div>
           
           <div className="flex items-center justify-between">
@@ -226,7 +212,7 @@ const Reports = () => {
                 <p className="text-xs text-gray-500">Last sync: Yesterday, 8:30 PM</p>
               </div>
             </div>
-            <Toggle checked={true} />
+            <Toggle checked={true} onChange={() => {}} />
           </div>
         </div>
         
@@ -267,7 +253,7 @@ const Reports = () => {
                 <p className="text-xs text-gray-500">Generated: Apr 30, 2025</p>
               </div>
               <div className="flex items-center justify-center w-8 h-8 bg-blue-50 rounded-full">
-                <FilePdf className="text-blue-900" size={16} />
+                <FileText className="text-blue-900" size={16} />
               </div>
             </div>
             <div className="flex space-x-2">
@@ -293,7 +279,7 @@ const Reports = () => {
                 <p className="text-xs text-gray-500">Generated: Mar 31, 2025</p>
               </div>
               <div className="flex items-center justify-center w-8 h-8 bg-blue-50 rounded-full">
-                <FileCsv className="text-blue-900" size={16} />
+                <FileType className="text-blue-900" size={16} />
               </div>
             </div>
             <div className="flex space-x-2">
@@ -319,7 +305,7 @@ const Reports = () => {
                 <p className="text-xs text-gray-500">Generated: Feb 28, 2025</p>
               </div>
               <div className="flex items-center justify-center w-8 h-8 bg-blue-50 rounded-full">
-                <FilePdf className="text-blue-900" size={16} />
+                <FileText className="text-blue-900" size={16} />
               </div>
             </div>
             <div className="flex space-x-2">
