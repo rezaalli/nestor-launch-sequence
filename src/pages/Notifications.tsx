@@ -255,7 +255,7 @@ const Notifications = () => {
                 size="icon"
                 onClick={() => setShowSettings(true)}
               >
-                <Gear className="text-gray-700" size={20} />
+                <Settings className="text-gray-700" size={20} />
               </Button>
             </div>
           </div>
