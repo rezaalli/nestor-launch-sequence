@@ -114,16 +114,18 @@ const DeviceConnectedScreen = ({ onNext }: DeviceConnectedScreenProps) => {
       {currentScreen === 'syncing' && renderSyncingScreen()}
       {currentScreen === 'connected' && renderConnectedScreen()}
 
-      <style jsx>{`
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
+      <style>
+        {`
+          @keyframes spin {
+            to {
+              transform: rotate(360deg);
+            }
           }
-        }
-        .animate-spin {
-          animation: spin 1s linear infinite;
-        }
-      `}</style>
+          .animate-spin {
+            animation: spin 1s linear infinite;
+          }
+        `}
+      </style>
     </OnboardingLayout>
   );
 };
