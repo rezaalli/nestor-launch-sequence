@@ -77,3 +77,47 @@ export const analyzeTemperature = (temperature: number) => {
     recommendation
   };
 };
+
+// Simulate detecting low blood oxygen (SpO2) levels
+export const detectLowSpO2 = (): { detected: boolean, spO2Level: number } => {
+  // In a real app, this would contain logic to analyze SpO2 data
+  // For demo purposes, we'll randomly determine if there's a low SpO2
+  const detected = Math.random() < 0.25; // 25% chance of detecting low SpO2
+  
+  let spO2Level;
+  if (detected) {
+    // Generate SpO2 between 85% and 94% for low levels
+    spO2Level = Math.floor(Math.random() * 10) + 85;
+  } else {
+    // Generate normal SpO2 between 95% and 100%
+    spO2Level = Math.floor(Math.random() * 6) + 95;
+  }
+  
+  return { detected, spO2Level };
+};
+
+// Function to analyze SpO2 level and determine if medical attention is needed
+export const analyzeSpO2 = (spO2Level: number) => {
+  // Using standard medical thresholds for SpO2 levels
+  let riskLevel = 'low';
+  let recommendation = 'Normal oxygen saturation. No action needed.';
+  let requiresAttention = false;
+  
+  if (spO2Level < 95) {
+    requiresAttention = true;
+    
+    if (spO2Level < 90) {
+      riskLevel = 'high';
+      recommendation = 'Critically low oxygen levels. Seek immediate medical attention.';
+    } else {
+      riskLevel = 'moderate';
+      recommendation = 'Low oxygen saturation. Consider consulting a healthcare provider.';
+    }
+  }
+  
+  return {
+    riskLevel,
+    requiresAttention,
+    recommendation
+  };
+};

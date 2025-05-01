@@ -37,6 +37,7 @@ interface NotificationsContextType {
   showEcgAlert: () => void;
   showHeartRateAlert: (heartRate: number) => void;
   showTemperatureAlert: (temperature: number, type: 'high' | 'low') => void;
+  showSpO2Alert: (spO2Level: number) => void;
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
@@ -329,6 +330,39 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     });
   };
 
+  const showSpO2Alert = (spO2Level: number) => {
+    toast.warning("Low Blood Oxygen Alert", {
+      description: `Your SpO2 level is ${spO2Level}%, which is below the normal range of 95-100%.`,
+      duration: 0,
+      action: {
+        label: "Take Reading",
+        onClick: () => console.log("Take SpO2 reading")
+      },
+      closeButton: true,
+    });
+    
+    addNotification({
+      title: "Low Blood Oxygen Alert",
+      description: `Your SpO2 level is ${spO2Level}%, which is below the normal range of 95-100%.`,
+      type: "health",
+      icon: "lungs",
+      iconBgColor: "bg-red-100",
+      iconColor: "text-red-600",
+      time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+      date: "Today",
+      actions: {
+        primary: {
+          label: "Take Reading",
+          action: () => console.log("Take SpO2 reading")
+        },
+        secondary: {
+          label: "Dismiss",
+          action: () => console.log("Dismiss SpO2 notification")
+        }
+      }
+    });
+  };
+
   // Simulate an ECG anomaly after the component mounts (only for demo purposes)
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -348,7 +382,8 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     clearAll,
     showEcgAlert,
     showHeartRateAlert,
-    showTemperatureAlert
+    showTemperatureAlert,
+    showSpO2Alert
   };
 
   return (
