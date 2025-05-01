@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Gear, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Bell, Settings, ArrowLeft, ChevronDown } from 'lucide-react';
 import { useNotifications, NotificationType } from '@/contexts/NotificationsContext';
 import StatusBar from '@/components/StatusBar';
 import BottomNavbar from '@/components/BottomNavbar';
