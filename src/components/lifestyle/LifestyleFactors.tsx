@@ -1,6 +1,6 @@
 
 import React from "react";
-import { MugHot, Dumbbell } from "lucide-react";
+import { Coffee, Dumbbell } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
@@ -24,7 +24,7 @@ const LifestyleFactors: React.FC<LifestyleFactorsProps> = ({
       <div className="grid grid-cols-2 gap-3">
         <div className="p-4 border border-gray-200 rounded-xl flex items-center justify-between">
           <div className="flex items-center">
-            <MugHot className="text-nestor-gray-700 mr-3" size={20} />
+            <Coffee className="text-nestor-gray-700 mr-3" size={20} />
             <span className="text-sm text-nestor-gray-900">Caffeine</span>
           </div>
           <div className="flex items-center space-x-2">
