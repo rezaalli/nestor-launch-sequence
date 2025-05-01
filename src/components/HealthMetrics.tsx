@@ -2,7 +2,19 @@
 import React from 'react';
 import { HeartPulse, Droplet, Activity, Thermometer } from 'lucide-react';
 
-const HealthMetrics = () => {
+interface HealthMetricsProps {
+  unitPreference?: 'metric' | 'imperial';
+}
+
+const HealthMetrics = ({ unitPreference = 'metric' }: HealthMetricsProps) => {
+  // Temperature conversion
+  const tempCelsius = 36.7;
+  const tempFahrenheit = (tempCelsius * 9/5) + 32;
+  
+  const tempDisplay = unitPreference === 'metric' 
+    ? { value: tempCelsius, unit: '°C' }
+    : { value: tempFahrenheit.toFixed(1), unit: '°F' };
+
   return (
     <div className="grid grid-cols-2 gap-3">
       <div className="p-4 bg-white border border-gray-200 rounded-xl">
@@ -73,8 +85,8 @@ const HealthMetrics = () => {
           <span className="text-xs text-gray-600">Temperature</span>
         </div>
         <div className="flex items-end">
-          <span className="text-2xl font-semibold text-nestor-gray-900">36.7</span>
-          <span className="text-sm text-nestor-gray-600 ml-1 mb-0.5">°C</span>
+          <span className="text-2xl font-semibold text-nestor-gray-900">{tempDisplay.value}</span>
+          <span className="text-sm text-nestor-gray-600 ml-1 mb-0.5">{tempDisplay.unit}</span>
         </div>
         <div className="mt-2 flex items-center">
           <div className="w-full bg-gray-200 rounded-full h-1.5">

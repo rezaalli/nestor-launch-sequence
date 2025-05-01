@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -18,12 +18,48 @@ import {
   CircleHelp, 
   ArrowLeft, 
   Download, 
-  ExternalLink
+  ExternalLink,
+  Thermometer
 } from "lucide-react";
+
+interface TemperatureDisplay {
+  celsius: number;
+  fahrenheit: number;
+  display: string;
+}
 
 const Profile = () => {
   const navigate = useNavigate();
   const [activeScreen, setActiveScreen] = useState<'main' | 'account' | 'privacy' | 'appearance'>('main');
+  const [unitPreference, setUnitPreference] = useState<'metric' | 'imperial'>('metric');
+  
+  // Sample temperature value in Celsius
+  const [temperature, setTemperature] = useState<TemperatureDisplay>({
+    celsius: 36.7,
+    fahrenheit: convertCelsiusToFahrenheit(36.7),
+    display: '36.7°C'
+  });
+
+  // Function to convert Celsius to Fahrenheit
+  function convertCelsiusToFahrenheit(celsius: number): number {
+    return (celsius * 9/5) + 32;
+  }
+
+  // Function to handle unit preference change
+  const handleUnitChange = (unit: 'metric' | 'imperial') => {
+    setUnitPreference(unit);
+    if (unit === 'metric') {
+      setTemperature(prev => ({
+        ...prev,
+        display: `${prev.celsius}°C`
+      }));
+    } else {
+      setTemperature(prev => ({
+        ...prev,
+        display: `${prev.fahrenheit.toFixed(1)}°F`
+      }));
+    }
+  };
   
   const goBack = () => setActiveScreen('main');
 
@@ -173,17 +209,42 @@ const Profile = () => {
                 <Label className="text-sm text-gray-600 font-medium">Unit Preference</Label>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="relative">
-                    <input type="radio" id="metric" name="unit" className="peer hidden" defaultChecked />
+                    <input 
+                      type="radio" 
+                      id="metric" 
+                      name="unit" 
+                      className="peer hidden" 
+                      checked={unitPreference === 'metric'} 
+                      onChange={() => handleUnitChange('metric')}
+                    />
                     <label htmlFor="metric" className="block w-full p-4 text-center border border-gray-300 rounded-lg cursor-pointer peer-checked:bg-blue-900 peer-checked:text-white peer-checked:border-blue-900">
                       Metric
                     </label>
                   </div>
                   <div className="relative">
-                    <input type="radio" id="imperial" name="unit" className="peer hidden" />
+                    <input 
+                      type="radio" 
+                      id="imperial" 
+                      name="unit" 
+                      className="peer hidden" 
+                      checked={unitPreference === 'imperial'} 
+                      onChange={() => handleUnitChange('imperial')}
+                    />
                     <label htmlFor="imperial" className="block w-full p-4 text-center border border-gray-300 rounded-lg cursor-pointer peer-checked:bg-blue-900 peer-checked:text-white peer-checked:border-blue-900">
                       Imperial
                     </label>
                   </div>
+                </div>
+              </div>
+              
+              {/* Temperature Display Demo */}
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Thermometer className="text-blue-900 mr-2" size={18} />
+                    <span className="text-sm text-gray-600">Current Temperature</span>
+                  </div>
+                  <span className="text-lg font-medium text-blue-900">{temperature.display}</span>
                 </div>
               </div>
             </div>

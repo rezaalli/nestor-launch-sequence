@@ -15,6 +15,7 @@ interface TemperatureAlertDialogProps {
   temperatureType: 'high' | 'low';
   onDismiss: () => void;
   onMonitor: () => void;
+  unitPreference?: 'metric' | 'imperial';
 }
 
 const TemperatureAlertDialog = ({
@@ -24,6 +25,7 @@ const TemperatureAlertDialog = ({
   temperatureType = 'high',
   onDismiss,
   onMonitor,
+  unitPreference = 'metric',
 }: TemperatureAlertDialogProps) => {
   const { addNotification, deleteNotification } = useNotifications();
   
@@ -35,13 +37,22 @@ const TemperatureAlertDialog = ({
   // Convert Celsius to Fahrenheit
   const temperatureF = (temperature * 9/5) + 32;
   
+  // Display temperature based on unit preference
+  const displayTemp = unitPreference === 'metric' 
+    ? `${temperature}°C` 
+    : `${temperatureF.toFixed(1)}°F`;
+  
+  const secondaryTemp = unitPreference === 'metric'
+    ? `(${temperatureF.toFixed(1)}°F)`
+    : `(${temperature}°C)`;
+  
   // Set up variables based on temperature type
   const iconBgColor = temperatureType === 'high' ? 'bg-red-100' : 'bg-blue-100';
   const iconColor = temperatureType === 'high' ? 'text-red-600' : 'text-blue-600';
   const title = temperatureType === 'high' ? 'High Temperature Alert' : 'Low Temperature Alert';
   const description = temperatureType === 'high' 
-    ? `Your body temperature is ${temperature}°C (${temperatureF.toFixed(1)}°F), which is above normal range. This could indicate a fever.`
-    : `Your body temperature is ${temperature}°C (${temperatureF.toFixed(1)}°F), which is below normal range. This could indicate hypothermia.`;
+    ? `Your body temperature is ${displayTemp}, which is above normal range. This could indicate a fever.`
+    : `Your body temperature is ${displayTemp}, which is below normal range. This could indicate hypothermia.`;
   
   const lucideIcon = temperatureType === 'high' ? "thermometer-sun" : "thermometer-snowflake";
 
@@ -56,9 +67,9 @@ const TemperatureAlertDialog = ({
           <h3 className="text-lg font-semibold text-center text-gray-900 mb-2">{title}</h3>
           <div className="flex items-center justify-center gap-3 mb-4">
             <span className={`text-3xl font-bold ${temperatureType === 'high' ? 'text-red-600' : 'text-blue-600'}`}>
-              {temperature}°C
+              {displayTemp}
             </span>
-            <span className="text-lg text-gray-500">({temperatureF.toFixed(1)}°F)</span>
+            <span className="text-lg text-gray-500">{secondaryTemp}</span>
           </div>
           
           <p className="text-center text-gray-600 mb-6">
