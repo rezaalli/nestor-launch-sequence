@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Onboarding from "./components/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import LifestyleCheckIn from "./pages/LifestyleCheckIn";
+import TrendsAndInsights from "./pages/TrendsAndInsights";
 import NotFound from "./pages/NotFound";
 import DeviceConnectionLostScreen from "./screens/DeviceConnectionLostScreen";
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/lifestyle-checkin" element={<LifestyleCheckIn />} />
+          <Route path="/trends" element={<TrendsAndInsights />} />
           <Route 
             path="/connection-lost" 
             element={

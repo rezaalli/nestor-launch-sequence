@@ -1,19 +1,27 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
 
 const WeeklyTrend = () => {
+  const navigate = useNavigate();
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const heights = [10, 16, 14, 12, 8, 18, 20]; // Height values for each day (in rem units)
+  
+  const handleViewAllTrends = () => {
+    navigate('/trends');
+  };
   
   return (
     <div className="p-4 bg-white border border-gray-200 rounded-xl">
       <div className="flex items-center justify-between mb-3">
         <h4 className="font-medium text-nestor-gray-900">Heart Rate</h4>
-        <div className="text-xs flex items-center text-nestor-gray-600">
+        <div 
+          className="text-xs flex items-center text-nestor-gray-600 cursor-pointer"
+          onClick={handleViewAllTrends}
+        >
           <span>Last 7 days</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-            <path d="m6 9 6 6 6-6"/>
-          </svg>
+          <ChevronDown className="ml-1" size={12} />
         </div>
       </div>
       
