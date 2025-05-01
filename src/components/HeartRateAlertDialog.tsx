@@ -22,32 +22,13 @@ const HeartRateAlertDialog = ({
   onDismiss,
   onMonitor,
 }: HeartRateAlertDialogProps) => {
-  const { addNotification } = useNotifications();
+  const { addNotification, deleteNotification } = useNotifications();
   
   const handleDismiss = () => {
     onDismiss();
     
-    // Add to notifications even if dismissed from dialog
-    addNotification({
-      title: "High Heart Rate Alert",
-      description: `Your heart rate was ${heartRate} BPM, which is above your normal resting range.`,
-      type: "health",
-      icon: "heart-pulse",
-      iconBgColor: "bg-red-100",
-      iconColor: "text-red-600",
-      time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-      date: "Today",
-      actions: {
-        primary: {
-          label: "Monitor",
-          action: () => console.log("Monitor heart rate")
-        },
-        secondary: {
-          label: "Dismiss",
-          action: () => console.log("Dismiss heart rate notification")
-        }
-      }
-    });
+    // Instead of adding to notifications when dismissed, we'll skip that
+    // The notification will only be added if the user chooses to monitor
   };
 
   return (

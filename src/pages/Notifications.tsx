@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Settings, ArrowLeft, ChevronDown } from 'lucide-react';
@@ -13,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 
 const Notifications = () => {
-  const { notifications, markAsRead, clearAll, showEcgAlert } = useNotifications();
+  const { notifications, markAsRead, clearAll, showEcgAlert, deleteNotification } = useNotifications();
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<'all' | NotificationType>('all');
   const [showSettings, setShowSettings] = useState(false);
@@ -28,6 +27,12 @@ const Notifications = () => {
 
   const handleGenerateEcgAlert = () => {
     showEcgAlert();
+  };
+
+  const handleDismiss = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent parent notification click handler from firing
+    deleteNotification(id);
+    toast.success("Notification dismissed");
   };
 
   const filteredNotifications = activeCategory === 'all'
@@ -366,7 +371,10 @@ const Notifications = () => {
                                 className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs rounded-lg h-auto"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  notification.actions?.secondary?.action();
+                                  handleDismiss(notification.id, e);
+                                  if (notification.actions?.secondary?.action) {
+                                    notification.actions.secondary.action();
+                                  }
                                 }}
                               >
                                 {notification.actions.secondary.label}
