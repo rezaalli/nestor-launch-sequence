@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Bell, Star, ArrowUp, ClipboardList, ChevronDown, Grid3x3 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +20,9 @@ const Dashboard = () => {
     const savedLayout = localStorage.getItem('metricsLayout');
     return (savedLayout === '3x2' ? '3x2' : '2x3') as '3x2' | '2x3';
   });
+  
+  // Create a ref for the metrics container
+  const metricsGridRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     // Show welcome toast
@@ -46,6 +49,157 @@ const Dashboard = () => {
       clearTimeout(ecgTimer);
     };
   }, [toast]);
+  
+  // Effect for setting up drag-and-drop functionality
+  useEffect(() => {
+    if (loading || !metricsGridRef.current) return;
+
+    let dragSrcEl: HTMLElement | null = null;
+    
+    const handleDragStart = (e: DragEvent) => {
+      if (!(e.target instanceof HTMLElement)) return;
+      
+      dragSrcEl = e.target.closest('.metric-card');
+      if (!dragSrcEl) return;
+      
+      e.dataTransfer?.setData('text/plain', ''); // Required for Firefox
+      
+      setTimeout(() => {
+        if (dragSrcEl) dragSrcEl.classList.add('opacity-50');
+      }, 0);
+    };
+    
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      return false;
+    };
+    
+    const handleDragEnter = (e: DragEvent) => {
+      if (!(e.target instanceof HTMLElement)) return;
+      
+      const targetCard = e.target.closest('.metric-card');
+      if (targetCard) {
+        targetCard.classList.add('bg-gray-100');
+      }
+    };
+    
+    const handleDragLeave = (e: DragEvent) => {
+      if (!(e.target instanceof HTMLElement)) return;
+      
+      const targetCard = e.target.closest('.metric-card');
+      if (targetCard) {
+        targetCard.classList.remove('bg-gray-100');
+      }
+    };
+    
+    const handleDrop = (e: DragEvent) => {
+      e.stopPropagation();
+      
+      if (!(e.target instanceof HTMLElement) || !dragSrcEl) return;
+      
+      const targetCard = e.target.closest('.metric-card');
+      
+      if (targetCard && dragSrcEl !== targetCard) {
+        // Get the container and all cards
+        const container = metricsGridRef.current;
+        if (!container) return;
+        
+        // Determine if we're inserting before or after the target
+        const rect = targetCard.getBoundingClientRect();
+        const midX = rect.left + rect.width / 2;
+        const midY = rect.top + rect.height / 2;
+        
+        // If pointer is before the middle of the card, insert before, otherwise insert after
+        if (e.clientX < midX && e.clientY < midY) {
+          container.insertBefore(dragSrcEl, targetCard);
+        } else {
+          container.insertBefore(dragSrcEl, targetCard.nextSibling);
+        }
+        
+        // Store the new order in localStorage
+        saveCardOrder();
+      }
+      
+      // Clean up
+      if (targetCard) targetCard.classList.remove('bg-gray-100');
+      dragSrcEl.classList.remove('opacity-50');
+      
+      return false;
+    };
+    
+    const handleDragEnd = (e: DragEvent) => {
+      if (!(e.target instanceof HTMLElement)) return;
+      
+      const cards = metricsGridRef.current?.querySelectorAll('.metric-card');
+      if (cards) {
+        cards.forEach(card => {
+          (card as HTMLElement).classList.remove('bg-gray-100', 'opacity-50');
+        });
+      }
+    };
+    
+    // Save the card order to localStorage
+    const saveCardOrder = () => {
+      const cards = metricsGridRef.current?.querySelectorAll('.metric-card');
+      if (!cards) return;
+      
+      const order = Array.from(cards).map(card => card.id);
+      localStorage.setItem('metricsOrder', JSON.stringify(order));
+    };
+    
+    // Load saved order
+    const loadCardOrder = () => {
+      const container = metricsGridRef.current;
+      if (!container) return;
+      
+      const savedOrder = localStorage.getItem('metricsOrder');
+      if (!savedOrder) return;
+      
+      try {
+        const order = JSON.parse(savedOrder);
+        // Get all current cards
+        const cards = Array.from(container.querySelectorAll('.metric-card'));
+        
+        // Reorder cards according to saved order
+        order.forEach((id: string) => {
+          const card = cards.find(card => card.id === id);
+          if (card) container.appendChild(card);
+        });
+      } catch (e) {
+        console.error('Error loading card order:', e);
+      }
+    };
+    
+    // Add event listeners to all cards
+    const cards = metricsGridRef.current.querySelectorAll('.metric-card');
+    cards.forEach(card => {
+      card.setAttribute('draggable', 'true');
+      card.addEventListener('dragstart', handleDragStart);
+      card.addEventListener('dragover', handleDragOver);
+      card.addEventListener('dragenter', handleDragEnter);
+      card.addEventListener('dragleave', handleDragLeave);
+      card.addEventListener('drop', handleDrop);
+      card.addEventListener('dragend', handleDragEnd);
+    });
+    
+    // Load saved card order on mount
+    loadCardOrder();
+    
+    // Cleanup event listeners on component unmount
+    return () => {
+      if (!metricsGridRef.current) return;
+      
+      const cards = metricsGridRef.current.querySelectorAll('.metric-card');
+      cards.forEach(card => {
+        card.removeEventListener('dragstart', handleDragStart);
+        card.removeEventListener('dragover', handleDragOver);
+        card.removeEventListener('dragenter', handleDragEnter);
+        card.removeEventListener('dragleave', handleDragLeave);
+        card.removeEventListener('drop', handleDrop);
+        card.removeEventListener('dragend', handleDragEnd);
+      });
+    };
+  }, [loading]);
   
   const toggleGridLayout = () => {
     const newLayout = gridLayout === '2x3' ? '3x2' : '2x3';
@@ -153,12 +307,15 @@ const Dashboard = () => {
               className="text-xs text-blue-900 font-medium flex items-center"
               onClick={toggleGridLayout}
             >
-              <i className="fa-solid fa-grip-vertical mr-1"></i>
-              Customize {gridLayout === '2x3' ? '(2×3)' : '(3×2)'}
+              <Grid3x3 className="mr-1" size={14} />
+              Customize
             </button>
           </div>
-          <div className={`grid ${gridLayout === '2x3' ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
-            <div id="heart-rate-card" className="p-4 bg-white border border-gray-200 rounded-xl">
+          <div 
+            ref={metricsGridRef} 
+            className={`grid ${gridLayout === '2x3' ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}
+          >
+            <div id="heart-rate-card" className="metric-card p-4 bg-white border border-gray-200 rounded-xl">
               <div className="flex items-center mb-2">
                 <i className="fa-solid fa-heart-pulse text-red-500 mr-2"></i>
                 <span className="text-xs text-gray-600">Heart Rate</span>
@@ -184,7 +341,7 @@ const Dashboard = () => {
               </div>
             </div>
             
-            <div id="steps-card" className="p-4 bg-white border border-gray-200 rounded-xl">
+            <div id="steps-card" className="metric-card p-4 bg-white border border-gray-200 rounded-xl">
               <div className="flex items-center mb-2">
                 <i className="fa-solid fa-shoe-prints text-green-500 mr-2"></i>
                 <span className="text-xs text-gray-600">Steps</span>
@@ -202,7 +359,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div id="activity-card" className="p-4 bg-white border border-gray-200 rounded-xl">
+            <div id="activity-card" className="metric-card p-4 bg-white border border-gray-200 rounded-xl">
               <div className="flex items-center mb-2">
                 <i className="fa-solid fa-fire text-orange-500 mr-2"></i>
                 <span className="text-xs text-gray-600">Activity</span>
@@ -219,7 +376,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div id="oxygen-card" className="p-4 bg-white border border-gray-200 rounded-xl">
+            <div id="oxygen-card" className="metric-card p-4 bg-white border border-gray-200 rounded-xl">
               <div className="flex items-center mb-2">
                 <i className="fa-solid fa-droplet text-blue-500 mr-2"></i>
                 <span className="text-xs text-gray-600">SpO₂</span>
@@ -239,7 +396,7 @@ const Dashboard = () => {
               </div>
             </div>
             
-            <div id="ecg-card" className="p-4 bg-white border border-gray-200 rounded-xl">
+            <div id="ecg-card" className="metric-card p-4 bg-white border border-gray-200 rounded-xl">
               <div className="flex items-center mb-2">
                 <i className="fa-solid fa-wave-square text-purple-500 mr-2"></i>
                 <span className="text-xs text-gray-600">ECG</span>
@@ -256,7 +413,7 @@ const Dashboard = () => {
               </div>
             </div>
             
-            <div id="temperature-card" className="p-4 bg-white border border-gray-200 rounded-xl">
+            <div id="temperature-card" className="metric-card p-4 bg-white border border-gray-200 rounded-xl">
               <div className="flex items-center mb-2">
                 <i className="fa-solid fa-temperature-half text-orange-500 mr-2"></i>
                 <span className="text-xs text-gray-600 truncate">Temp</span>
