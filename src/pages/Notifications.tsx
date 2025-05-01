@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 
 const Notifications = () => {
@@ -274,36 +275,38 @@ const Notifications = () => {
             </div>
           </div>
           
-          <div className="px-6 py-3 flex space-x-2 overflow-x-auto hide-scrollbar border-b border-gray-100">
-            <Button 
-              variant={activeCategory === 'all' ? 'default' : 'outline'} 
-              className={activeCategory === 'all' ? 'bg-nestor-blue text-white' : 'bg-gray-100 text-gray-700'} 
-              onClick={() => setActiveCategory('all')}
-            >
-              All
-            </Button>
-            <Button 
-              variant={activeCategory === 'health' ? 'default' : 'outline'} 
-              className={activeCategory === 'health' ? 'bg-nestor-blue text-white' : 'bg-gray-100 text-gray-700'} 
-              onClick={() => setActiveCategory('health')}
-            >
-              Health Alerts
-            </Button>
-            <Button 
-              variant={activeCategory === 'device' ? 'default' : 'outline'} 
-              className={activeCategory === 'device' ? 'bg-nestor-blue text-white' : 'bg-gray-100 text-gray-700'} 
-              onClick={() => setActiveCategory('device')}
-            >
-              Device Alerts
-            </Button>
-            <Button 
-              variant={activeCategory === 'lifestyle' ? 'default' : 'outline'} 
-              className={activeCategory === 'lifestyle' ? 'bg-nestor-blue text-white' : 'bg-gray-100 text-gray-700'} 
-              onClick={() => setActiveCategory('lifestyle')}
-            >
-              Lifestyle
-            </Button>
-          </div>
+          <ScrollArea className="border-b border-gray-100">
+            <div className="px-6 py-3 flex space-x-2 w-max">
+              <Button 
+                variant={activeCategory === 'all' ? 'default' : 'outline'} 
+                className={activeCategory === 'all' ? 'bg-nestor-blue text-white' : 'bg-gray-100 text-gray-700'} 
+                onClick={() => setActiveCategory('all')}
+              >
+                All
+              </Button>
+              <Button 
+                variant={activeCategory === 'health' ? 'default' : 'outline'} 
+                className={activeCategory === 'health' ? 'bg-nestor-blue text-white' : 'bg-gray-100 text-gray-700'} 
+                onClick={() => setActiveCategory('health')}
+              >
+                Health Alerts
+              </Button>
+              <Button 
+                variant={activeCategory === 'device' ? 'default' : 'outline'} 
+                className={activeCategory === 'device' ? 'bg-nestor-blue text-white' : 'bg-gray-100 text-gray-700'} 
+                onClick={() => setActiveCategory('device')}
+              >
+                Device Alerts
+              </Button>
+              <Button 
+                variant={activeCategory === 'lifestyle' ? 'default' : 'outline'} 
+                className={activeCategory === 'lifestyle' ? 'bg-nestor-blue text-white' : 'bg-gray-100 text-gray-700'} 
+                onClick={() => setActiveCategory('lifestyle')}
+              >
+                Lifestyle
+              </Button>
+            </div>
+          </ScrollArea>
           
           <div className="flex-1 overflow-y-auto pb-24">
             {/* Test ECG Alert Button - For demo purposes */}
