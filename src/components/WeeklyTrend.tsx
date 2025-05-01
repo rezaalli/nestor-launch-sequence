@@ -3,13 +3,21 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 
-const WeeklyTrend = () => {
+interface WeeklyTrendProps {
+  onViewAllClick?: () => void;
+}
+
+const WeeklyTrend = ({ onViewAllClick }: WeeklyTrendProps) => {
   const navigate = useNavigate();
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const heights = [10, 16, 14, 12, 8, 18, 20]; // Height values for each day (in rem units)
   
   const handleViewAllTrends = () => {
-    navigate('/trends');
+    if (onViewAllClick) {
+      onViewAllClick();
+    } else {
+      navigate('/trends');
+    }
   };
   
   return (

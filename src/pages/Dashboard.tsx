@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Bell, Star, ArrowUp, ClipboardList } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -65,6 +66,10 @@ const Dashboard = () => {
   
   const handleNotificationsClick = () => {
     navigate('/notifications');
+  };
+
+  const handleViewAllTrends = () => {
+    navigate('/trends');
   };
   
   if (loading) {
@@ -150,9 +155,14 @@ const Dashboard = () => {
         <div className="px-6 mt-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-nestor-gray-500">WEEKLY TRENDS</h3>
-            <span className="text-xs text-blue-900 font-medium">View All</span>
+            <span 
+              className="text-xs text-blue-900 font-medium cursor-pointer"
+              onClick={handleViewAllTrends}
+            >
+              View All
+            </span>
           </div>
-          <WeeklyTrend />
+          <WeeklyTrend onViewAllClick={handleViewAllTrends} />
         </div>
         
         <BottomNavbar />
