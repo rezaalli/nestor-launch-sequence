@@ -10,7 +10,7 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from '@/components/ui/chart';
-import { BarChart, XAxis, YAxis, Bar, ResponsiveContainer, Tooltip } from 'recharts';
+import { BarChart, XAxis, YAxis, Bar, ResponsiveContainer, Tooltip, Cell } from 'recharts';
 import BottomNavbar from '@/components/BottomNavbar';
 
 const weeklyData = [
@@ -136,9 +136,16 @@ const TrendsAndInsights = () => {
                   />
                   <Bar 
                     dataKey="value" 
-                    fill={(entry) => entry.name === "Thu" ? "#0F172A" : "#e5e7eb"}
+                    fill="#e5e7eb"
                     radius={[4, 4, 0, 0]} 
-                  />
+                  >
+                    {weeklyData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`}
+                        fill={entry.name === 'Thu' ? '#0F172A' : '#e5e7eb'} 
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ChartContainer>
             </CardContent>
