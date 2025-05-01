@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Lungs } from "lucide-react";
+import { Wind } from "lucide-react";
 import { useNotifications } from '@/contexts/NotificationsContext';
 
 interface SpO2AlertDialogProps {
@@ -28,7 +28,7 @@ const SpO2AlertDialog = ({
       <DialogContent className="bg-white rounded-xl w-[90%] max-w-sm overflow-hidden shadow-xl p-0">
         <div className="p-6">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-            <Lungs className="text-red-600 text-2xl" />
+            <Wind className="text-red-600 h-8 w-8" />
           </div>
           
           <div className="flex items-center justify-center mb-4">
