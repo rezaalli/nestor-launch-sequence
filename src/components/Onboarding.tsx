@@ -6,6 +6,7 @@ import DevicePairingScreen from '../screens/DevicePairingScreen';
 import DeviceSelectionScreen from '../screens/DeviceSelectionScreen';
 import DeviceNameScreen from '../screens/DeviceNameScreen';
 import WearCalibrationScreen from '../screens/WearCalibrationScreen';
+import DeviceConnectedScreen from '../screens/DeviceConnectedScreen';
 import PermissionsScreen from '../screens/PermissionsScreen';
 import SetupCompleteScreen from '../screens/SetupCompleteScreen';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +23,7 @@ const Onboarding = () => {
     'deviceSelection',
     'deviceName',
     'wearCalibration',
+    'deviceConnected',
     'permissions',
     'setupComplete'
   ];
@@ -50,8 +52,10 @@ const Onboarding = () => {
       case 5:
         return <WearCalibrationScreen onNext={handleNext} />;
       case 6:
-        return <PermissionsScreen onNext={handleNext} />;
+        return <DeviceConnectedScreen onNext={handleNext} />;
       case 7:
+        return <PermissionsScreen onNext={handleNext} />;
+      case 8:
         return <SetupCompleteScreen onNext={handleNext} />;
       default:
         return <WelcomeScreen onNext={handleNext} />;
