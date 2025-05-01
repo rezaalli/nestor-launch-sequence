@@ -18,7 +18,7 @@ const BottomNavbar = () => {
         
         <button className="flex flex-col items-center w-16">
           <CalendarDays className="text-nestor-gray-400" size={20} />
-          <span className="text-xs text-nestor-gray-400 mt-1">Diary</span>
+          <span className="text-xs text-nestor-gray-400 mt-1">Log</span>
         </button>
         
         <button className="flex flex-col items-center w-16">
