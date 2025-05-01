@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Onboarding from "./components/Onboarding";
 import Dashboard from "./pages/Dashboard";
+import LifestyleCheckIn from "./pages/LifestyleCheckIn";
 import NotFound from "./pages/NotFound";
 import DeviceConnectionLostScreen from "./screens/DeviceConnectionLostScreen";
 
@@ -20,6 +21,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/lifestyle-checkin" element={<LifestyleCheckIn />} />
           <Route 
             path="/connection-lost" 
             element={

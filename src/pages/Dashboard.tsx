@@ -1,7 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { Bell, Star, ArrowUp, ClipboardList } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import StatusBar from '@/components/StatusBar';
 import HealthMetrics from '@/components/HealthMetrics';
 import WeeklyTrend from '@/components/WeeklyTrend';
@@ -9,6 +10,7 @@ import BottomNavbar from '@/components/BottomNavbar';
 
 const Dashboard = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -25,6 +27,10 @@ const Dashboard = () => {
     
     return () => clearTimeout(timer);
   }, [toast]);
+  
+  const handleLifestyleCheckIn = () => {
+    navigate("/lifestyle-checkin");
+  };
   
   if (loading) {
     return (
@@ -93,7 +99,10 @@ const Dashboard = () => {
       </div>
       
       {/* Lifestyle Check-In Button */}
-      <button className="mx-6 mt-6 py-3.5 bg-nestor-blue text-white font-medium rounded-lg flex items-center justify-center">
+      <button 
+        className="mx-6 mt-6 py-3.5 bg-nestor-blue text-white font-medium rounded-lg flex items-center justify-center"
+        onClick={handleLifestyleCheckIn}
+      >
         <ClipboardList className="mr-2" size={18} />
         Log Lifestyle Check-In
       </button>
