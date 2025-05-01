@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import StatusBar from "@/components/StatusBar";
@@ -15,6 +15,8 @@ const LifestyleCheckIn = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const progressCircleRef = useRef<SVGCircleElement>(null);
+  const totalSlides = 6;
   
   // Survey data state
   const [surveyData, setSurveyData] = useState({
@@ -29,8 +31,20 @@ const LifestyleCheckIn = () => {
     notes: ""
   });
 
+  // Update progress circle
+  useEffect(() => {
+    if (progressCircleRef.current) {
+      const circumference = 2 * Math.PI * 20;
+      const progress = ((currentSlide + 1) / totalSlides) * 100;
+      const offset = circumference - (progress / 100) * circumference;
+      
+      progressCircleRef.current.style.strokeDasharray = `${circumference}`;
+      progressCircleRef.current.style.strokeDashoffset = `${offset}`;
+    }
+  }, [currentSlide]);
+
   // Update individual survey field
-  const updateSurveyData = (field, value) => {
+  const updateSurveyData = (field: string, value: any) => {
     setSurveyData(prev => ({
       ...prev,
       [field]: value
@@ -38,7 +52,7 @@ const LifestyleCheckIn = () => {
   };
 
   // Update nested lifestyle factors
-  const updateLifestyleFactors = (factor, value) => {
+  const updateLifestyleFactors = (factor: string, value: boolean) => {
     setSurveyData(prev => ({
       ...prev,
       lifestyleFactors: {
@@ -55,7 +69,7 @@ const LifestyleCheckIn = () => {
   };
 
   const goToNextSlide = () => {
-    if (currentSlide < 5) {
+    if (currentSlide < totalSlides - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
       // Submit the form
@@ -77,56 +91,6 @@ const LifestyleCheckIn = () => {
     navigate("/dashboard");
   };
 
-  // Render slide based on current index
-  const renderSlide = () => {
-    switch (currentSlide) {
-      case 0:
-        return (
-          <MoodSelection 
-            mood={surveyData.mood} 
-            setMood={(value) => updateSurveyData("mood", value)} 
-          />
-        );
-      case 1:
-        return (
-          <EnergyLevel 
-            energyLevel={surveyData.energyLevel} 
-            setEnergyLevel={(value) => updateSurveyData("energyLevel", value)} 
-          />
-        );
-      case 2:
-        return (
-          <SleepQuality 
-            sleepQuality={surveyData.sleepQuality} 
-            setSleepQuality={(value) => updateSurveyData("sleepQuality", value)} 
-          />
-        );
-      case 3:
-        return (
-          <LifestyleFactors 
-            lifestyleFactors={surveyData.lifestyleFactors} 
-            setLifestyleFactors={updateLifestyleFactors} 
-          />
-        );
-      case 4:
-        return (
-          <ExerciseType 
-            exerciseType={surveyData.exerciseType} 
-            setExerciseType={(value) => updateSurveyData("exerciseType", value)} 
-          />
-        );
-      case 5:
-        return (
-          <NotesSection 
-            notes={surveyData.notes} 
-            setNotes={(value) => updateSurveyData("notes", value)} 
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <StatusBar />
@@ -144,13 +108,54 @@ const LifestyleCheckIn = () => {
       </div>
       
       {/* Survey Form */}
-      <div className="px-6 pb-20 flex-1 overflow-hidden">
+      <div className="px-6 pb-6 flex-1 overflow-hidden">
         <div className="w-full max-w-md mx-auto">
-          {renderSlide()}
+          {/* Dynamic slide content */}
+          {currentSlide === 0 && (
+            <MoodSelection 
+              mood={surveyData.mood} 
+              setMood={(value) => updateSurveyData("mood", value)} 
+            />
+          )}
+          
+          {currentSlide === 1 && (
+            <EnergyLevel 
+              energyLevel={surveyData.energyLevel} 
+              setEnergyLevel={(value) => updateSurveyData("energyLevel", value)} 
+            />
+          )}
+          
+          {currentSlide === 2 && (
+            <SleepQuality 
+              sleepQuality={surveyData.sleepQuality} 
+              setSleepQuality={(value) => updateSurveyData("sleepQuality", value)} 
+            />
+          )}
+          
+          {currentSlide === 3 && (
+            <LifestyleFactors 
+              lifestyleFactors={surveyData.lifestyleFactors} 
+              setLifestyleFactors={updateLifestyleFactors} 
+            />
+          )}
+          
+          {currentSlide === 4 && (
+            <ExerciseType 
+              exerciseType={surveyData.exerciseType} 
+              setExerciseType={(value) => updateSurveyData("exerciseType", value)} 
+            />
+          )}
+          
+          {currentSlide === 5 && (
+            <NotesSection 
+              notes={surveyData.notes} 
+              setNotes={(value) => updateSurveyData("notes", value)} 
+            />
+          )}
         </div>
       </div>
       
-      {/* Submit Button */}
+      {/* Submit Button with Progress Circle */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 flex justify-between items-center">
         <button 
           className="h-14 px-6 bg-gray-100 text-gray-700 font-medium rounded-xl flex items-center"
@@ -161,21 +166,38 @@ const LifestyleCheckIn = () => {
           Previous
         </button>
         
-        <div className="flex items-center space-x-1.5">
-          {[...Array(6)].map((_, index) => (
-            <div 
-              key={index}
-              className={`w-2 h-2 rounded-full ${currentSlide === index ? 'bg-nestor-blue' : 'bg-gray-200'}`}
-            ></div>
-          ))}
+        <div className="relative w-12 h-12">
+          <svg className="transform -rotate-90 w-12 h-12">
+            <circle
+              cx="24"
+              cy="24"
+              r="20"
+              strokeWidth="4"
+              fill="none"
+              className="stroke-gray-200"
+            />
+            <circle
+              ref={progressCircleRef}
+              cx="24"
+              cy="24"
+              r="20"
+              strokeWidth="4"
+              fill="none"
+              className="stroke-blue-900"
+              style={{ strokeDasharray: "126", strokeDashoffset: "126" }}
+            />
+          </svg>
+          <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-sm font-medium text-blue-900">
+            {currentSlide + 1}/{totalSlides}
+          </span>
         </div>
 
         <button 
           className="h-14 px-6 bg-nestor-blue text-white font-medium rounded-xl flex items-center"
           onClick={goToNextSlide}
         >
-          {currentSlide === 5 ? 'Submit' : 'Next'}
-          {currentSlide < 5 && <ChevronRight className="ml-2" size={16} />}
+          {currentSlide === totalSlides - 1 ? 'Submit' : 'Next'}
+          {currentSlide < totalSlides - 1 && <ArrowRight className="ml-2" size={16} />}
         </button>
       </div>
     </div>

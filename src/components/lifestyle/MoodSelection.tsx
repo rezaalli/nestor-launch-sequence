@@ -16,11 +16,11 @@ const MoodSelection: React.FC<MoodSelectionProps> = ({ mood, setMood }) => {
   ];
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center min-h-[400px] justify-center">
       <label className="block text-sm font-medium text-nestor-gray-700 mb-8 text-center">
         How are you feeling today?
       </label>
-      <div className="grid grid-cols-5 gap-3 w-full">
+      <div className="grid grid-cols-5 gap-3">
         {moods.map((moodOption) => (
           <button
             key={moodOption.id}
