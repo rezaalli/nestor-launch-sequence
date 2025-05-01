@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import StatusBar from "@/components/StatusBar";
 import BottomNavbar from "@/components/BottomNavbar";
 import { useNavigate } from 'react-router-dom';
+import { useUser } from "@/contexts/UserContext";
+import { useToast } from "@/hooks/use-toast";
 import { 
   User, 
   Shield, 
@@ -30,8 +31,14 @@ interface TemperatureDisplay {
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { user, updateUser } = useUser();
+  const { toast } = useToast();
   const [activeScreen, setActiveScreen] = useState<'main' | 'account' | 'privacy' | 'appearance'>('main');
   const [unitPreference, setUnitPreference] = useState<'metric' | 'imperial'>('metric');
+  
+  // Form states for account info
+  const [formName, setFormName] = useState(user.name);
+  const [formEmail, setFormEmail] = useState(user.email);
   
   // Sample temperature value in Celsius
   const [temperature, setTemperature] = useState<TemperatureDisplay>({
@@ -62,6 +69,27 @@ const Profile = () => {
   };
   
   const goBack = () => setActiveScreen('main');
+  
+  // Update form fields when user data changes
+  useEffect(() => {
+    setFormName(user.name);
+    setFormEmail(user.email);
+  }, [user]);
+  
+  // Handle save account info
+  const handleSaveAccountInfo = () => {
+    updateUser({
+      name: formName,
+      email: formEmail
+    });
+    
+    toast({
+      title: "Account updated",
+      description: "Your account information has been saved.",
+    });
+    
+    setActiveScreen('main');
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -78,12 +106,12 @@ const Profile = () => {
             {/* User Profile Card */}
             <div className="flex items-center space-x-4 mb-8">
               <Avatar className="w-16 h-16">
-                <AvatarImage src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg" alt="User profile" />
-                <AvatarFallback>AM</AvatarFallback>
+                <AvatarImage src={user.avatar} alt="User profile" />
+                <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div>
-                <h2 className="text-lg font-medium text-gray-900">Alex Morgan</h2>
-                <p className="text-gray-600">alex.morgan@example.com</p>
+                <h2 className="text-lg font-medium text-gray-900">{user.name}</h2>
+                <p className="text-gray-600">{user.email}</p>
               </div>
             </div>
             
@@ -183,13 +211,25 @@ const Profile = () => {
               {/* Name Field */}
               <div className="space-y-2">
                 <Label htmlFor="full-name" className="text-sm text-gray-600 font-medium">Full Name</Label>
-                <Input type="text" id="full-name" className="p-4" defaultValue="Alex Morgan" />
+                <Input 
+                  type="text" 
+                  id="full-name" 
+                  className="p-4" 
+                  value={formName} 
+                  onChange={(e) => setFormName(e.target.value)} 
+                />
               </div>
               
               {/* Email Field */}
               <div className="space-y-2">
                 <Label htmlFor="email-address" className="text-sm text-gray-600 font-medium">Email Address</Label>
-                <Input type="email" id="email-address" className="p-4" defaultValue="alex.morgan@example.com" />
+                <Input 
+                  type="email" 
+                  id="email-address" 
+                  className="p-4" 
+                  value={formEmail}
+                  onChange={(e) => setFormEmail(e.target.value)}
+                />
               </div>
               
               {/* Password Field */}
@@ -251,7 +291,10 @@ const Profile = () => {
             
             {/* Save Button */}
             <div className="mt-8">
-              <Button className="w-full py-6 bg-blue-900 text-white font-medium" onClick={goBack}>
+              <Button 
+                className="w-full py-6 bg-blue-900 text-white font-medium" 
+                onClick={handleSaveAccountInfo}
+              >
                 Save Changes
               </Button>
             </div>

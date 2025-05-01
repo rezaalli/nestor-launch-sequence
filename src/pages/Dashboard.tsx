@@ -4,6 +4,7 @@ import { Bell, Star, ArrowUp, ClipboardList, ChevronDown, Grid3x3 } from 'lucide
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/contexts/NotificationsContext";
+import { useUser } from "@/contexts/UserContext";
 import StatusBar from '@/components/StatusBar';
 import BottomNavbar from '@/components/BottomNavbar';
 import EcgAlertDialog from '@/components/EcgAlertDialog';
@@ -15,6 +16,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { showEcgAlert, addNotification } = useNotifications();
+  const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [showEcgDialog, setShowEcgDialog] = useState(false);
   const [showHeartRateDialog, setShowHeartRateDialog] = useState(false);
@@ -285,12 +287,12 @@ const Dashboard = () => {
         <div className="px-6 pt-4 pb-2 flex items-center justify-between">
           <div className="flex items-center">
             <img 
-              src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" 
+              src={user.avatar} 
               alt="Profile" 
               className="w-10 h-10 rounded-full mr-3" 
             />
             <div>
-              <h2 className="text-lg font-medium text-nestor-gray-900">Hi, Emma</h2>
+              <h2 className="text-lg font-medium text-nestor-gray-900">Hi, {user.name}</h2>
               <div className="flex items-center">
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-1.5"></div>
                 <span className="text-xs text-nestor-gray-600">Rolex Datejust • Connected</span>

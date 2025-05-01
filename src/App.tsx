@@ -1,10 +1,10 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { NotificationsProvider } from "./contexts/NotificationsContext";
+import { UserProvider } from "./contexts/UserContext";
 import Onboarding from "./components/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import LifestyleCheckIn from "./pages/LifestyleCheckIn";
@@ -50,50 +50,52 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <NotificationsProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Onboarding />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/lifestyle-checkin" element={<LifestyleCheckIn />} />
-              <Route path="/trends" element={<TrendsAndInsights />} />
-              <Route path="/notifications" element={<Notifications />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route 
-                path="/connection-lost" 
-                element={
-                  <DeviceConnectionLostScreen 
-                    onRetry={() => window.location.href = '/dashboard'} 
-                    onContinueWithoutDevice={() => window.location.href = '/dashboard'} 
-                  />
-                } 
+        <UserProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Onboarding />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/lifestyle-checkin" element={<LifestyleCheckIn />} />
+                <Route path="/trends" element={<TrendsAndInsights />} />
+                <Route path="/notifications" element={<Notifications />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route 
+                  path="/connection-lost" 
+                  element={
+                    <DeviceConnectionLostScreen 
+                      onRetry={() => window.location.href = '/dashboard'} 
+                      onContinueWithoutDevice={() => window.location.href = '/dashboard'} 
+                    />
+                  } 
+                />
+                <Route 
+                  path="/device-reconnected" 
+                  element={
+                    <DeviceReconnectedScreen />
+                  } 
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              
+              <SpO2AlertDialog 
+                open={showSpO2Alert} 
+                onOpenChange={setShowSpO2Alert} 
+                spO2Level={spO2Level}
+                onDismiss={() => setShowSpO2Alert(false)}
+                onTakeReading={() => {
+                  // Simulate taking a new reading
+                  const newLevel = Math.floor(Math.random() * 6) + 95; // Generate a normal reading after "taking" a new one
+                  setSpO2Level(newLevel);
+                  setTimeout(() => setShowSpO2Alert(false), 2000);
+                }}
               />
-              <Route 
-                path="/device-reconnected" 
-                element={
-                  <DeviceReconnectedScreen />
-                } 
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            
-            <SpO2AlertDialog 
-              open={showSpO2Alert} 
-              onOpenChange={setShowSpO2Alert} 
-              spO2Level={spO2Level}
-              onDismiss={() => setShowSpO2Alert(false)}
-              onTakeReading={() => {
-                // Simulate taking a new reading
-                const newLevel = Math.floor(Math.random() * 6) + 95; // Generate a normal reading after "taking" a new one
-                setSpO2Level(newLevel);
-                setTimeout(() => setShowSpO2Alert(false), 2000);
-              }}
-            />
-          </BrowserRouter>
-        </TooltipProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </UserProvider>
       </NotificationsProvider>
     </QueryClientProvider>
   );
