@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowLeft, Check, HeartPulse, Waveform, Droplet, RotateCw } from 'lucide-react';
+import { ArrowLeft, Check, HeartPulse, AudioWaveform, Droplet, RotateCw } from 'lucide-react';
 import OnboardingLayout from '../components/OnboardingLayout';
 import { Button } from '@/components/ui/button';
 
@@ -114,7 +114,7 @@ const WearCalibrationScreen = ({ onNext }: WearCalibrationScreenProps) => {
             
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center">
-                <Waveform size={16} className="text-purple-500 mr-2" />
+                <AudioWaveform size={16} className="text-purple-500 mr-2" />
                 <span className="text-sm text-nestor-gray-700">ECG</span>
               </div>
               <span className="text-sm font-medium text-green-500">Active</span>
