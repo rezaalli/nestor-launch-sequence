@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Bell, Star, ArrowUp, ClipboardList } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -64,6 +63,10 @@ const Dashboard = () => {
     showEcgAlert();
   };
   
+  const handleNotificationsClick = () => {
+    navigate('/notifications');
+  };
+  
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
@@ -101,7 +104,7 @@ const Dashboard = () => {
           </div>
           <button 
             className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
-            onClick={() => navigate('/notifications')}
+            onClick={handleNotificationsClick}
           >
             <Bell className="text-nestor-gray-700" size={18} />
           </button>
