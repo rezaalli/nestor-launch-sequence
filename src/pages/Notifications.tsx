@@ -21,6 +21,10 @@ const Notifications = () => {
     markAsRead(id);
   };
 
+  const handleNavigateBack = () => {
+    navigate('/dashboard');
+  };
+
   const handleGenerateEcgAlert = () => {
     showEcgAlert();
   };
@@ -249,7 +253,17 @@ const Notifications = () => {
         <>
           <div className="px-6 pt-4 pb-3 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-semibold text-gray-900">Notifications</h1>
+              <div className="flex items-center">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="mr-2"
+                  onClick={handleNavigateBack}
+                >
+                  <ArrowLeft className="text-gray-700" size={20} />
+                </Button>
+                <h1 className="text-xl font-semibold text-gray-900">Notifications</h1>
+              </div>
               <Button 
                 variant="ghost" 
                 size="icon"
