@@ -10,6 +10,7 @@ import LifestyleCheckIn from "./pages/LifestyleCheckIn";
 import TrendsAndInsights from "./pages/TrendsAndInsights";
 import NotFound from "./pages/NotFound";
 import DeviceConnectionLostScreen from "./screens/DeviceConnectionLostScreen";
+import DeviceReconnectedScreen from "./screens/DeviceReconnectedScreen";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,12 @@ const App = () => (
                 onRetry={() => window.location.href = '/dashboard'} 
                 onContinueWithoutDevice={() => window.location.href = '/dashboard'} 
               />
+            } 
+          />
+          <Route 
+            path="/device-reconnected" 
+            element={
+              <DeviceReconnectedScreen />
             } 
           />
           <Route path="*" element={<NotFound />} />
