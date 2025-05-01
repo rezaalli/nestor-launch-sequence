@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
+import { Bluetooth, Plus, ArrowLeft, Battery, Watch, LightbulbIcon } from 'lucide-react';
 import OnboardingLayout from '../components/OnboardingLayout';
+import { Button } from '@/components/ui/button';
 
 interface DevicePairingScreenProps {
   onNext: () => void;
@@ -10,6 +12,10 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
   const [selectedWrist, setSelectedWrist] = useState<'left' | 'right'>('left');
   const [isSearching, setIsSearching] = useState(false);
   const [deviceFound, setDeviceFound] = useState(false);
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+
+  // This represents our two main tabs/screens - Pairing and Device Selection
+  const tabs = ['Pair Device', 'My Devices'];
 
   const handleScan = () => {
     setIsSearching(true);
@@ -22,19 +28,8 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
     }, 2000);
   };
 
-  return (
-    <OnboardingLayout>
-      {/* Header with back button */}
-      <div className="flex items-center justify-between mb-8">
-        <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-nestor-gray-700">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-        </button>
-        <h2 className="text-lg font-medium text-nestor-gray-900">Pair Your Device</h2>
-        <div className="w-10"></div>
-      </div>
-      
+  const renderPairingTab = () => (
+    <div className="flex-1 px-6 pt-8">
       {/* Device Illustration */}
       <div className="flex justify-center mb-8">
         <img 
@@ -62,15 +57,11 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
             }`}
             onClick={() => setSelectedWrist('left')}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`mb-2 transform -rotate-45 ${
+            <div className={`mb-2 transform -rotate-45 ${
               selectedWrist === 'left' ? 'text-nestor-blue' : 'text-nestor-gray-400'
             }`}>
-              <path d="M18 8V4m0 0l3 3m-3-3l-3 3"/>
-              <path d="M18 11v-1a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v1"/>
-              <path d="M6 11v5a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-5"/>
-              <path d="M12 11v5"/>
-              <path d="M13 13.5a1.5 1.5 0 0 1-3 0"/>
-            </svg>
+              <Watch size={28} />
+            </div>
             <span className={`text-sm font-medium ${
               selectedWrist === 'left' ? 'text-nestor-gray-900' : 'text-nestor-gray-600'
             }`}>Left Wrist</span>
@@ -81,15 +72,11 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
             }`}
             onClick={() => setSelectedWrist('right')}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`mb-2 transform rotate-45 ${
+            <div className={`mb-2 transform rotate-45 ${
               selectedWrist === 'right' ? 'text-nestor-blue' : 'text-nestor-gray-400'
             }`}>
-              <path d="M18 8V4m0 0l3 3m-3-3l-3 3"/>
-              <path d="M18 11v-1a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v1"/>
-              <path d="M6 11v5a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-5"/>
-              <path d="M12 11v5"/>
-              <path d="M13 13.5a1.5 1.5 0 0 1-3 0"/>
-            </svg>
+              <Watch size={28} />
+            </div>
             <span className={`text-sm font-medium ${
               selectedWrist === 'right' ? 'text-nestor-gray-900' : 'text-nestor-gray-600'
             }`}>Right Wrist</span>
@@ -103,14 +90,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
           <div className="p-4 border border-gray-200 rounded-lg flex items-center justify-between">
             <div className="flex items-center">
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-nestor-blue">
-                  <rect width="8" height="10" x="8" y="5" rx="1"/>
-                  <path d="M15 2H9"/>
-                  <path d="M8 22h8"/>
-                  <path d="M12 2v2"/>
-                  <path d="M12 20v2"/>
-                  <path d="M14 16h2"/>
-                </svg>
+                <Watch size={20} className="text-nestor-blue" />
               </div>
               <div>
                 <h4 className="font-medium text-nestor-gray-900">Searching...</h4>
@@ -127,14 +107,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
           <div className="p-4 border border-blue-100 bg-blue-50 rounded-lg flex items-center justify-between">
             <div className="flex items-center">
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-nestor-blue">
-                  <rect width="8" height="10" x="8" y="5" rx="1"/>
-                  <path d="M15 2H9"/>
-                  <path d="M8 22h8"/>
-                  <path d="M12 2v2"/>
-                  <path d="M12 20v2"/>
-                  <path d="M14 16h2"/>
-                </svg>
+                <Watch size={20} className="text-nestor-blue" />
               </div>
               <div>
                 <h4 className="font-medium text-nestor-gray-900">Nestor Device</h4>
@@ -169,6 +142,135 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
       <p className="text-center text-sm text-nestor-gray-500 mt-6">
         Having trouble? <span className="text-nestor-blue font-medium cursor-pointer">View setup guide</span>
       </p>
+    </div>
+  );
+
+  const renderDevicesTab = () => (
+    <div className="flex flex-col flex-1">
+      {/* Connected Device */}
+      <div className="px-6 mt-6">
+        <h3 className="text-sm font-medium text-nestor-gray-500 mb-3">CONNECTED</h3>
+        <div className="p-4 bg-white border border-gray-200 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                <Watch size={24} className="text-nestor-gray-700" />
+              </div>
+              <div>
+                <h4 className="font-medium text-nestor-gray-900">Nestor N-100</h4>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-1.5"></div>
+                  <span className="text-xs text-nestor-gray-600">Connected</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <Battery className="text-green-500 mr-2 h-5 w-5" />
+              <span className="text-sm text-nestor-gray-600">85%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Available Devices */}
+      <div className="px-6 mt-6">
+        <h3 className="text-sm font-medium text-nestor-gray-500 mb-3">AVAILABLE</h3>
+        <div className="space-y-3">
+          {[
+            { name: "Nestor N-100", lastConnected: "2 days ago" },
+            { name: "Nestor N-200", lastConnected: "5 days ago" }
+          ].map((device, index) => (
+            <div key={index} className="p-4 bg-white border border-gray-200 rounded-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                    <Watch size={24} className="text-nestor-gray-700" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-nestor-gray-900">{device.name}</h4>
+                    <span className="text-xs text-nestor-gray-600">Last connected {device.lastConnected}</span>
+                  </div>
+                </div>
+                <button 
+                  onClick={onNext} 
+                  className="px-4 py-2 text-sm text-nestor-blue font-medium bg-blue-50 rounded-lg"
+                >
+                  Connect
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Add New Device */}
+      <div className="px-6 mt-8">
+        <button 
+          onClick={() => setSelectedTabIndex(0)} 
+          className="w-full p-4 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-nestor-gray-500"
+        >
+          <Plus size={18} className="mr-2" />
+          Add New Device
+        </button>
+      </div>
+
+      {/* Device Tips */}
+      <div className="px-6 mt-8 mb-6">
+        <div className="p-4 bg-blue-50 rounded-xl">
+          <div className="flex items-start">
+            <LightbulbIcon size={18} className="text-nestor-blue mt-1 mr-3" />
+            <p className="text-sm text-nestor-gray-700">
+              For optimal tracking, ensure your watch is worn snugly on your wrist and maintain the device within 30 feet of your phone.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <OnboardingLayout>
+      {/* Header with back button and tabs */}
+      <div className="flex flex-col mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+            <ArrowLeft size={20} className="text-nestor-gray-700" />
+          </button>
+          <h2 className="text-lg font-medium text-nestor-gray-900">{tabs[selectedTabIndex]}</h2>
+          <button 
+            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+            onClick={() => setSelectedTabIndex(selectedTabIndex === 0 ? 1 : 0)}
+          >
+            {selectedTabIndex === 0 ? (
+              <div className="flex items-center justify-center">
+                <Watch size={20} className="text-nestor-gray-700" />
+              </div>
+            ) : (
+              <Plus size={20} className="text-nestor-gray-700" />
+            )}
+          </button>
+        </div>
+
+        {/* Tab navigation */}
+        <div className="flex border-b border-gray-200">
+          {tabs.map((tab, index) => (
+            <button
+              key={index}
+              className={`flex-1 text-center py-2 px-4 text-sm font-medium ${
+                selectedTabIndex === index
+                  ? 'text-nestor-blue border-b-2 border-nestor-blue'
+                  : 'text-nestor-gray-500'
+              }`}
+              onClick={() => setSelectedTabIndex(index)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      {/* Tab content */}
+      {selectedTabIndex === 0 ? renderPairingTab() : renderDevicesTab()}
     </OnboardingLayout>
   );
 };
