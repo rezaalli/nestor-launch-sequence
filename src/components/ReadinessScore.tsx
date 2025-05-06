@@ -13,7 +13,7 @@ const ReadinessScore = ({ className = '' }: ReadinessScoreProps) => {
   const readinessScore = lastReading?.readiness ?? 82; // Fallback to 82
   
   // Calculate change percentage (mock data for now)
-  const changePercentage = 4; // This would come from comparing to previous day
+  const changePercentage: number = 4; // This would come from comparing to previous day
   const isPositiveChange = changePercentage > 0;
   
   // Determine score grade and color
