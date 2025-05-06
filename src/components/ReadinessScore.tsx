@@ -14,7 +14,7 @@ const ReadinessScore = ({ className = '' }: ReadinessScoreProps) => {
   
   // Calculate change percentage (mock data for now)
   const changePercentage = 4; // This would come from comparing to previous day
-  const isPositiveChange = changePercentage >= 0;
+  const isPositiveChange = changePercentage > 0;
   
   // Determine score grade and color
   let scoreGrade: string;
