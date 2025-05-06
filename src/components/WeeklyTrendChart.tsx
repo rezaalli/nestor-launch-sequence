@@ -222,17 +222,17 @@ const WeeklyTrendChart = ({
   return (
     <div className={`p-4 bg-white border border-gray-200 rounded-xl ${className}`}>
       <div className="flex items-center justify-between mb-3">
-        <h4 className="font-medium text-nestor-gray-900">{getChartTitle()}</h4>
+        <h4 className="font-medium text-lg text-nestor-gray-900">{getChartTitle()}</h4>
         <div 
-          className="text-xs flex items-center text-nestor-gray-600 cursor-pointer"
+          className="text-sm flex items-center text-nestor-gray-600 cursor-pointer"
           onClick={onViewAllClick}
         >
           <span>Last {days} days</span>
-          <ChevronDown className="ml-1" size={12} />
+          <ChevronDown className="ml-1" size={14} />
         </div>
       </div>
       
-      <div className="h-32 mb-2">
+      <div className="h-32 mb-3">
         <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
@@ -244,19 +244,22 @@ const WeeklyTrendChart = ({
                 dataKey="day" 
                 axisLine={false} 
                 tickLine={false}
-                tick={{ fontSize: 10, fill: '#6b7280' }}
+                tick={{ fontSize: 12, fill: '#374151', fontWeight: 500 }}
+                dy={8}
               />
               <YAxis 
                 hide={compact} 
                 domain={dataType === 'readiness' ? [0, 100] : ['auto', 'auto']} 
+                tick={{ fontSize: 12, fill: '#374151' }}
+                width={30}
               />
               <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-white p-2 shadow rounded border border-gray-100">
-                        <p className="text-sm font-medium">{payload[0].payload.day}</p>
-                        <p className="text-xs">{`${payload[0].value} ${getYAxisLabel()}`}</p>
+                      <div className="bg-white p-2 shadow-lg rounded border border-gray-100">
+                        <p className="text-sm font-medium text-nestor-gray-800">{payload[0].payload.day}</p>
+                        <p className="text-sm font-medium text-nestor-gray-900">{`${payload[0].value} ${getYAxisLabel()}`}</p>
                       </div>
                     );
                   }
@@ -267,19 +270,28 @@ const WeeklyTrendChart = ({
                 type="monotone" 
                 dataKey="value" 
                 stroke={getLineColor()} 
-                strokeWidth={2}
-                activeDot={{ r: 4 }}
-                dot={{ r: 2 }}
+                strokeWidth={2.5}
+                activeDot={{ r: 6, strokeWidth: 1 }}
+                dot={{ r: 4, strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </ChartContainer>
       </div>
       
-      <div className="flex items-center justify-between text-xs text-nestor-gray-600">
-        <div>Avg: <span className="font-medium">{stats.avg} {getYAxisLabel()}</span></div>
-        <div>Max: <span className="font-medium">{stats.max} {getYAxisLabel()}</span></div>
-        <div>Min: <span className="font-medium">{stats.min} {getYAxisLabel()}</span></div>
+      <div className="grid grid-cols-3 gap-2 mt-3">
+        <div className="text-center py-1 bg-gray-50 rounded-lg">
+          <p className="text-xs text-nestor-gray-500 mb-1">Avg</p>
+          <p className="text-sm font-semibold text-nestor-gray-900">{stats.avg} {getYAxisLabel()}</p>
+        </div>
+        <div className="text-center py-1 bg-gray-50 rounded-lg">
+          <p className="text-xs text-nestor-gray-500 mb-1">Max</p>
+          <p className="text-sm font-semibold text-nestor-gray-900">{stats.max} {getYAxisLabel()}</p>
+        </div>
+        <div className="text-center py-1 bg-gray-50 rounded-lg">
+          <p className="text-xs text-nestor-gray-500 mb-1">Min</p>
+          <p className="text-sm font-semibold text-nestor-gray-900">{stats.min} {getYAxisLabel()}</p>
+        </div>
       </div>
     </div>
   );

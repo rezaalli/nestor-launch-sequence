@@ -52,17 +52,21 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    min-height: -webkit-fill-available; /* Fix height issues on iOS */
+    font-size: 16px;
   }
   
   /* Mobile Text Styling */
   h1, .h1 {
     @apply text-2xl font-semibold tracking-tight;
     line-height: 1.2;
+    letter-spacing: -0.01em;
   }
   
   h2, .h2 {
     @apply text-xl font-semibold tracking-tight;
     line-height: 1.25;
+    letter-spacing: -0.01em;
   }
   
   h3, .h3 {
@@ -76,11 +80,12 @@
   }
   
   p, .body-text {
-    @apply text-sm leading-relaxed;
+    @apply text-base leading-normal;
+    letter-spacing: -0.01em;
   }
   
   .text-caption {
-    @apply text-xs leading-normal;
+    @apply text-sm leading-normal font-medium;
   }
   
   /* Touch Targets */
@@ -88,6 +93,23 @@
   [role="button"],
   a {
     @apply min-h-10 cursor-pointer;
+  }
+  
+  /* Better legibility for charts and data values */
+  .chart-value {
+    @apply font-medium text-base tracking-tight;
+  }
+  
+  .chart-label {
+    @apply font-medium text-sm tracking-tight;
+  }
+  
+  .metric-value {
+    @apply text-lg font-semibold tracking-tight;
+  }
+  
+  .metric-label {
+    @apply text-sm font-medium;
   }
 }
 
@@ -135,4 +157,32 @@
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
   }
+}
+
+/* Ensure chart text is legible */
+.recharts-cartesian-axis-tick-value {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  fill: #1f2937 !important; /* Dark gray for better contrast */
+}
+
+.recharts-default-tooltip {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+  padding: 8px 12px !important;
+  background-color: white !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.recharts-tooltip-label {
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  margin-bottom: 4px !important;
+  color: #111827 !important;
+}
+
+.recharts-tooltip-item-name,
+.recharts-tooltip-item-value {
+  font-size: 13px !important;
+  color: #374151 !important;
 }
