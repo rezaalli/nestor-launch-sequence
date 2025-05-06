@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { useNotifications } from '@/contexts/NotificationsContext';
 import { useUser } from '@/contexts/UserContext';
@@ -57,6 +58,7 @@ const TemperatureAlertDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-white rounded-xl w-[90%] max-w-sm overflow-hidden shadow-xl p-0">
+        <DialogTitle className="sr-only">{title}</DialogTitle>
         <div className="p-6">
           <div className={`w-16 h-16 mx-auto mb-4 rounded-full ${iconBgColor} flex items-center justify-center`}>
             <Thermometer className={`${iconColor} text-2xl`} />

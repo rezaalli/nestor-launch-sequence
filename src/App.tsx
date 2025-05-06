@@ -41,7 +41,7 @@ const App = () => {
     
     const checkTemperature = () => {
       const { detected, temperature, type } = detectAbnormalTemperature();
-      if (detected) {
+      if (detected && (type === 'high' || type === 'low')) {
         setTempData({ temperature, type });
         setShowTempAlert(true);
       }
