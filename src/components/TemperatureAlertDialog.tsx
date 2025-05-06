@@ -36,15 +36,18 @@ const TemperatureAlertDialog = ({
     // No notification is added when dismissed, following the same pattern as HeartRateAlertDialog
   };
 
+  // Get unit preference from user context, default to imperial (Fahrenheit)
+  const unitPreference = user.unitPreference || 'imperial';
+  
   // Convert Celsius to Fahrenheit
   const temperatureF = (temperature * 9/5) + 32;
   
   // Display temperature based on unit preference
-  const displayTemp = user.unitPreference === 'metric' 
+  const displayTemp = unitPreference === 'metric' 
     ? `${temperature}°C` 
     : `${temperatureF.toFixed(1)}°F`;
   
-  const secondaryTemp = user.unitPreference === 'metric'
+  const secondaryTemp = unitPreference === 'metric'
     ? `(${temperatureF.toFixed(1)}°F)`
     : `(${temperature}°C)`;
   
@@ -62,13 +65,17 @@ const TemperatureAlertDialog = ({
   let guidance = '';
   if (temperatureType === 'high') {
     if (temperature >= 39) {
-      guidance = 'Seek medical attention if temperature persists above 39°C (102.2°F).';
+      guidance = unitPreference === 'metric'
+        ? 'Seek medical attention if temperature persists above 39°C (102.2°F).'
+        : 'Seek medical attention if temperature persists above 102.2°F (39°C).';
     } else {
       guidance = 'Monitor your temperature and stay hydrated.';
     }
   } else {
     if (temperature <= 35) {
-      guidance = 'Seek immediate medical attention if temperature remains below 35°C (95°F).';
+      guidance = unitPreference === 'metric'
+        ? 'Seek immediate medical attention if temperature remains below 35°C (95°F).'
+        : 'Seek immediate medical attention if temperature remains below 95°F (35°C).';
     } else {
       guidance = 'Warm up gradually and monitor your temperature.';
     }

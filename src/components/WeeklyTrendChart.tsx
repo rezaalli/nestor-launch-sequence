@@ -8,6 +8,7 @@ import {
   ChartTooltipContent
 } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useUser } from '@/contexts/UserContext';
 
 interface WeeklyTrendChartProps {
   dataType: 'readiness' | 'heartRate' | 'temperature' | 'spo2';
@@ -27,6 +28,8 @@ const WeeklyTrendChart = ({
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deviceWorn, setDeviceWorn] = useState(true);
+  const { user } = useUser();
+  const unitPreference = user.unitPreference || 'imperial'; // Default to imperial
   
   // Chart config settings
   const chartConfig = {
@@ -75,7 +78,7 @@ const WeeklyTrendChart = ({
       window.removeEventListener('nestor-wear-state', handleWearStateChange);
       window.removeEventListener('nestor-vital-update', handleVitalUpdate);
     };
-  }, [dataType, days]);
+  }, [dataType, days, unitPreference]); // Added unitPreference as dependency
   
   // Process the readings into chart data
   function processReadings(readings: any[]) {
@@ -108,7 +111,9 @@ const WeeklyTrendChart = ({
           value = dayReadings.reduce((sum, r) => sum + r.hr, 0) / dayReadings.length;
           break;
         case 'temperature':
-          value = dayReadings.reduce((sum, r) => sum + r.temp, 0) / dayReadings.length / 10; // Convert to Celsius
+          // Convert to Celsius first, then to Fahrenheit if needed
+          const tempInC = dayReadings.reduce((sum, r) => sum + r.temp, 0) / dayReadings.length / 10;
+          value = unitPreference === 'imperial' ? (tempInC * 9/5) + 32 : tempInC;
           break;
         case 'spo2':
           value = dayReadings.reduce((sum, r) => sum + r.spo2, 0) / dayReadings.length;
@@ -149,7 +154,7 @@ const WeeklyTrendChart = ({
       case 'heartRate':
         return 'bpm';
       case 'temperature':
-        return '°C';
+        return unitPreference === 'imperial' ? '°F' : '°C';
       case 'spo2':
         return '%';
       default:

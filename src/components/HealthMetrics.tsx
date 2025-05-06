@@ -7,7 +7,7 @@ import { getLastReading, isDeviceWorn, formatTemperature } from '@/utils/bleUtil
 const HealthMetrics = () => {
   // Get unit preference from user context
   const { user } = useUser();
-  const unitPreference = user.unitPreference;
+  const unitPreference = user.unitPreference || 'imperial'; // Default to imperial (Fahrenheit)
   
   const [lastReading, setLastReading] = useState(getLastReading());
   const [deviceWorn, setDeviceWorn] = useState(isDeviceWorn());
