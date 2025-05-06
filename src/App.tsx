@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,15 +16,18 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import DeviceConnectionLostScreen from "./screens/DeviceConnectionLostScreen";
 import DeviceReconnectedScreen from "./screens/DeviceReconnectedScreen";
-import { detectLowSpO2, analyzeSpO2 } from "./utils/healthUtils";
+import { detectLowSpO2, analyzeSpO2, detectAbnormalTemperature } from "./utils/healthUtils";
 import { useState, useEffect } from "react";
 import SpO2AlertDialog from "./components/SpO2AlertDialog";
+import TemperatureAlertDialog from "./components/TemperatureAlertDialog";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   const [showSpO2Alert, setShowSpO2Alert] = useState(false);
   const [spO2Level, setSpO2Level] = useState(92);
+  const [showTempAlert, setShowTempAlert] = useState(false);
+  const [tempData, setTempData] = useState({ temperature: 38.4, type: 'high' as 'high' | 'low' });
 
   // Simulate a low SpO2 detection occasionally
   useEffect(() => {
@@ -34,16 +38,28 @@ const App = () => {
         setShowSpO2Alert(true);
       }
     };
+    
+    const checkTemperature = () => {
+      const { detected, temperature, type } = detectAbnormalTemperature();
+      if (detected) {
+        setTempData({ temperature, type });
+        setShowTempAlert(true);
+      }
+    };
 
     // Check every 30 seconds (for demo purposes)
-    const timer = setInterval(checkSpO2, 30000);
+    const spO2Timer = setInterval(checkSpO2, 30000);
+    const tempTimer = setInterval(checkTemperature, 45000);
     
-    // Initial check after 15 seconds
-    const initialTimer = setTimeout(checkSpO2, 15000);
+    // Initial checks after a delay
+    const initialSpO2Timer = setTimeout(checkSpO2, 15000);
+    const initialTempTimer = setTimeout(checkTemperature, 25000);
 
     return () => {
-      clearInterval(timer);
-      clearTimeout(initialTimer);
+      clearInterval(spO2Timer);
+      clearInterval(tempTimer);
+      clearTimeout(initialSpO2Timer);
+      clearTimeout(initialTempTimer);
     };
   }, []);
 
@@ -91,6 +107,18 @@ const App = () => {
                   const newLevel = Math.floor(Math.random() * 6) + 95; // Generate a normal reading after "taking" a new one
                   setSpO2Level(newLevel);
                   setTimeout(() => setShowSpO2Alert(false), 2000);
+                }}
+              />
+              
+              <TemperatureAlertDialog 
+                open={showTempAlert}
+                onOpenChange={setShowTempAlert}
+                temperature={tempData.temperature}
+                temperatureType={tempData.type}
+                onDismiss={() => setShowTempAlert(false)}
+                onMonitor={() => {
+                  // Simulate taking a new reading
+                  setTimeout(() => setShowTempAlert(false), 2000);
                 }}
               />
             </BrowserRouter>

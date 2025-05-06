@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -34,7 +35,6 @@ const Profile = () => {
   const { user, updateUser } = useUser();
   const { toast } = useToast();
   const [activeScreen, setActiveScreen] = useState<'main' | 'account' | 'privacy' | 'appearance'>('main');
-  const [unitPreference, setUnitPreference] = useState<'metric' | 'imperial'>('metric');
   
   // Form states for account info
   const [formName, setFormName] = useState(user.name);
@@ -44,7 +44,7 @@ const Profile = () => {
   const [temperature, setTemperature] = useState<TemperatureDisplay>({
     celsius: 36.7,
     fahrenheit: convertCelsiusToFahrenheit(36.7),
-    display: '36.7°C'
+    display: user.unitPreference === 'metric' ? '36.7°C' : `${convertCelsiusToFahrenheit(36.7).toFixed(1)}°F`
   });
 
   // Function to convert Celsius to Fahrenheit
@@ -54,7 +54,8 @@ const Profile = () => {
 
   // Function to handle unit preference change
   const handleUnitChange = (unit: 'metric' | 'imperial') => {
-    setUnitPreference(unit);
+    updateUser({ unitPreference: unit });
+    
     if (unit === 'metric') {
       setTemperature(prev => ({
         ...prev,
@@ -70,10 +71,20 @@ const Profile = () => {
   
   const goBack = () => setActiveScreen('main');
   
-  // Update form fields when user data changes
+  // Update form fields and temperature display when user data changes
   useEffect(() => {
     setFormName(user.name);
     setFormEmail(user.email);
+    
+    // Update temperature display based on current unit preference
+    const display = user.unitPreference === 'metric' 
+      ? `${temperature.celsius}°C` 
+      : `${temperature.fahrenheit.toFixed(1)}°F`;
+      
+    setTemperature(prev => ({
+      ...prev,
+      display
+    }));
   }, [user]);
   
   // Handle save account info
@@ -254,7 +265,7 @@ const Profile = () => {
                       id="metric" 
                       name="unit" 
                       className="peer hidden" 
-                      checked={unitPreference === 'metric'} 
+                      checked={user.unitPreference === 'metric'} 
                       onChange={() => handleUnitChange('metric')}
                     />
                     <label htmlFor="metric" className="block w-full p-4 text-center border border-gray-300 rounded-lg cursor-pointer peer-checked:bg-blue-900 peer-checked:text-white peer-checked:border-blue-900">
@@ -267,7 +278,7 @@ const Profile = () => {
                       id="imperial" 
                       name="unit" 
                       className="peer hidden" 
-                      checked={unitPreference === 'imperial'} 
+                      checked={user.unitPreference === 'imperial'} 
                       onChange={() => handleUnitChange('imperial')}
                     />
                     <label htmlFor="imperial" className="block w-full p-4 text-center border border-gray-300 rounded-lg cursor-pointer peer-checked:bg-blue-900 peer-checked:text-white peer-checked:border-blue-900">

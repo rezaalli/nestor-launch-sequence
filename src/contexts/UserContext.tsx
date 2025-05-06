@@ -6,6 +6,7 @@ interface User {
   name: string;
   email: string;
   avatar: string;
+  unitPreference: 'metric' | 'imperial';
 }
 
 // Define the shape of the context
@@ -21,7 +22,8 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 const defaultUser: User = {
   name: 'Emma',
   email: 'alex.morgan@example.com',
-  avatar: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg'
+  avatar: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg',
+  unitPreference: 'metric'
 };
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

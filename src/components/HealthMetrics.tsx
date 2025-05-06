@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { HeartPulse, Droplet, Activity, Thermometer } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
 
-interface HealthMetricsProps {
-  unitPreference?: 'metric' | 'imperial';
-}
-
-const HealthMetrics = ({ unitPreference = 'metric' }: HealthMetricsProps) => {
+const HealthMetrics = () => {
+  // Get unit preference from user context
+  const { user } = useUser();
+  const unitPreference = user.unitPreference;
+  
   // Temperature conversion
   const tempCelsius = 36.7;
   const tempFahrenheit = (tempCelsius * 9/5) + 32;

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { Bell, Star, ArrowUp, ClipboardList, ChevronDown, Grid3x3 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +10,7 @@ import EcgAlertDialog from '@/components/EcgAlertDialog';
 import HeartRateAlertDialog from '@/components/HeartRateAlertDialog';
 import { detectIrregularEcg } from '@/utils/ecgUtils';
 import { detectHighHeartRate } from '@/utils/healthUtils';
+import HealthMetrics from '@/components/HealthMetrics';
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -278,6 +278,18 @@ const Dashboard = () => {
     );
   }
 
+  // Helper function for temperature conversion
+  const formatTemperature = (celsius: number): { value: string, unit: string } => {
+    if (user.unitPreference === 'imperial') {
+      const fahrenheit = (celsius * 9/5) + 32;
+      return { value: fahrenheit.toFixed(1), unit: '°F' };
+    }
+    return { value: celsius.toString(), unit: '°C' };
+  };
+
+  // Get formatted temperature for display
+  const tempDisplay = formatTemperature(36.7);
+
   return (
     <>
       <div className="min-h-screen flex flex-col bg-white">
@@ -340,128 +352,10 @@ const Dashboard = () => {
               Customize
             </button>
           </div>
-          <div 
-            ref={metricsGridRef} 
-            className={`grid ${gridLayout === '2x3' ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}
-          >
-            <div id="heart-rate-card" className="metric-card p-4 bg-white border border-gray-200 rounded-xl">
-              <div className="flex items-center mb-2">
-                <i className="fa-solid fa-heart-pulse text-red-500 mr-2"></i>
-                <span className="text-xs text-gray-600">Heart Rate</span>
-              </div>
-              <div className="flex items-end">
-                <span className="text-2xl font-semibold text-gray-900">72</span>
-                <span className="text-sm text-gray-600 ml-1 mb-0.5">bpm</span>
-              </div>
-              <div className="mt-2 h-8">
-                <div className="relative h-full">
-                  <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between space-x-1">
-                    <div className="w-1 bg-red-200 rounded-t h-2"></div>
-                    <div className="w-1 bg-red-200 rounded-t h-3"></div>
-                    <div className="w-1 bg-red-300 rounded-t h-4"></div>
-                    <div className="w-1 bg-red-400 rounded-t h-5"></div>
-                    <div className="w-1 bg-red-500 rounded-t h-7"></div>
-                    <div className="w-1 bg-red-400 rounded-t h-5"></div>
-                    <div className="w-1 bg-red-300 rounded-t h-3"></div>
-                    <div className="w-1 bg-red-200 rounded-t h-2"></div>
-                    <div className="w-1 bg-red-200 rounded-t h-1"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div id="steps-card" className="metric-card p-4 bg-white border border-gray-200 rounded-xl">
-              <div className="flex items-center mb-2">
-                <i className="fa-solid fa-shoe-prints text-green-500 mr-2"></i>
-                <span className="text-xs text-gray-600">Steps</span>
-              </div>
-              <div className="flex items-end">
-                <span className="text-2xl font-semibold text-gray-900">8,742</span>
-              </div>
-              <div className="mt-2">
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '72%' }}></div>
-                </div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-xs text-gray-500">Goal: 10k</span>
-                </div>
-              </div>
-            </div>
-
-            <div id="activity-card" className="metric-card p-4 bg-white border border-gray-200 rounded-xl">
-              <div className="flex items-center mb-2">
-                <i className="fa-solid fa-fire text-orange-500 mr-2"></i>
-                <span className="text-xs text-gray-600">Activity</span>
-              </div>
-              <div className="flex items-end">
-                <span className="text-2xl font-semibold text-gray-900">487</span>
-                <span className="text-sm text-gray-600 ml-1 mb-0.5">cal</span>
-              </div>
-              <div className="mt-2 flex items-center">
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: '65%' }}></div>
-                </div>
-                <span className="text-xs text-green-500 ml-2">Active</span>
-              </div>
-            </div>
-
-            <div id="oxygen-card" className="metric-card p-4 bg-white border border-gray-200 rounded-xl">
-              <div className="flex items-center mb-2">
-                <i className="fa-solid fa-droplet text-blue-500 mr-2"></i>
-                <span className="text-xs text-gray-600">SpO₂</span>
-              </div>
-              <div className="flex items-end">
-                <span className="text-2xl font-semibold text-gray-900">98</span>
-                <span className="text-sm text-gray-600 ml-1 mb-0.5">%</span>
-              </div>
-              <div className="mt-2">
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '98%' }}></div>
-                </div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-xs text-gray-500">90</span>
-                  <span className="text-xs text-gray-500">100</span>
-                </div>
-              </div>
-            </div>
-            
-            <div id="ecg-card" className="metric-card p-4 bg-white border border-gray-200 rounded-xl">
-              <div className="flex items-center mb-2">
-                <i className="fa-solid fa-wave-square text-purple-500 mr-2"></i>
-                <span className="text-xs text-gray-600">ECG</span>
-              </div>
-              <div className="text-sm text-gray-900 font-medium">Normal Sinus</div>
-              <div className="mt-2 h-10">
-                <div className="relative h-full flex items-center">
-                  <div className="absolute inset-0">
-                    <svg viewBox="0 0 100 30" className="w-full h-full">
-                      <path d="M0,15 L10,15 L15,5 L20,25 L25,15 L30,15 L35,15 L40,5 L45,25 L50,15 L55,15 L60,15 L65,5 L70,25 L75,15 L80,15 L85,15 L90,5 L95,25 L100,15" fill="none" stroke="#a855f7" strokeWidth="1.5"></path>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div id="temperature-card" className="metric-card p-4 bg-white border border-gray-200 rounded-xl">
-              <div className="flex items-center mb-2">
-                <i className="fa-solid fa-temperature-half text-orange-500 mr-2"></i>
-                <span className="text-xs text-gray-600 truncate">Temp</span>
-              </div>
-              <div className="flex items-end">
-                <span className="text-2xl font-semibold text-gray-900">36.7</span>
-                <span className="text-sm text-gray-600 ml-1 mb-0.5">°C</span>
-              </div>
-              <div className="mt-2">
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: '50%' }}></div>
-                </div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-xs text-gray-500">35.5</span>
-                  <span className="text-xs text-gray-500">37.5</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          
+          {/* Replace the grid with the HealthMetrics component */}
+          <HealthMetrics />
+          
         </div>
         
         {/* Lifestyle Check-In Button */}

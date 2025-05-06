@@ -6,6 +6,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useNotifications } from '@/contexts/NotificationsContext';
+import { useUser } from '@/contexts/UserContext';
 import { Thermometer } from "lucide-react";
 
 interface TemperatureAlertDialogProps {
@@ -15,7 +16,6 @@ interface TemperatureAlertDialogProps {
   temperatureType: 'high' | 'low';
   onDismiss: () => void;
   onMonitor: () => void;
-  unitPreference?: 'metric' | 'imperial';
 }
 
 const TemperatureAlertDialog = ({
@@ -25,9 +25,9 @@ const TemperatureAlertDialog = ({
   temperatureType = 'high',
   onDismiss,
   onMonitor,
-  unitPreference = 'metric',
 }: TemperatureAlertDialogProps) => {
   const { addNotification, deleteNotification } = useNotifications();
+  const { user } = useUser();
   
   const handleDismiss = () => {
     onDismiss();
@@ -38,11 +38,11 @@ const TemperatureAlertDialog = ({
   const temperatureF = (temperature * 9/5) + 32;
   
   // Display temperature based on unit preference
-  const displayTemp = unitPreference === 'metric' 
+  const displayTemp = user.unitPreference === 'metric' 
     ? `${temperature}°C` 
     : `${temperatureF.toFixed(1)}°F`;
   
-  const secondaryTemp = unitPreference === 'metric'
+  const secondaryTemp = user.unitPreference === 'metric'
     ? `(${temperatureF.toFixed(1)}°F)`
     : `(${temperature}°C)`;
   
@@ -54,8 +54,6 @@ const TemperatureAlertDialog = ({
     ? `Your body temperature is ${displayTemp}, which is above normal range. This could indicate a fever.`
     : `Your body temperature is ${displayTemp}, which is below normal range. This could indicate hypothermia.`;
   
-  const lucideIcon = temperatureType === 'high' ? "thermometer-sun" : "thermometer-snowflake";
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-white rounded-xl w-[90%] max-w-sm overflow-hidden shadow-xl p-0">
