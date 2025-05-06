@@ -20,6 +20,7 @@ import { detectLowSpO2, analyzeSpO2, detectAbnormalTemperature } from "./utils/h
 import { useState, useEffect } from "react";
 import SpO2AlertDialog from "./components/SpO2AlertDialog";
 import TemperatureAlertDialog from "./components/TemperatureAlertDialog";
+import { connectToDevice, isDeviceConnected, getLastReading } from "./utils/bleUtils";
 
 const queryClient = new QueryClient();
 
@@ -28,9 +29,65 @@ const App = () => {
   const [spO2Level, setSpO2Level] = useState(92);
   const [showTempAlert, setShowTempAlert] = useState(false);
   const [tempData, setTempData] = useState({ temperature: 38.4, type: 'high' as 'high' | 'low' });
+  const [connectionState, setConnectionState] = useState<'connected' | 'disconnected' | 'reconnecting'>('connected');
+  const [lastVitalUpdate, setLastVitalUpdate] = useState<number>(Date.now());
 
-  // Simulate a low SpO2 detection occasionally
+  // Initialize BLE connection on app start
   useEffect(() => {
+    const initializeConnection = async () => {
+      try {
+        const connected = await connectToDevice();
+        setConnectionState(connected ? 'connected' : 'disconnected');
+      } catch (error) {
+        console.error('Failed to initialize BLE connection:', error);
+        setConnectionState('disconnected');
+      }
+    };
+    
+    initializeConnection();
+    
+    // Listen for Nestor vital updates
+    const handleVitalUpdate = (event: Event) => {
+      const vitalData = (event as CustomEvent).detail;
+      setLastVitalUpdate(Date.now());
+      
+      // Update SpO2 if needed
+      if (vitalData.spo2 < 92) {
+        setSpO2Level(vitalData.spo2);
+        setShowSpO2Alert(true);
+      }
+    };
+    
+    // Listen for fever alerts
+    const handleFeverAlert = (event: Event) => {
+      const feverData = (event as CustomEvent).detail;
+      setTempData({
+        temperature: feverData.temperature,
+        type: feverData.type
+      });
+      setShowTempAlert(true);
+    };
+    
+    // Add event listeners
+    window.addEventListener('nestor-vital-update', handleVitalUpdate);
+    window.addEventListener('nestor-fever-alert', handleFeverAlert);
+    
+    // Check connection status periodically
+    const connectionCheckInterval = setInterval(() => {
+      const connected = isDeviceConnected();
+      setConnectionState(connected ? 'connected' : 'reconnecting');
+      
+      // If we haven't received data in 30 seconds, try to reconnect
+      if (connected && Date.now() - lastVitalUpdate > 30000) {
+        connectToDevice().then(success => {
+          if (!success) {
+            setConnectionState('disconnected');
+          }
+        });
+      }
+    }, 15000); // Check every 15 seconds
+    
+    // Simulate SpO2 and temperature alerts for demo purposes
     const checkSpO2 = () => {
       const { detected, spO2Level: level } = detectLowSpO2();
       if (detected) {
@@ -47,21 +104,42 @@ const App = () => {
       }
     };
 
-    // Check every 30 seconds (for demo purposes)
+    // For demo purposes, check SpO2 and temp occasionally
     const spO2Timer = setInterval(checkSpO2, 30000);
     const tempTimer = setInterval(checkTemperature, 45000);
     
-    // Initial checks after a delay
+    // Initial checks after a delay for demo purposes
     const initialSpO2Timer = setTimeout(checkSpO2, 15000);
     const initialTempTimer = setTimeout(checkTemperature, 25000);
-
+    
+    // Clean up on unmount
     return () => {
+      window.removeEventListener('nestor-vital-update', handleVitalUpdate);
+      window.removeEventListener('nestor-fever-alert', handleFeverAlert);
+      clearInterval(connectionCheckInterval);
       clearInterval(spO2Timer);
       clearInterval(tempTimer);
       clearTimeout(initialSpO2Timer);
       clearTimeout(initialTempTimer);
     };
-  }, []);
+  }, [lastVitalUpdate]);
+
+  // Determine which screen to show based on connection state
+  const renderConnectionScreen = () => {
+    if (connectionState === 'disconnected') {
+      return <DeviceConnectionLostScreen 
+        onRetry={() => {
+          connectToDevice().then(connected => {
+            setConnectionState(connected ? 'connected' : 'disconnected');
+          });
+        }} 
+        onContinueWithoutDevice={() => window.location.href = '/dashboard'} 
+      />;
+    } else if (connectionState === 'reconnecting') {
+      return <DeviceReconnectedScreen />;
+    }
+    return null;
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -96,6 +174,11 @@ const App = () => {
                 />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              
+              {/* Only show connection screens if not on the connection-lost or device-reconnected routes */}
+              {!window.location.pathname.includes('connection-lost') && 
+               !window.location.pathname.includes('device-reconnected') && 
+               renderConnectionScreen()}
               
               <SpO2AlertDialog 
                 open={showSpO2Alert} 

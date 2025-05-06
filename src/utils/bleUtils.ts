@@ -1,0 +1,223 @@
+
+// BLE Characteristic Integration for Nestor wearable device
+// Custom UUID: 0x2A5F within service UUID 0x181C
+
+interface PackedVitals {
+  hr: number;         // Heart rate in bpm
+  spo2: number;       // SpO2 percentage
+  temp: number;       // Temperature in tenths of Celsius (e.g. 367 = 36.7°C)
+  battery: number;    // Battery percentage
+  motion: number;     // Motion intensity (0-3)
+  readiness: number;  // Readiness score (0-100)
+  fever: number;      // Fever flag (0 = no fever, 1 = fever detected)
+}
+
+// Buffer to store the last 7 days of data (assuming readings every 5 seconds)
+// 12 readings per minute * 60 minutes * 24 hours * 7 days = 120,960 maximum readings
+// We'll store a more reasonable amount for performance
+const MAX_READINGS = 2016; // 7 days of readings at 1 reading per 5 minutes
+let vitalReadings: (PackedVitals & { timestamp: number })[] = [];
+let lastReading: PackedVitals | null = null;
+let isConnected = false;
+let isWorn = true; // Assume worn by default until notified otherwise
+let deviceName = 'Nestor Device';
+
+// Mock BLE connection for development - replace with actual BLE implementation
+export const connectToDevice = async (): Promise<boolean> => {
+  try {
+    console.log('Connecting to BLE device...');
+    // In a real implementation, this would use Web Bluetooth API
+    // navigator.bluetooth.requestDevice({ filters: [{ services: ['181C'] }] })
+    
+    // Simulate successful connection after a delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    isConnected = true;
+    
+    // Start polling for data
+    startDataPolling();
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to connect to device:', error);
+    isConnected = false;
+    return false;
+  }
+};
+
+export const disconnectFromDevice = (): void => {
+  console.log('Disconnecting from BLE device...');
+  isConnected = false;
+  // Clear any polling intervals
+  stopDataPolling();
+};
+
+let pollingInterval: number | null = null;
+
+const startDataPolling = (): void => {
+  if (pollingInterval) return; // Already polling
+  
+  pollingInterval = window.setInterval(() => {
+    if (!isConnected) {
+      stopDataPolling();
+      return;
+    }
+    
+    // If device is not worn, we don't get new readings
+    if (!isWorn) return;
+    
+    // Mock data - in a real implementation, this would come from the BLE characteristic
+    const mockData = generateMockVitalData();
+    processVitalData(mockData);
+    
+  }, 5000); // Poll every 5 seconds
+};
+
+const stopDataPolling = (): void => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
+};
+
+const generateMockVitalData = (): PackedVitals => {
+  // Generate realistic mock data
+  const hr = Math.floor(Math.random() * 20) + 60; // 60-80 bpm
+  const spo2 = Math.floor(Math.random() * 3) + 96; // 96-99%
+  const temp = 367 + Math.floor(Math.random() * 10) - 5; // 36.2-37.2°C
+  const battery = Math.max(0, lastReading?.battery ?? 92 - Math.floor(Math.random() * 2)); // Slowly decreasing
+  const motion = Math.floor(Math.random() * 4); // 0-3
+  const readiness = Math.floor(Math.random() * 20) + 70; // 70-90
+  const fever = temp > 378 ? 1 : 0; // Fever if above 37.8°C
+  
+  return { hr, spo2, temp, battery, motion, readiness, fever };
+};
+
+const processVitalData = (data: PackedVitals): void => {
+  // Process incoming data from the device
+  lastReading = data;
+  
+  // Add to readings history with timestamp
+  const newReading = {
+    ...data,
+    timestamp: Date.now()
+  };
+  
+  vitalReadings.push(newReading);
+  
+  // Trim if exceeding max size
+  if (vitalReadings.length > MAX_READINGS) {
+    vitalReadings = vitalReadings.slice(vitalReadings.length - MAX_READINGS);
+  }
+  
+  // Dispatch event for components to listen to
+  const event = new CustomEvent('nestor-vital-update', { detail: data });
+  window.dispatchEvent(event);
+  
+  // Check for fever condition
+  if (data.fever === 1) {
+    const feverEvent = new CustomEvent('nestor-fever-alert', { 
+      detail: { temperature: data.temp / 10, type: 'high' }
+    });
+    window.dispatchEvent(feverEvent);
+  }
+};
+
+// Get the last reading
+export const getLastReading = (): PackedVitals | null => {
+  return lastReading;
+};
+
+// Get readings for a time period
+export const getReadings = (days: number = 7): (PackedVitals & { timestamp: number })[] => {
+  const cutoffTime = Date.now() - (days * 24 * 60 * 60 * 1000);
+  return vitalReadings.filter(reading => reading.timestamp >= cutoffTime);
+};
+
+// Check if device is connected
+export const isDeviceConnected = (): boolean => {
+  return isConnected;
+};
+
+// Check if device is being worn
+export const isDeviceWorn = (): boolean => {
+  return isWorn;
+};
+
+// Set device worn state
+export const setDeviceWorn = (worn: boolean): void => {
+  isWorn = worn;
+  
+  // Dispatch event for components to react to wear state change
+  const event = new CustomEvent('nestor-wear-state', { detail: { worn } });
+  window.dispatchEvent(event);
+};
+
+// Set device name
+export const setDeviceName = (name: string): void => {
+  deviceName = name;
+};
+
+// Get device name
+export const getDeviceName = (): string => {
+  return deviceName;
+};
+
+// Format temperature for display based on unit preference
+export const formatTemperature = (tempInTenthsCelsius: number, unitPreference: 'metric' | 'imperial'): { value: string, unit: string } => {
+  const celsius = tempInTenthsCelsius / 10;
+  
+  if (unitPreference === 'imperial') {
+    const fahrenheit = (celsius * 9/5) + 32;
+    return { value: fahrenheit.toFixed(1), unit: '°F' };
+  }
+  return { value: celsius.toFixed(1), unit: '°C' };
+};
+
+// Export data as JSON
+export const exportDataAsJSON = (): string => {
+  return JSON.stringify(vitalReadings);
+};
+
+// Export data as CSV
+export const exportDataAsCSV = (): string => {
+  if (vitalReadings.length === 0) return '';
+  
+  const headers = ['timestamp', 'hr', 'spo2', 'temp', 'battery', 'motion', 'readiness', 'fever'];
+  let csv = headers.join(',') + '\n';
+  
+  vitalReadings.forEach(reading => {
+    const row = [
+      new Date(reading.timestamp).toISOString(),
+      reading.hr,
+      reading.spo2,
+      reading.temp / 10, // Convert to actual Celsius
+      reading.battery,
+      reading.motion,
+      reading.readiness,
+      reading.fever
+    ].join(',');
+    csv += row + '\n';
+  });
+  
+  return csv;
+};
+
+// Initialize mock data for development
+export const initializeMockData = (): void => {
+  const now = Date.now();
+  const dayInMs = 24 * 60 * 60 * 1000;
+  
+  // Generate 7 days of mock data at 1-hour intervals
+  for (let i = 0; i < 7 * 24; i++) {
+    const mockData = generateMockVitalData();
+    const timestamp = now - ((7 * 24 - i) * 60 * 60 * 1000); // Going backwards from 7 days ago
+    
+    vitalReadings.push({
+      ...mockData,
+      timestamp
+    });
+  }
+};
+
+// Initialize mock data on module load for development
+initializeMockData();

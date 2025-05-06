@@ -9,6 +9,7 @@ import {
 import { useNotifications } from '@/contexts/NotificationsContext';
 import { useUser } from '@/contexts/UserContext';
 import { Thermometer } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface TemperatureAlertDialogProps {
   open: boolean;
@@ -51,9 +52,27 @@ const TemperatureAlertDialog = ({
   const iconBgColor = temperatureType === 'high' ? 'bg-red-100' : 'bg-blue-100';
   const iconColor = temperatureType === 'high' ? 'text-red-600' : 'text-blue-600';
   const title = temperatureType === 'high' ? 'High Temperature Alert' : 'Low Temperature Alert';
+  
+  // More detailed description based on temperature type
   const description = temperatureType === 'high' 
     ? `Your body temperature is ${displayTemp}, which is above normal range. This could indicate a fever.`
     : `Your body temperature is ${displayTemp}, which is below normal range. This could indicate hypothermia.`;
+    
+  // Additional guidance based on temperature severity
+  let guidance = '';
+  if (temperatureType === 'high') {
+    if (temperature >= 39) {
+      guidance = 'Seek medical attention if temperature persists above 39°C (102.2°F).';
+    } else {
+      guidance = 'Monitor your temperature and stay hydrated.';
+    }
+  } else {
+    if (temperature <= 35) {
+      guidance = 'Seek immediate medical attention if temperature remains below 35°C (95°F).';
+    } else {
+      guidance = 'Warm up gradually and monitor your temperature.';
+    }
+  }
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -72,9 +91,14 @@ const TemperatureAlertDialog = ({
             <span className="text-lg text-gray-500">{secondaryTemp}</span>
           </div>
           
-          <p className="text-center text-gray-600 mb-6">
-            {description} Please monitor your condition and consider seeking medical advice if symptoms persist.
+          <p className="text-center text-gray-600 mb-3">
+            {description}
           </p>
+          
+          <Alert variant={temperatureType === 'high' ? 'destructive' : 'default'} className="mb-4">
+            <AlertTitle>Health Guidance</AlertTitle>
+            <AlertDescription>{guidance}</AlertDescription>
+          </Alert>
           
           <DialogFooter className="flex flex-col space-y-3 mt-4">
             <button 

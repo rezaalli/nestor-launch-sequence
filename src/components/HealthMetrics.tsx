@@ -8,17 +8,18 @@ const HealthMetrics = () => {
   const { user } = useUser();
   const unitPreference = user.unitPreference;
   
-  // Temperature conversion
+  // Temperature conversion (assuming we get it in Celsius from the device)
   const tempCelsius = 36.7;
   const tempFahrenheit = (tempCelsius * 9/5) + 32;
   
+  // Display value based on user preference
   const tempDisplay = unitPreference === 'metric' 
-    ? { value: tempCelsius, unit: '°C' }
+    ? { value: tempCelsius.toFixed(1), unit: '°C' }
     : { value: tempFahrenheit.toFixed(1), unit: '°F' };
 
   return (
     <div className="grid grid-cols-2 gap-3">
-      <div className="p-4 bg-white border border-gray-200 rounded-xl">
+      <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card" id="heartRate">
         <div className="flex items-center mb-2">
           <HeartPulse className="text-red-500 mr-2" size={16} />
           <span className="text-xs text-gray-600">Heart Rate</span>
@@ -42,7 +43,7 @@ const HealthMetrics = () => {
         </div>
       </div>
       
-      <div className="p-4 bg-white border border-gray-200 rounded-xl">
+      <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card" id="spo2">
         <div className="flex items-center mb-2">
           <Droplet className="text-blue-500 mr-2" size={16} />
           <span className="text-xs text-gray-600">SpO₂</span>
@@ -62,7 +63,7 @@ const HealthMetrics = () => {
         </div>
       </div>
       
-      <div className="p-4 bg-white border border-gray-200 rounded-xl">
+      <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card" id="ecg">
         <div className="flex items-center mb-2">
           <Activity className="text-purple-500 mr-2" size={16} />
           <span className="text-xs text-gray-600">ECG</span>
@@ -80,7 +81,7 @@ const HealthMetrics = () => {
         </div>
       </div>
       
-      <div className="p-4 bg-white border border-gray-200 rounded-xl">
+      <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card" id="temperature">
         <div className="flex items-center mb-2">
           <Thermometer className="text-orange-500 mr-2" size={16} />
           <span className="text-xs text-gray-600">Temperature</span>
