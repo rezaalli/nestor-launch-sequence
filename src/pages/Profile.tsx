@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -21,8 +20,13 @@ import {
   ArrowLeft, 
   Download, 
   ExternalLink,
-  Thermometer
+  Thermometer,
+  Bluetooth
 } from "lucide-react";
+import BleDeviceManager from '@/components/BleDeviceManager';
+import DataExport from '@/components/DataExport';
+import HapticAlertSettings from '@/components/HapticAlertSettings';
+import FlashLogUpload from '@/components/FlashLogUpload';
 
 interface TemperatureDisplay {
   celsius: number;
@@ -35,6 +39,12 @@ const Profile = () => {
   const { user, updateUser } = useUser();
   const { toast } = useToast();
   const [activeScreen, setActiveScreen] = useState<'main' | 'account' | 'privacy' | 'appearance'>('main');
+  
+  // Modal states
+  const [showDeviceManager, setShowDeviceManager] = useState(false);
+  const [showDataExport, setShowDataExport] = useState(false);
+  const [showHapticSettings, setShowHapticSettings] = useState(false);
+  const [showFlashLogUpload, setShowFlashLogUpload] = useState(false);
   
   // Form states for account info
   const [formName, setFormName] = useState(user.name);
@@ -86,6 +96,25 @@ const Profile = () => {
       display
     }));
   }, [user]);
+  
+  // Listen for flash log data availability
+  useEffect(() => {
+    const handleFlashDataAvailable = () => {
+      toast({
+        title: "Flash Data Available",
+        description: "Historical data is available from your device. Would you like to upload it now?",
+        action: (
+          <Button onClick={() => setShowFlashLogUpload(true)}>Upload</Button>
+        ),
+      });
+    };
+    
+    window.addEventListener('nestor-flash-data-available', handleFlashDataAvailable);
+    
+    return () => {
+      window.removeEventListener('nestor-flash-data-available', handleFlashDataAvailable);
+    };
+  }, [toast]);
   
   // Handle save account info
   const handleSaveAccountInfo = () => {
@@ -182,12 +211,57 @@ const Profile = () => {
               </div>
               
               {/* Connected Devices */}
-              <div className="p-4 bg-white rounded-lg border border-gray-200 flex items-center justify-between cursor-pointer">
+              <div 
+                className="p-4 bg-white rounded-lg border border-gray-200 flex items-center justify-between cursor-pointer"
+                onClick={() => setShowDeviceManager(true)}
+              >
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
                     <Watch className="text-blue-900" size={20} />
                   </div>
                   <span className="font-medium text-gray-800">Connected Devices</span>
+                </div>
+                <i className="fa-solid fa-chevron-right text-gray-400"></i>
+              </div>
+
+              {/* Haptic Alert Settings - New */}
+              <div 
+                className="p-4 bg-white rounded-lg border border-gray-200 flex items-center justify-between cursor-pointer"
+                onClick={() => setShowHapticSettings(true)}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+                    <Thermometer className="text-blue-900" size={20} />
+                  </div>
+                  <span className="font-medium text-gray-800">Haptic Alert Settings</span>
+                </div>
+                <i className="fa-solid fa-chevron-right text-gray-400"></i>
+              </div>
+              
+              {/* Flash Log Upload - New */}
+              <div 
+                className="p-4 bg-white rounded-lg border border-gray-200 flex items-center justify-between cursor-pointer"
+                onClick={() => setShowFlashLogUpload(true)}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+                    <Bluetooth className="text-blue-900" size={20} />
+                  </div>
+                  <span className="font-medium text-gray-800">Upload Flash Log Data</span>
+                </div>
+                <i className="fa-solid fa-chevron-right text-gray-400"></i>
+              </div>
+              
+              {/* Data Export - New */}
+              <div 
+                className="p-4 bg-white rounded-lg border border-gray-200 flex items-center justify-between cursor-pointer"
+                onClick={() => setShowDataExport(true)}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+                    <Download className="text-blue-900" size={20} />
+                  </div>
+                  <span className="font-medium text-gray-800">Export Health Data</span>
                 </div>
                 <i className="fa-solid fa-chevron-right text-gray-400"></i>
               </div>
@@ -518,6 +592,30 @@ const Profile = () => {
           </div>
         </>
       )}
+
+      {/* Device Manager Modal */}
+      <BleDeviceManager 
+        open={showDeviceManager} 
+        onOpenChange={setShowDeviceManager} 
+      />
+      
+      {/* Data Export Modal */}
+      <DataExport 
+        open={showDataExport} 
+        onOpenChange={setShowDataExport} 
+      />
+      
+      {/* Haptic Alert Settings Modal */}
+      <HapticAlertSettings 
+        open={showHapticSettings} 
+        onOpenChange={setShowHapticSettings} 
+      />
+      
+      {/* Flash Log Upload Modal */}
+      <FlashLogUpload
+        open={showFlashLogUpload}
+        onOpenChange={setShowFlashLogUpload}
+      />
 
       <BottomNavbar />
     </div>

@@ -20,7 +20,8 @@ import { detectLowSpO2, analyzeSpO2, detectAbnormalTemperature } from "./utils/h
 import { useState, useEffect } from "react";
 import SpO2AlertDialog from "./components/SpO2AlertDialog";
 import TemperatureAlertDialog from "./components/TemperatureAlertDialog";
-import { connectToDevice, isDeviceConnected, getLastReading } from "./utils/bleUtils";
+import { connectToDevice, isDeviceConnected, getLastReading, handleReconnection } from "./utils/bleUtils";
+import FlashLogUpload from "./components/FlashLogUpload";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => {
   const [tempData, setTempData] = useState({ temperature: 38.4, type: 'high' as 'high' | 'low' });
   const [connectionState, setConnectionState] = useState<'connected' | 'disconnected' | 'reconnecting'>('connected');
   const [lastVitalUpdate, setLastVitalUpdate] = useState<number>(Date.now());
+  const [showFlashLogPrompt, setShowFlashLogPrompt] = useState(false);
 
   // Initialize BLE connection on app start
   useEffect(() => {
@@ -68,14 +70,34 @@ const App = () => {
       setShowTempAlert(true);
     };
     
+    // Listen for flash log data availability
+    const handleFlashDataAvailable = () => {
+      setShowFlashLogPrompt(true);
+    };
+    
     // Add event listeners
     window.addEventListener('nestor-vital-update', handleVitalUpdate);
     window.addEventListener('nestor-fever-alert', handleFeverAlert);
+    window.addEventListener('nestor-flash-data-available', handleFlashDataAvailable);
     
     // Check connection status periodically
     const connectionCheckInterval = setInterval(() => {
       const connected = isDeviceConnected();
-      setConnectionState(connected ? 'connected' : 'reconnecting');
+      const wasDisconnected = connectionState === 'disconnected' || connectionState === 'reconnecting';
+      
+      if (connected && wasDisconnected) {
+        // Device was disconnected but now reconnected
+        setConnectionState('connected');
+        handleReconnection();
+      } else if (connected) {
+        setConnectionState('connected');
+      } else if (!connected && connectionState === 'connected') {
+        // Device just disconnected
+        setConnectionState('reconnecting');
+      } else if (!connected && connectionState === 'reconnecting' && Date.now() - lastVitalUpdate > 30000) {
+        // Device has been disconnected for more than 30 seconds
+        setConnectionState('disconnected');
+      }
       
       // If we haven't received data in 30 seconds, try to reconnect
       if (connected && Date.now() - lastVitalUpdate > 30000) {
@@ -116,13 +138,14 @@ const App = () => {
     return () => {
       window.removeEventListener('nestor-vital-update', handleVitalUpdate);
       window.removeEventListener('nestor-fever-alert', handleFeverAlert);
+      window.removeEventListener('nestor-flash-data-available', handleFlashDataAvailable);
       clearInterval(connectionCheckInterval);
       clearInterval(spO2Timer);
       clearInterval(tempTimer);
       clearTimeout(initialSpO2Timer);
       clearTimeout(initialTempTimer);
     };
-  }, [lastVitalUpdate]);
+  }, [lastVitalUpdate, connectionState]);
 
   // Determine which screen to show based on connection state
   const renderConnectionScreen = () => {
@@ -203,6 +226,12 @@ const App = () => {
                   // Simulate taking a new reading
                   setTimeout(() => setShowTempAlert(false), 2000);
                 }}
+              />
+              
+              {/* Flash Log Upload Dialog */}
+              <FlashLogUpload
+                open={showFlashLogPrompt}
+                onOpenChange={setShowFlashLogPrompt}
               />
             </BrowserRouter>
           </TooltipProvider>

@@ -21,6 +21,8 @@ let lastReading: PackedVitals | null = null;
 let isConnected = false;
 let isWorn = true; // Assume worn by default until notified otherwise
 let deviceName = 'Nestor Device';
+let isFlashLogUploading = false;
+let flashLogProgress = 0;
 
 // Mock BLE connection for development - replace with actual BLE implementation
 export const connectToDevice = async (): Promise<boolean> => {
@@ -123,8 +125,9 @@ const processVitalData = (data: PackedVitals): void => {
 };
 
 // Get the last reading
-export const getLastReading = (): PackedVitals | null => {
-  return lastReading;
+export const getLastReading = (): (PackedVitals & { timestamp: number }) | null => {
+  if (vitalReadings.length === 0) return null;
+  return vitalReadings[vitalReadings.length - 1];
 };
 
 // Get readings for a time period
@@ -171,6 +174,87 @@ export const formatTemperature = (tempInTenthsCelsius: number, unitPreference: '
     return { value: fahrenheit.toFixed(1), unit: '°F' };
   }
   return { value: celsius.toFixed(1), unit: '°C' };
+};
+
+// NEW: Begin Flash Log Upload
+export const startFlashLogUpload = async (): Promise<boolean> => {
+  if (isFlashLogUploading) return false;
+  
+  try {
+    isFlashLogUploading = true;
+    flashLogProgress = 0;
+    
+    // Dispatch event to notify about upload start
+    const startEvent = new CustomEvent('nestor-flash-upload-start');
+    window.dispatchEvent(startEvent);
+    
+    // Mock flash log upload process
+    for (let i = 1; i <= 10; i++) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      flashLogProgress = i * 10;
+      
+      // Dispatch progress event
+      const progressEvent = new CustomEvent('nestor-flash-upload-progress', { 
+        detail: { progress: flashLogProgress } 
+      });
+      window.dispatchEvent(progressEvent);
+      
+      // Generate some historical data
+      if (i % 2 === 0) {
+        const historyCount = Math.floor(Math.random() * 10) + 5;
+        const now = Date.now();
+        
+        for (let j = 0; j < historyCount; j++) {
+          const timeOffset = (Math.floor(Math.random() * 60) + 1) * 60000; // Random minutes in the past
+          const historyReading = {
+            ...generateMockVitalData(),
+            timestamp: now - timeOffset - (i * 3600000) // Hours in the past based on iteration
+          };
+          vitalReadings.push(historyReading);
+        }
+      }
+    }
+    
+    // Sort readings by timestamp
+    vitalReadings.sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Trim if exceeding max size
+    if (vitalReadings.length > MAX_READINGS) {
+      vitalReadings = vitalReadings.slice(vitalReadings.length - MAX_READINGS);
+    }
+    
+    // Dispatch event to notify about upload completion
+    const completeEvent = new CustomEvent('nestor-flash-upload-complete', {
+      detail: { readingCount: vitalReadings.length }
+    });
+    window.dispatchEvent(completeEvent);
+    
+    isFlashLogUploading = false;
+    flashLogProgress = 100;
+    
+    return true;
+  } catch (error) {
+    console.error('Flash log upload failed:', error);
+    
+    // Dispatch event to notify about upload failure
+    const errorEvent = new CustomEvent('nestor-flash-upload-error', {
+      detail: { error: 'Upload failed, please try again.' }
+    });
+    window.dispatchEvent(errorEvent);
+    
+    isFlashLogUploading = false;
+    return false;
+  }
+};
+
+// Check if flash log upload is in progress
+export const isFlashLogUploadInProgress = (): boolean => {
+  return isFlashLogUploading;
+};
+
+// Get flash log upload progress (0-100)
+export const getFlashLogUploadProgress = (): number => {
+  return flashLogProgress;
 };
 
 // Export data as JSON
@@ -221,3 +305,15 @@ export const initializeMockData = (): void => {
 
 // Initialize mock data on module load for development
 initializeMockData();
+
+// Create a trigger for flash log upload on reconnection
+export const handleReconnection = (): void => {
+  // When device reconnects, check if there's flash log data available
+  const hasFlashData = Math.random() > 0.3; // 70% chance of having flash data
+  
+  if (hasFlashData) {
+    // Notify that flash data is available
+    const flashDataEvent = new CustomEvent('nestor-flash-data-available');
+    window.dispatchEvent(flashDataEvent);
+  }
+};
