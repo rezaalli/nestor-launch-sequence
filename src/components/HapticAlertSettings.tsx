@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import { Heart, Thermometer, Droplet, Plus, Trash2, Settings, SliderHorizontal, AlertCircle, Vibrate } from "lucide-react";
+import { Heart, Thermometer, Droplet, Plus, Trash2, Settings, SlidersHorizontal, AlertCircle, Vibrate } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
@@ -519,7 +518,6 @@ export const HapticAlertSettings = ({ open, onOpenChange }: HapticAlertSettingsP
                           <Switch 
                             checked={alert.enabled} 
                             onCheckedChange={() => toggleCustomAlert(alert.id)}
-                            size="sm"
                           />
                         </div>
                         <div className="text-xs text-gray-500 mt-1 flex justify-between">
@@ -528,7 +526,7 @@ export const HapticAlertSettings = ({ open, onOpenChange }: HapticAlertSettingsP
                           </div>
                           <div>
                             <span className="ml-2">
-                              <SliderHorizontal className="inline h-3 w-3 mr-1" /> 
+                              <SlidersHorizontal className="inline h-3 w-3 mr-1" /> 
                               {alert.hapticStrength === 'custom' ? `${alert.customStrength}%` : alert.hapticStrength}
                             </span>
                             <Button 
