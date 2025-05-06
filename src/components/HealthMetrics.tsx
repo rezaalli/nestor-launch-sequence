@@ -1,21 +1,59 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { HeartPulse, Droplet, Activity, Thermometer } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
+import { getLastReading, isDeviceWorn, formatTemperature } from '@/utils/bleUtils';
 
 const HealthMetrics = () => {
   // Get unit preference from user context
   const { user } = useUser();
   const unitPreference = user.unitPreference;
   
-  // Temperature conversion (assuming we get it in Celsius from the device)
-  const tempCelsius = 36.7;
-  const tempFahrenheit = (tempCelsius * 9/5) + 32;
+  const [lastReading, setLastReading] = useState(getLastReading());
+  const [deviceWorn, setDeviceWorn] = useState(isDeviceWorn());
   
-  // Display value based on user preference
-  const tempDisplay = unitPreference === 'metric' 
-    ? { value: tempCelsius.toFixed(1), unit: '°C' }
-    : { value: tempFahrenheit.toFixed(1), unit: '°F' };
+  // Subscribe to vital updates
+  useEffect(() => {
+    const handleVitalUpdate = () => {
+      setLastReading(getLastReading());
+      setDeviceWorn(isDeviceWorn());
+    };
+    
+    const handleWearStateChange = (event: Event) => {
+      const { worn } = (event as CustomEvent).detail;
+      setDeviceWorn(worn);
+    };
+    
+    window.addEventListener('nestor-vital-update', handleVitalUpdate);
+    window.addEventListener('nestor-wear-state', handleWearStateChange);
+    
+    return () => {
+      window.removeEventListener('nestor-vital-update', handleVitalUpdate);
+      window.removeEventListener('nestor-wear-state', handleWearStateChange);
+    };
+  }, []);
+  
+  // If device is not worn, show a message
+  if (!deviceWorn) {
+    return (
+      <div className="grid grid-cols-2 gap-3">
+        <div className="p-4 bg-white border border-gray-200 rounded-xl col-span-2 text-center">
+          <div className="py-6 text-gray-500">
+            <p className="mb-2">Device not being worn</p>
+            <p className="text-sm">Put on your device to see real-time metrics</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Get values from last reading or use defaults
+  const heartRate = lastReading?.hr ?? 72;
+  const spo2 = lastReading?.spo2 ?? 98;
+  const tempCelsius = (lastReading?.temp ?? 367) / 10;
+  
+  // Display temperature based on user preference
+  const tempDisplay = formatTemperature(lastReading?.temp ?? 367, unitPreference);
 
   return (
     <div className="grid grid-cols-2 gap-3">
@@ -25,7 +63,7 @@ const HealthMetrics = () => {
           <span className="text-xs text-gray-600">Heart Rate</span>
         </div>
         <div className="flex items-end">
-          <span className="text-2xl font-semibold text-nestor-gray-900">72</span>
+          <span className="text-2xl font-semibold text-nestor-gray-900">{heartRate}</span>
           <span className="text-sm text-nestor-gray-600 ml-1 mb-0.5">bpm</span>
         </div>
         <div className="mt-2 h-8">
@@ -49,12 +87,12 @@ const HealthMetrics = () => {
           <span className="text-xs text-gray-600">SpO₂</span>
         </div>
         <div className="flex items-end">
-          <span className="text-2xl font-semibold text-nestor-gray-900">98</span>
+          <span className="text-2xl font-semibold text-nestor-gray-900">{spo2}</span>
           <span className="text-sm text-nestor-gray-600 ml-1 mb-0.5">%</span>
         </div>
         <div className="mt-2">
           <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div className="bg-blue-500 h-1.5 rounded-full" style={{width: '98%'}}></div>
+            <div className="bg-blue-500 h-1.5 rounded-full" style={{width: `${spo2}%`}}></div>
           </div>
           <div className="flex justify-between mt-1">
             <span className="text-xs text-nestor-gray-500">90</span>
@@ -92,9 +130,14 @@ const HealthMetrics = () => {
         </div>
         <div className="mt-2 flex items-center">
           <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div className="bg-orange-500 h-1.5 rounded-full" style={{width: '50%'}}></div>
+            <div 
+              className={`h-1.5 rounded-full ${tempCelsius > 37.5 ? 'bg-red-500' : 'bg-orange-500'}`} 
+              style={{width: `${Math.min(100, Math.max(0, ((tempCelsius - 35) / 3) * 100))}%`}}
+            ></div>
           </div>
-          <span className="text-xs text-nestor-gray-500 ml-2">Normal</span>
+          <span className="text-xs text-nestor-gray-500 ml-2">
+            {tempCelsius > 37.5 ? 'Elevated' : 'Normal'}
+          </span>
         </div>
       </div>
     </div>

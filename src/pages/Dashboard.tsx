@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Bell, Star, ArrowUp, ClipboardList, ChevronDown, Grid3x3 } from 'lucide-react';
+import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/contexts/NotificationsContext";
@@ -11,6 +11,9 @@ import HeartRateAlertDialog from '@/components/HeartRateAlertDialog';
 import { detectIrregularEcg } from '@/utils/ecgUtils';
 import { detectHighHeartRate } from '@/utils/healthUtils';
 import HealthMetrics from '@/components/HealthMetrics';
+import ReadinessScore from '@/components/ReadinessScore';
+import WeeklyTrendChart from '@/components/WeeklyTrendChart';
+import DeviceStatus from '@/components/DeviceStatus';
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -305,10 +308,7 @@ const Dashboard = () => {
             />
             <div>
               <h2 className="text-lg font-medium text-nestor-gray-900">Hi, {user.name}</h2>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-1.5"></div>
-                <span className="text-xs text-nestor-gray-600">Rolex Datejust • Connected</span>
-              </div>
+              <DeviceStatus compact={true} />
             </div>
           </div>
           <button 
@@ -319,25 +319,9 @@ const Dashboard = () => {
           </button>
         </div>
         
-        {/* Daily Summary Card */}
-        <div className="mx-6 mt-4 p-5 bg-blue-50 rounded-xl">
-          <div className="flex items-center mb-3">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-              <Star className="text-blue-900" size={18} />
-            </div>
-            <div>
-              <h3 className="font-medium text-nestor-gray-900">Wellness Score</h3>
-              <div className="flex items-center">
-                <span className="text-sm font-medium text-blue-900 mr-1">82</span>
-                <span className="text-xs text-nestor-gray-600">/ 100</span>
-              </div>
-            </div>
-            <div className="ml-auto flex items-center text-green-600 text-xs font-medium">
-              <ArrowUp className="mr-1" size={14} />
-              <span>4%</span>
-            </div>
-          </div>
-          <p className="text-sm text-nestor-gray-700">Your sleep quality improved, but heart rate variability is slightly lower today.</p>
+        {/* Readiness Score Card (replaced Wellness Score) */}
+        <div className="mx-6 mt-4">
+          <ReadinessScore />
         </div>
         
         {/* Real-time Metrics */}
@@ -353,7 +337,7 @@ const Dashboard = () => {
             </button>
           </div>
           
-          {/* Replace the grid with the HealthMetrics component */}
+          {/* HealthMetrics component */}
           <HealthMetrics />
           
         </div>
@@ -379,74 +363,18 @@ const Dashboard = () => {
             </span>
           </div>
           
-          <div className="p-4 bg-white border border-gray-200 rounded-xl">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium text-gray-900">Heart Rate</h4>
-              <div className="text-xs flex items-center text-gray-600">
-                <span>Last 7 days</span>
-                <ChevronDown className="ml-1" size={12} />
-              </div>
-            </div>
-            
-            <div className="h-32 mb-2">
-              <div className="h-full flex items-end justify-between">
-                <div className="flex flex-col items-center">
-                  <div className="h-14 w-6 bg-blue-100 rounded-t-md relative">
-                    <div className="absolute bottom-0 left-0 right-0 bg-blue-900 rounded-t-md h-10"></div>
-                  </div>
-                  <span className="text-xs text-gray-500 mt-1">Mon</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="h-20 w-6 bg-blue-100 rounded-t-md relative">
-                    <div className="absolute bottom-0 left-0 right-0 bg-blue-900 rounded-t-md h-16"></div>
-                  </div>
-                  <span className="text-xs text-gray-500 mt-1">Tue</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="h-24 w-6 bg-blue-100 rounded-t-md relative">
-                    <div className="absolute bottom-0 left-0 right-0 bg-blue-900 rounded-t-md h-14"></div>
-                  </div>
-                  <span className="text-xs text-gray-500 mt-1">Wed</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="h-18 w-6 bg-blue-100 rounded-t-md relative">
-                    <div className="absolute bottom-0 left-0 right-0 bg-blue-900 rounded-t-md h-12"></div>
-                  </div>
-                  <span className="text-xs text-gray-500 mt-1">Thu</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="h-16 w-6 bg-blue-100 rounded-t-md relative">
-                    <div className="absolute bottom-0 left-0 right-0 bg-blue-900 rounded-t-md h-8"></div>
-                  </div>
-                  <span className="text-xs text-gray-500 mt-1">Fri</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="h-22 w-6 bg-blue-100 rounded-t-md relative">
-                    <div className="absolute bottom-0 left-0 right-0 bg-blue-900 rounded-t-md h-18"></div>
-                  </div>
-                  <span className="text-xs text-gray-500 mt-1">Sat</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="h-28 w-6 bg-blue-100 rounded-t-md relative">
-                    <div className="absolute bottom-0 left-0 right-0 bg-blue-900 rounded-t-md h-20"></div>
-                  </div>
-                  <span className="text-xs text-gray-500 mt-1">Sun</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between text-xs text-gray-600">
-              <div>Avg: <span className="font-medium">72 bpm</span></div>
-              <div>Peak: <span className="font-medium">118 bpm</span></div>
-              <div>Rest: <span className="font-medium">58 bpm</span></div>
-            </div>
-          </div>
+          {/* Replace with WeeklyTrendChart */}
+          <WeeklyTrendChart 
+            dataType="heartRate" 
+            days={7} 
+            onViewAllClick={handleViewAllTrends}
+          />
         </div>
         
         <BottomNavbar />
       </div>
       
-      {/* ECG Alert Dialog */}
+      {/* Alert Dialogs */}
       <EcgAlertDialog
         open={showEcgDialog}
         onOpenChange={setShowEcgDialog}
@@ -454,7 +382,6 @@ const Dashboard = () => {
         onDismiss={handleDismissEcg}
       />
 
-      {/* Heart Rate Alert Dialog */}
       <HeartRateAlertDialog
         open={showHeartRateDialog}
         onOpenChange={setShowHeartRateDialog}

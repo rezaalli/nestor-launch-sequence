@@ -1,39 +1,18 @@
 
-import React from 'react';
-import { ArrowLeft, MoreVertical, Heart, Moon, ArrowDown, ChartLine, HeartPulse, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, MoreVertical, Heart, Moon, ArrowDown, ChartLine, HeartPulse, ChevronRight, Thermometer } from 'lucide-react';
 import StatusBar from '@/components/StatusBar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent
-} from '@/components/ui/chart';
-import { BarChart, XAxis, YAxis, Bar, ResponsiveContainer, Tooltip, Cell } from 'recharts';
+import WeeklyTrendChart from '@/components/WeeklyTrendChart';
 import BottomNavbar from '@/components/BottomNavbar';
-
-const weeklyData = [
-  { name: 'Mon', value: 60 },
-  { name: 'Tue', value: 75 },
-  { name: 'Wed', value: 45 },
-  { name: 'Thu', value: 90 },
-  { name: 'Fri', value: 65 },
-  { name: 'Sat', value: 55 },
-  { name: 'Sun', value: 70 },
-];
-
-const chartConfig = {
-  default: {
-    color: "#e5e7eb"
-  },
-  active: {
-    color: "#0F172A"
-  }
-};
+import { getLastReading } from '@/utils/bleUtils';
 
 const TrendsAndInsights = () => {
   const navigate = useNavigate();
+  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month'>('week');
+  const lastReading = getLastReading();
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -71,7 +50,7 @@ const TrendsAndInsights = () => {
                   <Heart className="text-red-500" size={16} />
                 </div>
                 <div className="flex items-baseline">
-                  <span className="text-2xl font-semibold text-nestor-gray-900">72</span>
+                  <span className="text-2xl font-semibold text-nestor-gray-900">{lastReading?.hr ?? 72}</span>
                   <span className="ml-1 text-sm text-nestor-gray-500">bpm</span>
                 </div>
                 <span className="text-xs text-green-600 flex items-center mt-1">
@@ -84,72 +63,63 @@ const TrendsAndInsights = () => {
             <Card className="rounded-xl shadow-sm">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-nestor-gray-500">Sleep</span>
-                  <Moon className="text-nestor-blue" size={16} />
+                  <span className="text-sm text-nestor-gray-500">Readiness</span>
+                  <ChartLine className="text-blue-600" size={16} />
                 </div>
                 <div className="flex items-baseline">
-                  <span className="text-2xl font-semibold text-nestor-gray-900">7.5</span>
-                  <span className="ml-1 text-sm text-nestor-gray-500">hrs</span>
+                  <span className="text-2xl font-semibold text-nestor-gray-900">{lastReading?.readiness ?? 82}</span>
+                  <span className="ml-1 text-sm text-nestor-gray-500">/ 100</span>
                 </div>
-                <span className="text-xs text-red-600 flex items-center mt-1">
+                <span className="text-xs text-green-600 flex items-center mt-1">
                   <ArrowDown className="mr-1" size={12} />
-                  1hr less than avg
+                  4% improvement
                 </span>
               </CardContent>
             </Card>
           </div>
         </section>
 
-        {/* Weekly Trends */}
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold text-nestor-gray-900 mb-4">Weekly Trends</h2>
-          <Card className="rounded-xl shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-nestor-gray-700">Heart Rate Variation</span>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" className="px-2 py-1 h-auto text-xs text-nestor-blue bg-blue-100 rounded-full border-0">Week</Button>
-                  <Button variant="ghost" size="sm" className="px-2 py-1 h-auto text-xs text-nestor-gray-500 rounded-full">Month</Button>
-                </div>
-              </div>
-              <ChartContainer config={chartConfig} className="h-48">
-                <BarChart data={weeklyData}>
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false}
-                    tick={{ fontSize: 12, fill: '#6b7280' }}
-                    dy={10}
-                  />
-                  <YAxis hide={true} />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-white p-2 shadow rounded border border-gray-100">
-                            <p className="text-sm">{`${payload[0].value} bpm`}</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Bar 
-                    dataKey="value" 
-                    fill="#e5e7eb"
-                    radius={[4, 4, 0, 0]} 
-                  >
-                    {weeklyData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`}
-                        fill={entry.name === 'Thu' ? '#0F172A' : '#e5e7eb'} 
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+        {/* Period Selector */}
+        <section className="mb-4">
+          <div className="flex justify-center space-x-4">
+            <Button 
+              variant={selectedPeriod === 'week' ? 'default' : 'outline'} 
+              className="rounded-full"
+              onClick={() => setSelectedPeriod('week')}
+            >
+              Week
+            </Button>
+            <Button 
+              variant={selectedPeriod === 'month' ? 'default' : 'outline'} 
+              className="rounded-full"
+              onClick={() => setSelectedPeriod('month')}
+            >
+              Month
+            </Button>
+          </div>
+        </section>
+
+        {/* Trends Charts */}
+        <section className="space-y-4 mb-8">
+          <WeeklyTrendChart 
+            dataType="heartRate" 
+            days={selectedPeriod === 'week' ? 7 : 30} 
+          />
+          
+          <WeeklyTrendChart 
+            dataType="readiness" 
+            days={selectedPeriod === 'week' ? 7 : 30} 
+          />
+          
+          <WeeklyTrendChart 
+            dataType="temperature" 
+            days={selectedPeriod === 'week' ? 7 : 30} 
+          />
+          
+          <WeeklyTrendChart 
+            dataType="spo2" 
+            days={selectedPeriod === 'week' ? 7 : 30} 
+          />
         </section>
 
         {/* Daily Highlights */}
@@ -196,11 +166,11 @@ const TrendsAndInsights = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <ChartLine className="text-nestor-blue" size={18} />
+                      <Thermometer className="text-blue-600" size={18} />
                     </div>
                     <div>
-                      <h3 className="font-medium text-nestor-gray-900">Weekly Goal Achieved</h3>
-                      <p className="text-sm text-nestor-gray-500">Hit your target heart rate 5 days this week</p>
+                      <h3 className="font-medium text-nestor-gray-900">Temperature Trend</h3>
+                      <p className="text-sm text-nestor-gray-500">Your temperature has been stable for the past week</p>
                     </div>
                   </div>
                   <ChevronRight className="text-nestor-gray-400" size={16} />
