@@ -1,7 +1,8 @@
+
 #root {
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
   text-align: center;
 }
 
@@ -34,9 +35,37 @@
 }
 
 .card {
-  padding: 2em;
+  padding: 1.5em;
 }
 
 .read-the-docs {
   color: #888;
+}
+
+/* Mobile-specific styling */
+@media (max-width: 768px) {
+  .card {
+    padding: 1em;
+  }
+  
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Safe area insets for notches and home indicators */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Prevent text selection on mobile */
+.no-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }

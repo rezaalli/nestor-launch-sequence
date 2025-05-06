@@ -65,6 +65,27 @@ const config: Config = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      fontSize: {
+        '2xs': '0.625rem',   // 10px
+        xs: '0.75rem',       // 12px
+        sm: '0.875rem',      // 14px
+        base: '1rem',        // 16px
+        lg: '1.125rem',      // 18px
+        xl: '1.25rem',       // 20px
+        '2xl': '1.5rem',     // 24px
+        '3xl': '1.875rem',   // 30px
+        '4xl': '2.25rem',    // 36px
+      },
+      lineHeight: {
+        'extra-tight': '1.1',
+        tight: '1.2',
+        snug: '1.35',
+        normal: '1.5',
+        relaxed: '1.625',
+      },
+      spacing: {
+        '10': '2.5rem',      // 40px
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

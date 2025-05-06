@@ -42,8 +42,52 @@
     @apply border-border;
   }
 
+  html {
+    -webkit-text-size-adjust: 100%; /* Prevent font scaling in landscape */
+    text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Mobile Text Styling */
+  h1, .h1 {
+    @apply text-2xl font-semibold tracking-tight;
+    line-height: 1.2;
+  }
+  
+  h2, .h2 {
+    @apply text-xl font-semibold tracking-tight;
+    line-height: 1.25;
+  }
+  
+  h3, .h3 {
+    @apply text-lg font-medium;
+    line-height: 1.3;
+  }
+  
+  h4, .h4 {
+    @apply text-base font-medium;
+    line-height: 1.35;
+  }
+  
+  p, .body-text {
+    @apply text-sm leading-relaxed;
+  }
+  
+  .text-caption {
+    @apply text-xs leading-normal;
+  }
+  
+  /* Touch Targets */
+  button, 
+  [role="button"],
+  a {
+    @apply min-h-10 cursor-pointer;
   }
 }
 
@@ -59,18 +103,36 @@
 
 @layer components {
   .nestor-input {
-    @apply w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nestor-blue focus:border-nestor-blue outline-none;
+    @apply w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nestor-blue focus:border-nestor-blue outline-none text-base;
   }
   
   .nestor-btn {
-    @apply w-full py-4 bg-nestor-blue text-white font-medium rounded-lg shadow-sm transition-colors hover:bg-opacity-90;
+    @apply w-full py-4 bg-nestor-blue text-white font-medium rounded-lg shadow-sm transition-colors hover:bg-opacity-90 text-base tracking-tight;
   }
   
   .nestor-btn-outline {
-    @apply w-full py-3.5 border border-gray-300 rounded-lg flex items-center justify-center space-x-2 transition-colors hover:bg-gray-50;
+    @apply w-full py-3.5 border border-gray-300 rounded-lg flex items-center justify-center space-x-2 transition-colors hover:bg-gray-50 text-base;
   }
   
   .nestor-icon-container {
     @apply w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center;
+  }
+  
+  /* Card styles for metric cards */
+  .metric-card {
+    @apply p-4 rounded-xl border border-gray-200;
+  }
+  
+  /* List item styles */
+  .list-item {
+    @apply py-3 flex items-center;
+  }
+  
+  /* Safe area inset padding for mobile */
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
