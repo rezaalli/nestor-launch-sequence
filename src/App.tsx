@@ -48,7 +48,7 @@ const ConnectionWrapper = () => {
     <>
       {!isConnectionRoute && (
         <ConnectionStateManager
-          connectionState={connectionState as 'connected' | 'disconnected' | 'reconnecting'}
+          connectionState={connectionState}
           onRetryConnection={attemptReconnection}
           onContinueWithoutDevice={continueWithoutDevice}
         />
