@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ResponsiveContainer, 
   LineChart, 
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { exportDataAsCSV } from '@/utils/bleUtils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type ReadingType = 'hr' | 'spo2' | 'temp' | 'readiness' | 'motion';
 
@@ -173,14 +174,18 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
         
         <CardContent>
           <Tabs defaultValue={activeDataType} onValueChange={(value) => setActiveDataType(value as ReadingType)}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="hr">Heart Rate</TabsTrigger>
-              <TabsTrigger value="spo2">SpO₂</TabsTrigger>
-              <TabsTrigger value="temp">Temperature</TabsTrigger>
-              <TabsTrigger value="readiness">Readiness</TabsTrigger>
-            </TabsList>
+            <div className="relative w-full">
+              <ScrollArea className="w-full pb-2" orientation="horizontal">
+                <TabsList className="w-full inline-flex px-1 py-1.5 justify-start space-x-2 overflow-hidden">
+                  <TabsTrigger className="min-w-[100px] flex-shrink-0" value="hr">Heart Rate</TabsTrigger>
+                  <TabsTrigger className="min-w-[100px] flex-shrink-0" value="spo2">SpO₂</TabsTrigger>
+                  <TabsTrigger className="min-w-[100px] flex-shrink-0" value="temp">Temperature</TabsTrigger>
+                  <TabsTrigger className="min-w-[100px] flex-shrink-0" value="readiness">Readiness</TabsTrigger>
+                </TabsList>
+              </ScrollArea>
+            </div>
             
-            <TabsContent value={activeDataType} className="h-[300px]">
+            <TabsContent value={activeDataType} className="h-[300px] mt-4">
               {chartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
