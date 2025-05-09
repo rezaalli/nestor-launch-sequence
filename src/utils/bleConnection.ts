@@ -1,8 +1,9 @@
+
 import { BleClient } from '@capacitor-community/bluetooth-le';
-import { NESTOR_BLE_SERVICE, NESTOR_CHARACTERISTICS } from './bleConfig';
-import { dispatchBleEvent } from './bleEvents';
-import { startDataPolling, stopDataPolling } from './bleDataMonitoring';
-import { getDiscoveredDevices } from './bleScanning';
+import { NESTOR_BLE_SERVICE, NESTOR_CHARACTERISTICS } from './ble/bleConfig';
+import { dispatchBleEvent } from './ble/bleEvents';
+import { startDataPolling, stopDataPolling } from './ble/bleDataMonitoring';
+import { getDiscoveredDevices } from './ble/bleScanning';
 
 // Connection state variables
 let isConnected = false;

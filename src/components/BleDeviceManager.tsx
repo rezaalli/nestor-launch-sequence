@@ -67,8 +67,7 @@ export const BleDeviceManager = ({ open, onOpenChange }: BleDeviceManagerProps) 
       
       if (available) {
         const hasPerms = await requestBlePermissions();
-        // Fix: Use the resolved value from the promise, not the promise itself
-        setHasPermissions(Boolean(hasPerms));
+        setHasPermissions(Boolean(hasPerms)); // Fix: Ensure a boolean is passed
       }
     };
     
@@ -217,8 +216,7 @@ export const BleDeviceManager = ({ open, onOpenChange }: BleDeviceManagerProps) 
     // If no permissions, request them
     if (hasPermissions === false) {
       const hasPerms = await requestBlePermissions();
-      // Fix: Use the resolved value from the promise, not the promise itself
-      setHasPermissions(Boolean(hasPerms));
+      setHasPermissions(Boolean(hasPerms)); // Fix: Ensure a boolean is passed
       if (!hasPerms) {
         setConnectionError('Bluetooth permissions are required to scan for devices.');
         toast({

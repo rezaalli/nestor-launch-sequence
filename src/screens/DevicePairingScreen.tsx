@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Bluetooth, BluetoothSearching, BluetoothOff, BluetoothConnected, Plus, ArrowLeft, Battery, Watch, LightbulbIcon, RefreshCw, Shield } from 'lucide-react';
 import OnboardingLayout from '../components/OnboardingLayout';
@@ -47,7 +46,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
       
       if (available) {
         const hasPerms = await requestBlePermissions();
-        setHasPermissions(Boolean(hasPerms));
+        setHasPermissions(Boolean(hasPerms)); // Fix: Ensure a boolean is passed
       }
     };
     
@@ -112,8 +111,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
     // If no permissions, request them
     if (hasPermissions === false) {
       const hasPerms = await requestBlePermissions();
-      // Fix: Use the resolved value from the promise, not the promise itself
-      setHasPermissions(Boolean(hasPerms));
+      setHasPermissions(Boolean(hasPerms)); // Fix: Ensure a boolean is passed
       if (!hasPerms) {
         setConnectionError('Bluetooth permissions are required to scan for devices.');
         return;
