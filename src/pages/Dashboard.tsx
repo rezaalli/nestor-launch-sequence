@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3, RefreshCw } from 'lucide-react';
+import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3, RefreshCw, Move } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/contexts/NotificationsContext";
@@ -32,6 +32,7 @@ const Dashboard = () => {
     return (savedLayout === '3x2' ? '3x2' : '2x3') as '3x2' | '2x3';
   });
   const [isSyncing, setIsSyncing] = useState(false);
+  const [customizeMode, setCustomizeMode] = useState(false);
   
   // Create a ref for the metrics container
   const metricsGridRef = useRef<HTMLDivElement>(null);
@@ -74,7 +75,7 @@ const Dashboard = () => {
   
   // Effect for setting up drag-and-drop functionality
   useEffect(() => {
-    if (loading || !metricsGridRef.current) return;
+    if (loading || !metricsGridRef.current || !customizeMode) return;
 
     let dragSrcEl: HTMLElement | null = null;
     
@@ -195,7 +196,7 @@ const Dashboard = () => {
     // Add event listeners to all cards
     const cards = metricsGridRef.current.querySelectorAll('.metric-card');
     cards.forEach(card => {
-      card.setAttribute('draggable', 'true');
+      card.setAttribute('draggable', customizeMode ? 'true' : 'false');
       card.addEventListener('dragstart', handleDragStart);
       card.addEventListener('dragover', handleDragOver);
       card.addEventListener('dragenter', handleDragEnter);
@@ -207,7 +208,7 @@ const Dashboard = () => {
     // Load saved card order on mount
     loadCardOrder();
     
-    // Cleanup event listeners on component unmount
+    // Cleanup event listeners on component unmount or when customizeMode changes
     return () => {
       if (!metricsGridRef.current) return;
       
@@ -221,12 +222,32 @@ const Dashboard = () => {
         card.removeEventListener('dragend', handleDragEnd);
       });
     };
-  }, [loading]);
+  }, [loading, customizeMode]);
   
-  const toggleGridLayout = () => {
-    const newLayout = gridLayout === '2x3' ? '3x2' : '2x3';
-    setGridLayout(newLayout);
-    localStorage.setItem('metricsLayout', newLayout);
+  // Toggle customize mode instead of grid layout
+  const toggleCustomizeMode = () => {
+    const newMode = !customizeMode;
+    setCustomizeMode(newMode);
+    
+    if (newMode) {
+      toast({
+        title: "Customize Mode",
+        description: "Drag and drop metrics to rearrange them",
+      });
+    } else {
+      toast({
+        title: "Changes Saved",
+        description: "Your metrics layout has been updated",
+      });
+    }
+    
+    // Update draggable state of cards when mode changes
+    if (metricsGridRef.current) {
+      const cards = metricsGridRef.current.querySelectorAll('.metric-card');
+      cards.forEach(card => {
+        card.setAttribute('draggable', newMode ? 'true' : 'false');
+      });
+    }
   };
   
   const handleLifestyleCheckIn = () => {
@@ -395,17 +416,24 @@ const Dashboard = () => {
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-nestor-gray-500">REAL-TIME METRICS</h3>
             <button 
-              className="text-xs text-blue-900 font-medium flex items-center"
-              onClick={toggleGridLayout}
+              className={`text-xs font-medium flex items-center ${customizeMode ? 'text-red-600' : 'text-blue-900'}`}
+              onClick={toggleCustomizeMode}
             >
-              <Grid3x3 className="mr-1" size={14} />
-              Customize
+              {customizeMode ? (
+                <>Done</>
+              ) : (
+                <>
+                  <Move className="mr-1" size={14} />
+                  Customize
+                </>
+              )}
             </button>
           </div>
           
-          {/* HealthMetrics component */}
-          <HealthMetrics />
-          
+          {/* Health Metrics component with ref for drag-and-drop */}
+          <div ref={metricsGridRef}>
+            <HealthMetrics customizeMode={customizeMode} />
+          </div>
         </div>
         
         {/* Lifestyle Check-In Button */}

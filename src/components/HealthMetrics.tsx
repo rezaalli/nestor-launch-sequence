@@ -1,10 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { HeartPulse, Droplet, Activity, Thermometer } from 'lucide-react';
+import { HeartPulse, Droplet, Activity, Thermometer, Move } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { getLastReading, isDeviceWorn, formatTemperature } from '@/utils/bleUtils';
 
-const HealthMetrics = () => {
+interface HealthMetricsProps {
+  customizeMode?: boolean;
+}
+
+const HealthMetrics = ({ customizeMode = false }: HealthMetricsProps) => {
   // Get unit preference from user context
   const { user } = useUser();
   const unitPreference = user.unitPreference || 'imperial'; // Default to imperial (Fahrenheit)
@@ -55,9 +59,21 @@ const HealthMetrics = () => {
   // Display temperature based on user preference
   const tempDisplay = formatTemperature(lastReading?.temp ?? 367, unitPreference);
 
+  // Helper function to render the drag handle when in customize mode
+  const renderDragHandle = () => {
+    if (!customizeMode) return null;
+    
+    return (
+      <div className="absolute top-2 right-2 text-gray-400">
+        <Move size={14} />
+      </div>
+    );
+  };
+
   return (
     <div className="grid grid-cols-2 gap-3">
-      <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card" id="heartRate">
+      <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card relative" id="heartRate">
+        {renderDragHandle()}
         <div className="flex items-center mb-2">
           <HeartPulse className="text-red-500 mr-2" size={16} />
           <span className="text-xs text-gray-600">Heart Rate</span>
@@ -81,7 +97,8 @@ const HealthMetrics = () => {
         </div>
       </div>
       
-      <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card" id="spo2">
+      <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card relative" id="spo2">
+        {renderDragHandle()}
         <div className="flex items-center mb-2">
           <Droplet className="text-blue-500 mr-2" size={16} />
           <span className="text-xs text-gray-600">SpO₂</span>
@@ -101,7 +118,8 @@ const HealthMetrics = () => {
         </div>
       </div>
       
-      <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card" id="ecg">
+      <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card relative" id="ecg">
+        {renderDragHandle()}
         <div className="flex items-center mb-2">
           <Activity className="text-purple-500 mr-2" size={16} />
           <span className="text-xs text-gray-600">ECG</span>
@@ -119,7 +137,8 @@ const HealthMetrics = () => {
         </div>
       </div>
       
-      <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card" id="temperature">
+      <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card relative" id="temperature">
+        {renderDragHandle()}
         <div className="flex items-center mb-2">
           <Thermometer className="text-orange-500 mr-2" size={16} />
           <span className="text-xs text-gray-600">Temperature</span>
