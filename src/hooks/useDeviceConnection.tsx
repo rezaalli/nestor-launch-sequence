@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { connectToDevice, isDeviceConnected, getLastReading, handleReconnection, isBleAvailable, requestBlePermissions } from "@/utils/bleUtils";
@@ -127,7 +126,8 @@ export const useDeviceConnection = () => {
   };
 
   return {
-    connectionState: 'connected', // Always return connected in development
+    // Ensure we return a proper type here
+    connectionState,
     setConnectionState,
     attemptReconnection,
     continueWithoutDevice
