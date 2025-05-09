@@ -29,6 +29,16 @@ const ConnectionWrapper = () => {
   const { connectionState, attemptReconnection, continueWithoutDevice } = useDeviceConnection();
   const location = useLocation();
   
+  // In development environment, don't show any connection screens
+  if (process.env.NODE_ENV === 'development') {
+    return (
+      <>
+        <HealthAlertsManager />
+        <FlashLogManager />
+      </>
+    );
+  }
+  
   // Don't show connection overlay on these specific routes
   const isConnectionRoute = 
     location.pathname.includes('connection-lost') || 

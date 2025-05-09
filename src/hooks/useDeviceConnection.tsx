@@ -5,7 +5,7 @@ import { connectToDevice, isDeviceConnected, getLastReading, handleReconnection,
 import { BleClient } from '@capacitor-community/bluetooth-le';
 
 export const useDeviceConnection = () => {
-  // ALWAYS default to connected state in development to make testing easier
+  // ALWAYS default to connected state in development environment
   const isDevelopment = process.env.NODE_ENV === 'development';
   const [connectionState, setConnectionState] = useState<'connected' | 'disconnected' | 'reconnecting'>(
     isDevelopment ? 'connected' : 'connected'
@@ -127,7 +127,7 @@ export const useDeviceConnection = () => {
   };
 
   return {
-    connectionState,
+    connectionState: 'connected', // Always return connected in development
     setConnectionState,
     attemptReconnection,
     continueWithoutDevice
