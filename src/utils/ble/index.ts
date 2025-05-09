@@ -24,6 +24,12 @@ export const initializeMockDataIfNeeded = (): void => {
     // In development, always dispatch a permissions-granted event
     dispatchBleEvent('nestor-permissions-granted', { granted: true });
     
+    // Dispatch connected event with mock device ID
+    dispatchBleEvent('nestor-connected', { 
+      deviceId: 'mock-device-id',
+      deviceName: 'Nestor Dev Device'
+    });
+    
     // Generate some mock vitals data for testing
     const generateMockVital = (hour: number) => {
       const now = new Date();

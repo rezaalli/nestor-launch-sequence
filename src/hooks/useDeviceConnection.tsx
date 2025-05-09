@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { connectToDevice, isDeviceConnected, getLastReading, handleReconnection, isBleAvailable, requestBlePermissions } from "@/utils/bleUtils";
@@ -7,7 +8,7 @@ export const useDeviceConnection = () => {
   // ALWAYS default to connected state in development environment
   const isDevelopment = process.env.NODE_ENV === 'development';
   const [connectionState, setConnectionState] = useState<'connected' | 'disconnected' | 'reconnecting'>(
-    isDevelopment ? 'connected' : 'connected'
+    isDevelopment ? 'connected' : 'disconnected'
   );
   const [lastVitalUpdate, setLastVitalUpdate] = useState<number>(Date.now());
   const navigate = useNavigate();
