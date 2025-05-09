@@ -28,9 +28,12 @@ const queryClient = new QueryClient();
 const ConnectionWrapper = () => {
   const { connectionState, attemptReconnection, continueWithoutDevice } = useDeviceConnection();
   const location = useLocation();
+  const isDevelopment = process.env.NODE_ENV === 'development';
   
   // In development environment, don't show any connection screens
-  if (process.env.NODE_ENV === 'development') {
+  if (isDevelopment) {
+    // Initialize mock data and always stay in connected state
+    console.log('Development environment detected. Connection screens bypassed.');
     return (
       <>
         <HealthAlertsManager />

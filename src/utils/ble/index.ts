@@ -45,6 +45,11 @@ export const initializeMockDataIfNeeded = (): void => {
     for (let i = 24; i > 0; i--) {
       generateMockVital(i);
     }
+    
+    // Add a recurring interval to simulate real-time data updates (every 5 seconds)
+    setInterval(() => {
+      generateMockVital(0);
+    }, 5000);
   }
 };
 

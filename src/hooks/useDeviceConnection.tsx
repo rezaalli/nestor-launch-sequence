@@ -20,6 +20,7 @@ export const useDeviceConnection = () => {
       return; // Skip all BLE initialization in development
     }
 
+    // Rest of the effect logic only runs in production
     const initializeConnection = async () => {
       try {
         // First check if BLE is available
@@ -52,7 +53,10 @@ export const useDeviceConnection = () => {
       }
     };
     
-    initializeConnection();
+    // Only run in production
+    if (!isDevelopment) {
+      initializeConnection();
+    }
     
     // Listen for Nestor vital updates
     const handleVitalUpdate = (event: Event) => {
@@ -65,8 +69,9 @@ export const useDeviceConnection = () => {
     
     // Check connection status periodically
     const connectionCheckInterval = setInterval(() => {
-      // Skip connection checks in development mode
-      if (isDevelopment && !window.location.search.includes('require_ble=true')) {
+      // Always stay connected in development
+      if (isDevelopment) {
+        setConnectionState('connected');
         return;
       }
 
@@ -126,7 +131,6 @@ export const useDeviceConnection = () => {
   };
 
   return {
-    // Ensure we return a proper type here
     connectionState,
     setConnectionState,
     attemptReconnection,
