@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import StatusBar from '@/components/StatusBar';
 import BottomNavbar from '@/components/BottomNavbar';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
+import Toggle from '@/components/Toggle';
 import { Label } from '@/components/ui/label';
 import { 
   ScrollArea,
@@ -113,9 +113,9 @@ const Profile = () => {
                         {user.unitPreference === 'metric' ? 'Celsius (°C)' : 'Fahrenheit (°F)'}
                       </p>
                     </div>
-                    <Switch 
+                    <Toggle 
                       checked={user.unitPreference === 'imperial'} 
-                      onCheckedChange={toggleTempUnit} 
+                      onChange={toggleTempUnit} 
                     />
                   </div>
                 </div>

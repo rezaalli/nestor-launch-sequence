@@ -4,6 +4,7 @@ import OnboardingLayout from '../components/OnboardingLayout';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Bluetooth, Bell, HeartPulse, Check } from 'lucide-react';
+import Toggle from '@/components/Toggle';
 
 interface PermissionsScreenProps {
   onNext: () => void;
@@ -28,16 +29,16 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
   };
 
   // Enable a permission
-  const enablePermission = (permissionType: 'bluetooth' | 'healthKit' | 'notifications') => {
+  const togglePermission = (permissionType: 'bluetooth' | 'healthKit' | 'notifications', value: boolean) => {
     switch (permissionType) {
       case 'bluetooth':
-        setBluetooth(true);
+        setBluetooth(value);
         break;
       case 'healthKit':
-        setHealthKit(true);
+        setHealthKit(value);
         break;
       case 'notifications':
-        setNotifications(true);
+        setNotifications(value);
         break;
     }
   };
@@ -66,12 +67,15 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
                 <h3 className="font-medium text-nestor-gray-900 mb-1">Bluetooth</h3>
                 <p className="text-sm text-nestor-gray-600">Required to connect with your watch and receive real-time data.</p>
               </div>
-              <button 
-                className={`ml-4 px-4 py-2 ${bluetooth ? 'bg-green-500' : 'bg-nestor-blue'} text-white text-sm font-medium rounded-lg`}
-                onClick={() => enablePermission('bluetooth')}
-              >
-                {bluetooth ? 'Enabled' : 'Enable'}
-              </button>
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium ${bluetooth ? 'text-green-500' : 'text-gray-400'}`}>
+                  {bluetooth ? 'Enabled' : 'Enable'}
+                </span>
+                <Toggle 
+                  checked={bluetooth} 
+                  onChange={(value) => togglePermission('bluetooth', value)} 
+                />
+              </div>
             </div>
           </div>
 
@@ -85,12 +89,15 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
                 <h3 className="font-medium text-nestor-gray-900 mb-1">Health Data</h3>
                 <p className="text-sm text-nestor-gray-600">Access and store your health metrics securely.</p>
               </div>
-              <button 
-                className={`ml-4 px-4 py-2 ${healthKit ? 'bg-green-500' : 'bg-nestor-blue'} text-white text-sm font-medium rounded-lg`}
-                onClick={() => enablePermission('healthKit')}
-              >
-                {healthKit ? 'Enabled' : 'Enable'}
-              </button>
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium ${healthKit ? 'text-green-500' : 'text-gray-400'}`}>
+                  {healthKit ? 'Enabled' : 'Enable'}
+                </span>
+                <Toggle 
+                  checked={healthKit} 
+                  onChange={(value) => togglePermission('healthKit', value)} 
+                />
+              </div>
             </div>
             <div className="pl-13 ml-13">
               <div className="flex items-center mb-2">
@@ -118,12 +125,15 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
                 <h3 className="font-medium text-nestor-gray-900 mb-1">Notifications</h3>
                 <p className="text-sm text-nestor-gray-600">Get alerts for important health updates and reminders.</p>
               </div>
-              <button 
-                className={`ml-4 px-4 py-2 ${notifications ? 'bg-green-500' : 'bg-nestor-blue'} text-white text-sm font-medium rounded-lg`}
-                onClick={() => enablePermission('notifications')}
-              >
-                {notifications ? 'Enabled' : 'Enable'}
-              </button>
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium ${notifications ? 'text-green-500' : 'text-gray-400'}`}>
+                  {notifications ? 'Enabled' : 'Enable'}
+                </span>
+                <Toggle 
+                  checked={notifications} 
+                  onChange={(value) => togglePermission('notifications', value)} 
+                />
+              </div>
             </div>
           </div>
         </div>
