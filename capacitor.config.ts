@@ -17,7 +17,31 @@ const config: CapacitorConfig = {
       showSpinner: false,
       splashFullScreen: true,
       splashImmersive: true
+    },
+    BluetoothLe: {
+      displayStrings: {
+        scanning: "Searching for Nestor devices...",
+        cancel: "Cancel",
+        availableDevices: "Available Nestor Devices",
+        noDeviceFound: "No Nestor devices found"
+      }
     }
+  },
+  android: {
+    useLegacyBridge: false
+  },
+  // Add permissions for iOS
+  ios: {
+    permissions: [
+      {
+        name: "NSBluetoothAlwaysUsageDescription",
+        text: "The app uses Bluetooth to connect to your Nestor device and monitor your vital signs."
+      },
+      {
+        name: "NSBluetoothPeripheralUsageDescription",
+        text: "The app connects to your Nestor device to display your health metrics and sync data."
+      }
+    ]
   }
 };
 

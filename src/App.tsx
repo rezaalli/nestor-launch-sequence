@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,8 +19,9 @@ import { detectLowSpO2, analyzeSpO2, detectAbnormalTemperature } from "./utils/h
 import { useState, useEffect } from "react";
 import SpO2AlertDialog from "./components/SpO2AlertDialog";
 import TemperatureAlertDialog from "./components/TemperatureAlertDialog";
-import { connectToDevice, isDeviceConnected, getLastReading, handleReconnection } from "./utils/bleUtils";
+import { connectToDevice, isDeviceConnected, getLastReading, handleReconnection, isBleAvailable, requestBlePermissions } from "./utils/bleUtils";
 import FlashLogUpload from "./components/FlashLogUpload";
+import { BleClient } from '@capacitor-community/bluetooth-le';
 
 const queryClient = new QueryClient();
 
@@ -38,6 +38,28 @@ const App = () => {
   useEffect(() => {
     const initializeConnection = async () => {
       try {
+        // First check if BLE is available
+        const bleAvailable = await isBleAvailable();
+        
+        if (!bleAvailable) {
+          console.log('Bluetooth LE is not available on this device');
+          setConnectionState('disconnected');
+          return;
+        }
+        
+        // Request permissions
+        const hasPermissions = await requestBlePermissions();
+        
+        if (!hasPermissions) {
+          console.log('Bluetooth permissions not granted');
+          setConnectionState('disconnected');
+          return;
+        }
+        
+        // Initialize BLE client
+        await BleClient.initialize();
+        
+        // Try to connect
         const connected = await connectToDevice();
         setConnectionState(connected ? 'connected' : 'disconnected');
       } catch (error) {
