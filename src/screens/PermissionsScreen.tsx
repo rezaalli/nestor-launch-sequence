@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import OnboardingLayout from '../components/OnboardingLayout';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Bluetooth, Bell, HeartPulse, Check } from 'lucide-react';
 import Toggle from '@/components/Toggle';
+import { useToast } from '@/hooks/use-toast';
 
 interface PermissionsScreenProps {
   onNext: () => void;
@@ -18,13 +19,21 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
+  const { toast } = useToast();
+  
+  // Calculate if all required fields are filled
+  const isFormComplete = bluetooth && healthKit && notifications && 
+    age.trim() !== '' && weight.trim() !== '' && height.trim() !== '';
   
   // Calculate progress based on enabled permissions
   const calculateProgress = () => {
-    let progress = 25; // Start with 25%
-    if (bluetooth) progress += 25;
-    if (healthKit) progress += 25;
-    if (notifications) progress += 25;
+    let progress = 0;
+    if (bluetooth) progress += 20;
+    if (healthKit) progress += 20;
+    if (notifications) progress += 20;
+    if (age.trim() !== '') progress += 13;
+    if (weight.trim() !== '') progress += 13;
+    if (height.trim() !== '') progress += 14;
     return progress;
   };
 
@@ -41,6 +50,19 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
         setNotifications(value);
         break;
     }
+  };
+  
+  // Handle continue button click
+  const handleContinue = () => {
+    if (!isFormComplete) {
+      toast({
+        title: "Missing information",
+        description: "Please enable all permissions and fill in your details.",
+        variant: "destructive",
+      });
+      return;
+    }
+    onNext();
   };
   
   return (
@@ -67,10 +89,7 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
                 <h3 className="font-medium text-nestor-gray-900 mb-1">Bluetooth</h3>
                 <p className="text-sm text-nestor-gray-600">Required to connect with your watch and receive real-time data.</p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-medium ${bluetooth ? 'text-green-500' : 'text-gray-400'}`}>
-                  {bluetooth ? 'Enabled' : 'Enable'}
-                </span>
+              <div>
                 <Toggle 
                   checked={bluetooth} 
                   onChange={(value) => togglePermission('bluetooth', value)} 
@@ -89,10 +108,7 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
                 <h3 className="font-medium text-nestor-gray-900 mb-1">Health Data</h3>
                 <p className="text-sm text-nestor-gray-600">Access and store your health metrics securely.</p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-medium ${healthKit ? 'text-green-500' : 'text-gray-400'}`}>
-                  {healthKit ? 'Enabled' : 'Enable'}
-                </span>
+              <div>
                 <Toggle 
                   checked={healthKit} 
                   onChange={(value) => togglePermission('healthKit', value)} 
@@ -125,10 +141,7 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
                 <h3 className="font-medium text-nestor-gray-900 mb-1">Notifications</h3>
                 <p className="text-sm text-nestor-gray-600">Get alerts for important health updates and reminders.</p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-medium ${notifications ? 'text-green-500' : 'text-gray-400'}`}>
-                  {notifications ? 'Enabled' : 'Enable'}
-                </span>
+              <div>
                 <Toggle 
                   checked={notifications} 
                   onChange={(value) => togglePermission('notifications', value)} 
@@ -180,8 +193,10 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
 
         {/* Continue Button */}
         <button 
-          className="w-full py-4 bg-nestor-blue text-white font-medium rounded-lg mt-8 mb-8"
-          onClick={onNext}
+          className={`w-full py-4 text-white font-medium rounded-lg mt-8 mb-8 ${
+            isFormComplete ? 'bg-nestor-blue' : 'bg-gray-400'
+          }`}
+          onClick={handleContinue}
         >
           Continue
         </button>
