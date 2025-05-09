@@ -15,6 +15,7 @@ import {
   getSignalStrengthFromRssi,
   requestBlePermissions
 } from '../utils/bleUtils';
+import { Card, CardContent } from "@/components/ui/card";
 
 interface DevicePairingScreenProps {
   onNext: () => void;
@@ -199,31 +200,51 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
     // On success, the event listener will handle navigation
   };
 
-  const renderBluetoothUnavailable = () => (
-    <div className="flex flex-col items-center justify-center mt-8">
-      <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
-        <BluetoothOff size={32} className="text-red-500" />
-      </div>
-      <h3 className="text-lg font-medium text-center mb-2">Bluetooth Not Available</h3>
-      <p className="text-sm text-gray-600 text-center mb-4 max-w-xs">
-        Bluetooth is required to connect to your Nestor device. Please enable Bluetooth on your device and try again.
-      </p>
-    </div>
+  const renderPermissionCard = () => (
+    <Card className="mb-6 border-2 border-amber-200 bg-amber-50">
+      <CardContent className="p-4">
+        <div className="flex flex-col items-center text-center">
+          <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-3 mt-2">
+            <Shield size={24} className="text-amber-500" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">Permission Required</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Bluetooth permission is required to connect to your Nestor device. Please grant permission and try again.
+          </p>
+          <Button 
+            onClick={async () => {
+              const granted = await requestBlePermissions();
+              setHasPermissions(granted);
+              if (granted) {
+                toast({
+                  title: "Permission Granted",
+                  description: "You can now scan for devices."
+                });
+              }
+            }}
+            className="bg-blue-800 hover:bg-blue-900 text-white font-medium py-2 px-6"
+          >
+            Request Permission
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 
-  const renderPermissionDenied = () => (
-    <div className="flex flex-col items-center justify-center mt-8">
-      <div className="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center mb-4">
-        <Shield size={32} className="text-yellow-500" />
-      </div>
-      <h3 className="text-lg font-medium text-center mb-2">Permission Required</h3>
-      <p className="text-sm text-gray-600 text-center mb-4 max-w-xs">
-        Bluetooth permission is required to connect to your Nestor device. Please grant permission and try again.
-      </p>
-      <Button onClick={async () => setHasPermissions(await requestBlePermissions())}>
-        Request Permission
-      </Button>
-    </div>
+  const renderBluetoothUnavailable = () => (
+    <Card className="mb-6 border-2 border-red-200 bg-red-50">
+      <CardContent className="p-4">
+        <div className="flex flex-col items-center text-center">
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-3 mt-2">
+            <BluetoothOff size={24} className="text-red-500" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">Bluetooth Not Available</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Bluetooth is required to connect to your Nestor device. Please enable Bluetooth on your device and try again.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 
   const renderPairingTab = () => (
@@ -284,7 +305,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
 
       {/* Display Bluetooth unavailable or permission denied messages if needed */}
       {!bluetoothAvailable && renderBluetoothUnavailable()}
-      {bluetoothAvailable && hasPermissions === false && renderPermissionDenied()}
+      {bluetoothAvailable && hasPermissions === false && renderPermissionCard()}
 
       {/* Connection Error Alert */}
       {connectionError && (
@@ -458,6 +479,12 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
           <Plus size={18} className="mr-2" />
           Add New Device
         </button>
+      </div>
+
+      {/* Display Bluetooth unavailable or permission denied messages if needed */}
+      <div className="px-6 mt-8">
+        {!bluetoothAvailable && renderBluetoothUnavailable()}
+        {bluetoothAvailable && hasPermissions === false && renderPermissionCard()}
       </div>
 
       {/* Device Tips */}
