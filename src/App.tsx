@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import DeviceConnectionLostScreen from "./screens/DeviceConnectionLostScreen";
 import DeviceReconnectedScreen from "./screens/DeviceReconnectedScreen";
+import ConnectionLostPage from "./screens/ConnectionLostPage";
 import { detectLowSpO2, analyzeSpO2, detectAbnormalTemperature } from "./utils/healthUtils";
 import { useState, useEffect } from "react";
 import SpO2AlertDialog from "./components/SpO2AlertDialog";
@@ -179,7 +180,10 @@ const App = () => {
             setConnectionState(connected ? 'connected' : 'disconnected');
           });
         }} 
-        onContinueWithoutDevice={() => window.location.href = '/dashboard'} 
+        onContinueWithoutDevice={() => {
+          // Simply set the connection state to 'connected' to dismiss the screen
+          setConnectionState('connected');
+        }} 
       />;
     } else if (connectionState === 'reconnecting') {
       return <DeviceReconnectedScreen />;
@@ -198,27 +202,14 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Onboarding />} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/history" element={<History />} /> {/* Add History route */}
+                <Route path="/history" element={<History />} />
                 <Route path="/lifestyle-checkin" element={<LifestyleCheckIn />} />
                 <Route path="/trends" element={<TrendsAndInsights />} />
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/profile" element={<Profile />} />
-                <Route 
-                  path="/connection-lost" 
-                  element={
-                    <DeviceConnectionLostScreen 
-                      onRetry={() => window.location.href = '/dashboard'} 
-                      onContinueWithoutDevice={() => window.location.href = '/dashboard'} 
-                    />
-                  } 
-                />
-                <Route 
-                  path="/device-reconnected" 
-                  element={
-                    <DeviceReconnectedScreen />
-                  } 
-                />
+                <Route path="/connection-lost" element={<ConnectionLostPage />} />
+                <Route path="/device-reconnected" element={<DeviceReconnectedScreen />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               
