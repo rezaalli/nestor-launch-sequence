@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Bluetooth, BluetoothSearching, BluetoothOff, BluetoothConnected, Plus, ArrowLeft, Battery, Watch, LightbulbIcon, RefreshCw, Shield } from 'lucide-react';
 import OnboardingLayout from '../components/OnboardingLayout';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import SignalStrength from '../components/SignalStrength';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
 import { 
   scanForDevices, 
   getDiscoveredDevices, 
@@ -35,6 +35,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
   const [connecting, setConnecting] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const { toast } = useToast();
 
   // This represents our two main tabs/screens - Pairing and Device Selection
   const tabs = ['Pair Device', 'My Devices'];
@@ -49,6 +50,39 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
         // Fix: Use await to resolve the Promise before setting state
         const hasPerms = await requestBlePermissions();
         setHasPermissions(hasPerms);
+        
+        // Show toast notification if permissions are denied
+        if (hasPerms === false) {
+          toast({
+            title: "Permission Required",
+            description: "Bluetooth permission is required to connect to your Nestor device.",
+            action: (
+              <Button 
+                onClick={async () => {
+                  const granted = await requestBlePermissions();
+                  setHasPermissions(granted);
+                  if (granted) {
+                    toast({
+                      title: "Permission Granted",
+                      description: "You can now scan for devices."
+                    });
+                  }
+                }} 
+                variant="outline" 
+                size="sm"
+                className="bg-primary text-primary-foreground"
+              >
+                Request Permission
+              </Button>
+            )
+          });
+        }
+      } else {
+        toast({
+          title: "Bluetooth Not Available",
+          description: "Your device doesn't support Bluetooth or it is disabled.",
+          variant: "destructive"
+        });
       }
     };
     
@@ -98,27 +132,50 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
       window.removeEventListener('nestor-connected', handleDeviceConnected);
       window.removeEventListener('nestor-connection-error', handleConnectionError);
     };
-  }, [onNext]);
+  }, [onNext, toast]);
 
   const handleScan = async () => {
     // Clear previous errors
     setConnectionError(null);
     
-    // If Bluetooth is not available, show error
+    // If Bluetooth is not available, show toast
     if (!bluetoothAvailable) {
-      setConnectionError('Bluetooth is not available on this device.');
+      toast({
+        title: "Bluetooth Not Available",
+        description: "Bluetooth is required to connect to your Nestor device.",
+        variant: "destructive"
+      });
       return;
     }
     
-    // If no permissions, request them
+    // If no permissions, request them with toast notification
     if (hasPermissions === false) {
-      // Fix: Use await to resolve the Promise before setting state
-      const hasPerms = await requestBlePermissions();
-      setHasPermissions(hasPerms);
-      if (!hasPerms) {
-        setConnectionError('Bluetooth permissions are required to scan for devices.');
-        return;
-      }
+      toast({
+        title: "Permission Required",
+        description: "Bluetooth permission is required to scan for devices.",
+        action: (
+          <Button 
+            onClick={async () => {
+              const granted = await requestBlePermissions();
+              setHasPermissions(granted);
+              if (granted) {
+                toast({
+                  title: "Permission Granted",
+                  description: "You can now scan for devices."
+                });
+                // Auto-start scan after permission is granted
+                handleScan();
+              }
+            }} 
+            variant="outline" 
+            size="sm"
+            className="bg-primary text-primary-foreground"
+          >
+            Request Permission
+          </Button>
+        )
+      });
+      return;
     }
     
     setIsSearching(true);
@@ -238,7 +295,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
       )}
 
       {/* Device List */}
-      {bluetoothAvailable && hasPermissions !== false && (
+      {bluetoothAvailable && (
         <div className="space-y-3 mb-8">
           {isSearching && devices.length === 0 && (
             <div className="p-4 border border-gray-200 rounded-lg flex items-center justify-between">

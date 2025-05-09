@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DeviceConnectionLostScreen from "../screens/DeviceConnectionLostScreen";
 import DeviceReconnectedScreen from "../screens/DeviceReconnectedScreen";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useToast } from "@/hooks/use-toast";
+import { requestBlePermissions } from "@/utils/bleUtils";
 
 interface ConnectionStateManagerProps {
   connectionState: 'connected' | 'disconnected' | 'reconnecting';
@@ -18,9 +20,38 @@ const ConnectionStateManager = ({
   onContinueWithoutDevice
 }: ConnectionStateManagerProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // In development environment, provide an easy way to bypass the connection state
   const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  useEffect(() => {
+    // Show permissions toast if needed when in disconnected state
+    if (connectionState === 'disconnected' && isDevelopment) {
+      toast({
+        title: "Permission Required",
+        description: "Bluetooth permission is required to connect to your Nestor device.",
+        action: (
+          <Button 
+            onClick={async () => {
+              const granted = await requestBlePermissions();
+              if (granted) {
+                toast({
+                  title: "Permission Granted",
+                  description: "You can now connect to your device."
+                });
+                onRetryConnection();
+              }
+            }} 
+            variant="outline"
+            className="bg-primary text-primary-foreground"
+          >
+            Request Permission
+          </Button>
+        )
+      });
+    }
+  }, [connectionState, isDevelopment, toast, onRetryConnection]);
   
   if (connectionState === 'disconnected') {
     return (
