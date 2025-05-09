@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   ResponsiveContainer, 
@@ -26,13 +25,36 @@ import { exportDataAsCSV } from '@/utils/bleUtils';
 
 type ReadingType = 'hr' | 'spo2' | 'temp' | 'readiness' | 'motion';
 
-const FlashLogDisplay = () => {
-  const [activeDataType, setActiveDataType] = useState<ReadingType>('hr');
+// Add metricType to props interface
+interface FlashLogDisplayProps {
+  metricType?: string;
+}
+
+const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-rate' }) => {
+  // Map the passed metricType to our internal ReadingType
+  const getReadingTypeFromMetric = (metric: string): ReadingType => {
+    switch(metric) {
+      case 'heart-rate': return 'hr';
+      case 'spo2': return 'spo2';
+      case 'temperature': return 'temp';
+      case 'readiness': return 'readiness';
+      case 'activity': 
+      case 'sleep': 
+      default: return 'motion';
+    }
+  };
+  
+  const [activeDataType, setActiveDataType] = useState<ReadingType>(getReadingTypeFromMetric(metricType));
   const [timeRange, setTimeRange] = useState<number>(7); // days
   const { user } = useUser();
   const unitPreference = user.unitPreference || 'imperial';
   
   const [chartData, setChartData] = useState<any[]>([]);
+  
+  // Update activeDataType when metricType prop changes
+  useEffect(() => {
+    setActiveDataType(getReadingTypeFromMetric(metricType));
+  }, [metricType]);
   
   useEffect(() => {
     // Get all readings from BLE utils
@@ -150,7 +172,7 @@ const FlashLogDisplay = () => {
         </CardHeader>
         
         <CardContent>
-          <Tabs defaultValue="hr" onValueChange={(value) => setActiveDataType(value as ReadingType)}>
+          <Tabs defaultValue={activeDataType} onValueChange={(value) => setActiveDataType(value as ReadingType)}>
             <TabsList className="mb-4">
               <TabsTrigger value="hr">Heart Rate</TabsTrigger>
               <TabsTrigger value="spo2">SpO₂</TabsTrigger>
