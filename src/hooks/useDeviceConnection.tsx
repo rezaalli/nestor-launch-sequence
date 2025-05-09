@@ -4,10 +4,21 @@ import { connectToDevice, isDeviceConnected, getLastReading, handleReconnection,
 import { BleClient } from '@capacitor-community/bluetooth-le';
 
 export const useDeviceConnection = () => {
-  const [connectionState, setConnectionState] = useState<'connected' | 'disconnected' | 'reconnecting'>('connected');
+  // In development, default to connected state to make testing easier
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const [connectionState, setConnectionState] = useState<'connected' | 'disconnected' | 'reconnecting'>(
+    isDevelopment ? 'connected' : 'connected'
+  );
   const [lastVitalUpdate, setLastVitalUpdate] = useState<number>(Date.now());
 
   useEffect(() => {
+    // Skip BLE connection checks in development environment unless overridden
+    if (isDevelopment && !window.location.search.includes('require_ble=true')) {
+      console.log('Development environment detected. BLE connection checks bypassed.');
+      setConnectionState('connected');
+      return; // Skip the rest of the BLE initialization in development
+    }
+
     const initializeConnection = async () => {
       try {
         // First check if BLE is available
@@ -53,6 +64,11 @@ export const useDeviceConnection = () => {
     
     // Check connection status periodically
     const connectionCheckInterval = setInterval(() => {
+      // Skip connection checks in development mode
+      if (isDevelopment && !window.location.search.includes('require_ble=true')) {
+        return;
+      }
+
       const connected = isDeviceConnected();
       const wasDisconnected = connectionState === 'disconnected' || connectionState === 'reconnecting';
       
@@ -85,10 +101,16 @@ export const useDeviceConnection = () => {
       window.removeEventListener('nestor-vital-update', handleVitalUpdate);
       clearInterval(connectionCheckInterval);
     };
-  }, [connectionState, lastVitalUpdate]);
+  }, [connectionState, lastVitalUpdate, isDevelopment]);
 
   // Function to attempt device reconnection
   const attemptReconnection = async () => {
+    // In development, just return true to simulate successful connection
+    if (isDevelopment && !window.location.search.includes('require_ble=true')) {
+      setConnectionState('connected');
+      return true;
+    }
+    
     const connected = await connectToDevice();
     setConnectionState(connected ? 'connected' : 'disconnected');
     return connected;
@@ -96,6 +118,7 @@ export const useDeviceConnection = () => {
 
   // Function to bypass connection requirement
   const continueWithoutDevice = () => {
+    console.log('Continuing without device connection');
     setConnectionState('connected');
   };
 

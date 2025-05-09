@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { NotificationsProvider } from "./contexts/NotificationsContext";
 import { UserProvider } from "./contexts/UserContext";
 import Onboarding from "./components/Onboarding";
@@ -24,9 +24,33 @@ import { useDeviceConnection } from "./hooks/useDeviceConnection";
 
 const queryClient = new QueryClient();
 
-const App = () => {
+// Create a wrapper component to handle route-based connection management
+const ConnectionWrapper = () => {
   const { connectionState, attemptReconnection, continueWithoutDevice } = useDeviceConnection();
+  const location = useLocation();
+  
+  // Don't show connection overlay on these specific routes
+  const isConnectionRoute = 
+    location.pathname.includes('connection-lost') || 
+    location.pathname.includes('device-reconnected');
+  
+  return (
+    <>
+      {!isConnectionRoute && (
+        <ConnectionStateManager
+          connectionState={connectionState}
+          onRetryConnection={attemptReconnection}
+          onContinueWithoutDevice={continueWithoutDevice}
+        />
+      )}
+      
+      <HealthAlertsManager />
+      <FlashLogManager />
+    </>
+  );
+};
 
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <NotificationsProvider>
@@ -49,21 +73,7 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
               </Routes>
               
-              {/* Only show connection screens if not on the connection-lost or device-reconnected routes */}
-              {!window.location.pathname.includes('connection-lost') && 
-               !window.location.pathname.includes('device-reconnected') && (
-                <ConnectionStateManager
-                  connectionState={connectionState}
-                  onRetryConnection={attemptReconnection}
-                  onContinueWithoutDevice={continueWithoutDevice}
-                />
-              )}
-              
-              {/* Health Alerts Component */}
-              <HealthAlertsManager />
-              
-              {/* Flash Log Upload Component */}
-              <FlashLogManager />
+              <ConnectionWrapper />
             </BrowserRouter>
           </TooltipProvider>
         </UserProvider>
