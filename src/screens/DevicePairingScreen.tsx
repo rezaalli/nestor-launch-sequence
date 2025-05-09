@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Bluetooth, BluetoothSearching, BluetoothOff, BluetoothConnected, Plus, ArrowLeft, Battery, Watch, LightbulbIcon, RefreshCw } from 'lucide-react';
 import OnboardingLayout from '../components/OnboardingLayout';
@@ -297,12 +296,14 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
                   <span className="text-sm">Connecting...</span>
                 </div>
               ) : (
-                <button 
-                  className="px-4 py-2 bg-nestor-blue text-white text-sm font-medium rounded-lg"
-                  onClick={() => handleConnect(device.id)}
-                >
-                  Connect
-                </button>
+                <div className="flex items-center justify-center">
+                  <button 
+                    className="px-4 py-2 bg-nestor-blue text-white text-sm font-medium rounded-lg flex-shrink-0"
+                    onClick={() => handleConnect(device.id)}
+                  >
+                    Connect
+                  </button>
+                </div>
               )}
             </div>
           ))}
