@@ -1,6 +1,15 @@
-
 // BLE Characteristic Integration for Nestor wearable device
 // Custom UUID: 0x2A5F within service UUID 0x181C
+
+// Define Nestor BLE service and characteristic UUIDs
+const NESTOR_BLE_SERVICE = '181C';
+const NESTOR_CHARACTERISTICS = {
+  VITALS: '2A5F',
+  TEMPERATURE: '2A6E',
+  BATTERY: '2A19',
+  FIRMWARE: '2A26',
+  FLASH_LOG: '2ACE'
+};
 
 interface PackedVitals {
   hr: number;         // Heart rate in bpm
@@ -10,6 +19,11 @@ interface PackedVitals {
   motion: number;     // Motion intensity (0-3)
   readiness: number;  // Readiness score (0-100)
   fever: number;      // Fever flag (0 = no fever, 1 = fever detected)
+}
+
+interface BleScanOptions {
+  timeout?: number;   // Scan timeout in milliseconds
+  allowDuplicates?: boolean;
 }
 
 // Buffer to store the last 7 days of data (assuming readings every 5 seconds)
@@ -23,15 +37,159 @@ let isWorn = true; // Assume worn by default until notified otherwise
 let deviceName = 'Nestor Device';
 let isFlashLogUploading = false;
 let flashLogProgress = 0;
+let isScanningDevices = false;
+let discoveredDevices: { id: string, name: string, rssi: number, lastSeen: number }[] = [];
+let reconnectionAttempts = 0;
+const MAX_RECONNECTION_ATTEMPTS = 5;
+let connectionErrorMessage = '';
+let lastErrorTimestamp = 0;
 
-// Mock BLE connection for development - replace with actual BLE implementation
+// Event dispatcher for BLE events
+const dispatchBleEvent = (eventName: string, detail: any = {}) => {
+  const event = new CustomEvent(eventName, { detail });
+  window.dispatchEvent(event);
+};
+
+// Check if Web Bluetooth is available
+export const isBleAvailable = (): boolean => {
+  return 'bluetooth' in navigator;
+};
+
+// Request Bluetooth permissions
+export const requestBlePermissions = async (): Promise<boolean> => {
+  try {
+    // Simulating permission request
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return true;
+  } catch (error) {
+    console.error('Failed to get Bluetooth permissions:', error);
+    return false;
+  }
+};
+
+// Scan for nearby BLE devices
+export const scanForDevices = async (options: BleScanOptions = {}): Promise<boolean> => {
+  if (isScanningDevices) return false;
+  
+  try {
+    console.log('Starting BLE scan...');
+    isScanningDevices = true;
+    discoveredDevices = [];
+    
+    // Dispatch event to notify scan started
+    dispatchBleEvent('nestor-scan-started');
+    
+    // In a real implementation, this would use Web Bluetooth API
+    // navigator.bluetooth.requestDevice({ filters: [{ services: [NESTOR_BLE_SERVICE] }] })
+    
+    // Simulate finding devices
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Add mock discovered devices with simulated signal strength
+    discoveredDevices.push({
+      id: 'nestor-001',
+      name: 'Nestor N-100',
+      rssi: -65, // Stronger signal (closer)
+      lastSeen: Date.now()
+    });
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    discoveredDevices.push({
+      id: 'nestor-002',
+      name: 'Nestor N-200',
+      rssi: -85, // Weaker signal (further away)
+      lastSeen: Date.now()
+    });
+    
+    // Dispatch event with discovered devices
+    dispatchBleEvent('nestor-devices-discovered', { devices: discoveredDevices });
+    
+    // Simulate scan completion
+    setTimeout(() => {
+      isScanningDevices = false;
+      dispatchBleEvent('nestor-scan-complete', { deviceCount: discoveredDevices.length });
+    }, 1000);
+    
+    return true;
+  } catch (error) {
+    console.error('Scan failed:', error);
+    isScanningDevices = false;
+    dispatchBleEvent('nestor-scan-error', { error: 'Failed to scan for devices' });
+    return false;
+  }
+};
+
+// Get discovered devices
+export const getDiscoveredDevices = () => {
+  return [...discoveredDevices];
+};
+
+// Is currently scanning
+export const isScanning = (): boolean => {
+  return isScanningDevices;
+};
+
+// Connect to a specific device by ID
+export const connectToDeviceById = async (deviceId: string): Promise<boolean> => {
+  try {
+    console.log(`Connecting to device ${deviceId}...`);
+    
+    // Dispatch event to notify connection attempt
+    dispatchBleEvent('nestor-connecting', { deviceId });
+    
+    // Find device in discovered devices list
+    const device = discoveredDevices.find(d => d.id === deviceId);
+    if (!device) {
+      throw new Error('Device not found');
+    }
+    
+    // Simulate connection process with a delay based on signal strength
+    // Weaker signal takes longer to connect
+    const connectionDelay = Math.max(1000, Math.min(3000, Math.abs(device.rssi) * 20));
+    await new Promise(resolve => setTimeout(resolve, connectionDelay));
+    
+    // 90% success rate for good signal, 60% for weak signal
+    const connectionSuccessRate = device.rssi > -75 ? 0.9 : 0.6;
+    
+    if (Math.random() <= connectionSuccessRate) {
+      isConnected = true;
+      deviceName = device.name;
+      reconnectionAttempts = 0;
+      
+      // Start data polling
+      startDataPolling();
+      
+      // Dispatch connected event
+      dispatchBleEvent('nestor-connected', { deviceId, deviceName });
+      return true;
+    } else {
+      // Simulate connection failure
+      throw new Error('Connection failed');
+    }
+  } catch (error) {
+    console.error(`Failed to connect to device ${deviceId}:`, error);
+    connectionErrorMessage = String(error);
+    lastErrorTimestamp = Date.now();
+    dispatchBleEvent('nestor-connection-error', { 
+      deviceId, 
+      error: connectionErrorMessage
+    });
+    return false;
+  }
+};
+
+// Connect to device (legacy function for backward compatibility)
 export const connectToDevice = async (): Promise<boolean> => {
   try {
     console.log('Connecting to BLE device...');
-    // In a real implementation, this would use Web Bluetooth API
-    // navigator.bluetooth.requestDevice({ filters: [{ services: ['181C'] }] })
     
-    // Simulate successful connection after a delay
+    // If we have discovered devices, try connecting to the first one
+    if (discoveredDevices.length > 0) {
+      return connectToDeviceById(discoveredDevices[0].id);
+    }
+    
+    // Otherwise, simulate connecting to a default device
     await new Promise(resolve => setTimeout(resolve, 1000));
     isConnected = true;
     
@@ -51,6 +209,9 @@ export const disconnectFromDevice = (): void => {
   isConnected = false;
   // Clear any polling intervals
   stopDataPolling();
+  
+  // Dispatch disconnected event
+  dispatchBleEvent('nestor-disconnected');
 };
 
 let pollingInterval: number | null = null;
@@ -112,15 +273,14 @@ const processVitalData = (data: PackedVitals): void => {
   }
   
   // Dispatch event for components to listen to
-  const event = new CustomEvent('nestor-vital-update', { detail: data });
-  window.dispatchEvent(event);
+  dispatchBleEvent('nestor-vital-update', { ...data });
   
   // Check for fever condition
   if (data.fever === 1) {
-    const feverEvent = new CustomEvent('nestor-fever-alert', { 
-      detail: { temperature: data.temp / 10, type: 'high' }
+    dispatchBleEvent('nestor-fever-alert', { 
+      temperature: data.temp / 10, 
+      type: 'high' 
     });
-    window.dispatchEvent(feverEvent);
   }
 };
 
@@ -151,18 +311,25 @@ export const setDeviceWorn = (worn: boolean): void => {
   isWorn = worn;
   
   // Dispatch event for components to react to wear state change
-  const event = new CustomEvent('nestor-wear-state', { detail: { worn } });
-  window.dispatchEvent(event);
+  dispatchBleEvent('nestor-wear-state', { worn });
 };
 
 // Set device name
 export const setDeviceName = (name: string): void => {
   deviceName = name;
+  dispatchBleEvent('nestor-device-renamed', { name });
 };
 
 // Get device name
 export const getDeviceName = (): string => {
   return deviceName;
+};
+
+// Get the signal strength description based on RSSI value
+export const getSignalStrengthFromRssi = (rssi: number): 'weak' | 'medium' | 'strong' => {
+  if (rssi >= -70) return 'strong';
+  if (rssi >= -85) return 'medium';
+  return 'weak';
 };
 
 // Format temperature for display based on unit preference
@@ -185,22 +352,32 @@ export const startFlashLogUpload = async (): Promise<boolean> => {
     flashLogProgress = 0;
     
     // Dispatch event to notify about upload start
-    const startEvent = new CustomEvent('nestor-flash-upload-start');
-    window.dispatchEvent(startEvent);
+    dispatchBleEvent('nestor-flash-upload-start');
     
-    // Mock flash log upload process
-    for (let i = 1; i <= 10; i++) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      flashLogProgress = i * 10;
+    // Mock flash log upload process with more realistic encryption and verification stages
+    const stages = [
+      { name: 'Initializing secure connection', progress: 10 },
+      { name: 'Authenticating device', progress: 20 },
+      { name: 'Requesting log data', progress: 30 },
+      { name: 'Decrypting data packets', progress: 50 },
+      { name: 'Verifying data integrity', progress: 70 },
+      { name: 'Processing historical records', progress: 85 },
+      { name: 'Finalizing upload', progress: 95 }
+    ];
+    
+    // Process each stage with realistic delays
+    for (const stage of stages) {
+      await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+      flashLogProgress = stage.progress;
       
-      // Dispatch progress event
-      const progressEvent = new CustomEvent('nestor-flash-upload-progress', { 
-        detail: { progress: flashLogProgress } 
+      // Dispatch progress event with stage information
+      dispatchBleEvent('nestor-flash-upload-progress', { 
+        progress: flashLogProgress,
+        stage: stage.name
       });
-      window.dispatchEvent(progressEvent);
       
       // Generate some historical data
-      if (i % 2 === 0) {
+      if (stage.progress > 50) {
         const historyCount = Math.floor(Math.random() * 10) + 5;
         const now = Date.now();
         
@@ -208,12 +385,16 @@ export const startFlashLogUpload = async (): Promise<boolean> => {
           const timeOffset = (Math.floor(Math.random() * 60) + 1) * 60000; // Random minutes in the past
           const historyReading = {
             ...generateMockVitalData(),
-            timestamp: now - timeOffset - (i * 3600000) // Hours in the past based on iteration
+            timestamp: now - timeOffset - (stage.progress * 3600) // Hours in the past based on stage
           };
           vitalReadings.push(historyReading);
         }
       }
     }
+    
+    // Complete the upload
+    await new Promise(resolve => setTimeout(resolve, 500));
+    flashLogProgress = 100;
     
     // Sort readings by timestamp
     vitalReadings.sort((a, b) => a.timestamp - b.timestamp);
@@ -224,23 +405,20 @@ export const startFlashLogUpload = async (): Promise<boolean> => {
     }
     
     // Dispatch event to notify about upload completion
-    const completeEvent = new CustomEvent('nestor-flash-upload-complete', {
-      detail: { readingCount: vitalReadings.length }
+    dispatchBleEvent('nestor-flash-upload-complete', {
+      readingCount: vitalReadings.length
     });
-    window.dispatchEvent(completeEvent);
     
     isFlashLogUploading = false;
-    flashLogProgress = 100;
     
     return true;
   } catch (error) {
     console.error('Flash log upload failed:', error);
     
     // Dispatch event to notify about upload failure
-    const errorEvent = new CustomEvent('nestor-flash-upload-error', {
-      detail: { error: 'Upload failed, please try again.' }
+    dispatchBleEvent('nestor-flash-upload-error', {
+      error: 'Upload failed, please try again.'
     });
-    window.dispatchEvent(errorEvent);
     
     isFlashLogUploading = false;
     return false;
@@ -289,7 +467,6 @@ export const exportDataAsCSV = (): string => {
 // Initialize mock data for development
 export const initializeMockData = (): void => {
   const now = Date.now();
-  const dayInMs = 24 * 60 * 60 * 1000;
   
   // Generate 7 days of mock data at 1-hour intervals
   for (let i = 0; i < 7 * 24; i++) {
@@ -303,17 +480,51 @@ export const initializeMockData = (): void => {
   }
 };
 
-// Initialize mock data on module load for development
-initializeMockData();
-
 // Create a trigger for flash log upload on reconnection
 export const handleReconnection = (): void => {
+  // Increment reconnection attempts
+  reconnectionAttempts++;
+  
+  // If too many reconnection attempts, stop trying
+  if (reconnectionAttempts > MAX_RECONNECTION_ATTEMPTS) {
+    dispatchBleEvent('nestor-reconnection-failed', {
+      attempts: reconnectionAttempts,
+      message: 'Maximum reconnection attempts reached'
+    });
+    return;
+  }
+  
   // When device reconnects, check if there's flash log data available
   const hasFlashData = Math.random() > 0.3; // 70% chance of having flash data
   
   if (hasFlashData) {
     // Notify that flash data is available
-    const flashDataEvent = new CustomEvent('nestor-flash-data-available');
-    window.dispatchEvent(flashDataEvent);
+    dispatchBleEvent('nestor-flash-data-available');
   }
 };
+
+// Get last connection error
+export const getLastConnectionError = (): { message: string, timestamp: number } => {
+  return {
+    message: connectionErrorMessage,
+    timestamp: lastErrorTimestamp
+  };
+};
+
+// Check firmware version and if update is available
+export const checkFirmwareUpdate = async (): Promise<{ currentVersion: string, updateAvailable: boolean, latestVersion: string }> => {
+  // Simulate checking for firmware updates
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  const currentVersion = '1.2.3';
+  const latestVersion = Math.random() > 0.7 ? '1.2.4' : '1.2.3';
+  
+  return {
+    currentVersion,
+    updateAvailable: latestVersion !== currentVersion,
+    latestVersion
+  };
+};
+
+// Initialize mock data on module load for development
+initializeMockData();
