@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -66,8 +67,9 @@ export const BleDeviceManager = ({ open, onOpenChange }: BleDeviceManagerProps) 
       setBluetoothAvailable(available);
       
       if (available) {
+        // Fix: Use await to resolve the Promise before setting state
         const hasPerms = await requestBlePermissions();
-        setHasPermissions(Boolean(hasPerms)); // Fix: Ensure a boolean is passed
+        setHasPermissions(hasPerms);
       }
     };
     
@@ -215,8 +217,9 @@ export const BleDeviceManager = ({ open, onOpenChange }: BleDeviceManagerProps) 
     
     // If no permissions, request them
     if (hasPermissions === false) {
+      // Fix: Use await to resolve the Promise before setting state
       const hasPerms = await requestBlePermissions();
-      setHasPermissions(Boolean(hasPerms)); // Fix: Ensure a boolean is passed
+      setHasPermissions(hasPerms);
       if (!hasPerms) {
         setConnectionError('Bluetooth permissions are required to scan for devices.');
         toast({

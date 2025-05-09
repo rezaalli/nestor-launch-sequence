@@ -21,3 +21,4 @@ export const {
   getLastConnectionError,
   handleReconnection
 } = ConnectionUtils;
+

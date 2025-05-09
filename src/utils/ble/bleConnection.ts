@@ -14,10 +14,11 @@ let connectionErrorMessage = '';
 let lastErrorTimestamp = 0;
 
 // Check if Web Bluetooth is available
-export const isBleAvailable = async (): Promise<boolean> => {
+export const isBleAvailable = (): boolean => {
   try {
-    await BleClient.initialize();
-    return true;
+    // Changed to synchronous return since BleClient.initialize() should be called 
+    // separately during actual connection attempts
+    return !!BleClient;
   } catch (error) {
     console.error('Bluetooth not available:', error);
     return false;
