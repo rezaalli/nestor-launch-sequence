@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import OnboardingLayout from '../components/OnboardingLayout';
 import { Progress } from '@/components/ui/progress';
-import { Bluetooth, Bell, HeartPulse, Check, ChevronUp, ChevronDown } from 'lucide-react';
+import { Bluetooth, Bell, HeartPulse, Check } from 'lucide-react';
 import Toggle from '@/components/Toggle';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -16,6 +16,7 @@ import {
   SelectScrollDownButton,
 } from "@/components/ui/select";
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useUser } from '@/contexts/UserContext';
 
 interface PermissionsScreenProps {
   onNext: () => void;
@@ -28,12 +29,14 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
   
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
-  const [height, setHeight] = useState('');
+  const [heightFeet, setHeightFeet] = useState('');
+  const [heightInches, setHeightInches] = useState('');
   const { toast } = useToast();
+  const { updateUser } = useUser();
   
   // Calculate if all required fields are filled
   const isFormComplete = bluetooth && healthKit && notifications && 
-    age !== '' && weight !== '' && height !== '';
+    age !== '' && weight !== '' && heightFeet !== '' && heightInches !== '';
   
   // Calculate progress based on enabled permissions and filled fields
   const calculateProgress = () => {
@@ -41,9 +44,10 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
     if (bluetooth) progress += 20;
     if (healthKit) progress += 20;
     if (notifications) progress += 20;
-    if (age !== '') progress += 13;
-    if (weight !== '') progress += 13;
-    if (height !== '') progress += 14;
+    if (age !== '') progress += 10;
+    if (weight !== '') progress += 10;
+    if (heightFeet !== '') progress += 10;
+    if (heightInches !== '') progress += 10;
     return progress;
   };
 
@@ -72,6 +76,12 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
       });
       return;
     }
+    
+    // Set unit preference to imperial
+    updateUser({
+      unitPreference: 'imperial'
+    });
+    
     onNext();
   };
 
@@ -81,11 +91,27 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
   };
 
   const generateWeightOptions = () => {
-    return Array.from({ length: 200 }, (_, i) => (i + 40).toString());
+    return Array.from({ length: 400 }, (_, i) => (i + 50).toString());
   };
 
-  const generateHeightOptions = () => {
-    return Array.from({ length: 120 }, (_, i) => (i + 120).toString());
+  const generateHeightFeetOptions = () => {
+    return Array.from({ length: 8 }, (_, i) => (i + 1).toString());
+  };
+  
+  const generateHeightInchesOptions = () => {
+    const options = [];
+    for (let i = 0; i <= 11; i += 0.5) {
+      options.push(i.toString());
+    }
+    return options;
+  };
+  
+  const formatHeightInches = (value: string) => {
+    if (value.includes('.5')) {
+      const parts = value.split('.');
+      return `${parts[0]}½`;
+    }
+    return value;
   };
   
   return (
@@ -202,7 +228,7 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-nestor-gray-700 mb-2">Weight (kg)</label>
+              <label className="block text-sm font-medium text-nestor-gray-700 mb-2">Weight (lbs)</label>
               <Select value={weight} onValueChange={setWeight}>
                 <SelectTrigger className="w-full p-4 border border-gray-200 rounded-lg">
                   <SelectValue placeholder="Select your weight" />
@@ -223,26 +249,45 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
               </Select>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-nestor-gray-700 mb-2">Height (cm)</label>
-              <Select value={height} onValueChange={setHeight}>
-                <SelectTrigger className="w-full p-4 border border-gray-200 rounded-lg">
-                  <SelectValue placeholder="Select your height" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectScrollUpButton />
-                  <ScrollArea className="h-40">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-nestor-gray-700 mb-2">Height (ft)</label>
+                <Select value={heightFeet} onValueChange={setHeightFeet}>
+                  <SelectTrigger className="w-full p-4 border border-gray-200 rounded-lg">
+                    <SelectValue placeholder="ft" />
+                  </SelectTrigger>
+                  <SelectContent>
                     <SelectGroup>
-                      {generateHeightOptions().map((heightOption) => (
-                        <SelectItem key={heightOption} value={heightOption}>
-                          {heightOption}
+                      {generateHeightFeetOptions().map((feet) => (
+                        <SelectItem key={feet} value={feet}>
+                          {feet}
                         </SelectItem>
                       ))}
                     </SelectGroup>
-                  </ScrollArea>
-                  <SelectScrollDownButton />
-                </SelectContent>
-              </Select>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-nestor-gray-700 mb-2">Height (in)</label>
+                <Select value={heightInches} onValueChange={setHeightInches}>
+                  <SelectTrigger className="w-full p-4 border border-gray-200 rounded-lg">
+                    <SelectValue placeholder="in" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectScrollUpButton />
+                    <ScrollArea className="h-40">
+                      <SelectGroup>
+                        {generateHeightInchesOptions().map((inches) => (
+                          <SelectItem key={inches} value={inches}>
+                            {formatHeightInches(inches)}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </ScrollArea>
+                    <SelectScrollDownButton />
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </div>

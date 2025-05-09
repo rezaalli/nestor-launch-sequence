@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '@/components/StatusBar';
 import BottomNavbar from '@/components/BottomNavbar';
@@ -29,11 +28,22 @@ const Profile = () => {
   const { user, updateUser } = useUser();
   const navigate = useNavigate();
   
+  // Set user preference to imperial units when component mounts
+  useEffect(() => {
+    if (user.unitPreference !== 'imperial') {
+      updateUser({
+        unitPreference: 'imperial'
+      });
+    }
+  }, []);
+  
   const toggleTempUnit = () => {
-    updateUser({
-      ...user,
-      unitPreference: user.unitPreference === 'metric' ? 'imperial' : 'metric'
-    });
+    // Keep it locked to imperial
+    if (user.unitPreference !== 'imperial') {
+      updateUser({
+        unitPreference: 'imperial'
+      });
+    }
   };
   
   const goBack = () => {
@@ -110,12 +120,13 @@ const Profile = () => {
                     <div>
                       <h4 className="font-medium text-nestor-gray-900">Temperature Unit</h4>
                       <p className="text-sm text-nestor-gray-500">
-                        {user.unitPreference === 'metric' ? 'Celsius (°C)' : 'Fahrenheit (°F)'}
+                        Fahrenheit (°F)
                       </p>
                     </div>
                     <Toggle 
-                      checked={user.unitPreference === 'imperial'} 
-                      onChange={toggleTempUnit} 
+                      checked={true}
+                      onChange={toggleTempUnit}
+                      disabled={true}
                     />
                   </div>
                 </div>

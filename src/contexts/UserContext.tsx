@@ -23,7 +23,7 @@ const defaultUser: User = {
   name: 'Emma',
   email: 'alex.morgan@example.com',
   avatar: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg',
-  unitPreference: 'metric'
+  unitPreference: 'imperial'  // Set default to imperial
 };
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
