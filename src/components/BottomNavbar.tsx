@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Bell, Trending, User, Clock } from 'lucide-react';
+import { Home, Calendar, Bell, TrendingUp, User, Clock } from 'lucide-react';
 
 const BottomNavbar = () => {
   const location = useLocation();
@@ -42,7 +42,7 @@ const BottomNavbar = () => {
           to="/trends" 
           className={`flex flex-col items-center justify-center py-2 flex-1 ${isActive('/trends') ? 'text-blue-900' : 'text-gray-600'}`}
         >
-          <Trending size={20} />
+          <TrendingUp size={20} />
           <span className="text-xs mt-1">Trends</span>
         </Link>
         
