@@ -199,16 +199,18 @@ const DeviceReconnectedScreen = () => {
         </Button>
       </div>
 
-      <style jsx>{`
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
+      <style>
+        {`
+          @keyframes spin {
+            to {
+              transform: rotate(360deg);
+            }
           }
-        }
-        .animate-spin {
-          animation: spin 1s linear infinite;
-        }
-      `}</style>
+          .animate-spin {
+            animation: spin 1s linear infinite;
+          }
+        `}
+      </style>
     </div>
   );
 };
