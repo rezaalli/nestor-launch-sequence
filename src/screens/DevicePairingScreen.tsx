@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Bluetooth, BluetoothSearching, BluetoothOff, BluetoothConnected, Plus, ArrowLeft, Battery, Watch, LightbulbIcon, RefreshCw } from 'lucide-react';
 import OnboardingLayout from '../components/OnboardingLayout';
@@ -36,6 +37,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
   const [connecting, setConnecting] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
   const { toast } = useToast();
 
   // This represents our two main tabs/screens - Pairing and Device Selection
@@ -59,10 +61,17 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
     // Set up BLE event listeners
     const handleDevicesDiscovered = (event: Event) => {
       const { devices: discoveredDevices } = (event as CustomEvent).detail;
-      setDevices(discoveredDevices.map((device: any) => ({
+      const mappedDevices = discoveredDevices.map((device: any) => ({
         ...device,
         signalStrength: getSignalStrengthFromRssi(device.rssi)
-      })));
+      }));
+      
+      setDevices(mappedDevices);
+      
+      // If there are devices and none is selected, auto-select the first one
+      if (mappedDevices.length > 0 && !selectedDevice) {
+        setSelectedDevice(mappedDevices[0].id);
+      }
     };
     
     const handleScanComplete = () => {
@@ -100,7 +109,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
       window.removeEventListener('nestor-connected', handleDeviceConnected);
       window.removeEventListener('nestor-connection-error', handleConnectionError);
     };
-  }, [onNext, toast]);
+  }, [onNext, toast, selectedDevice]);
 
   const handleScan = async () => {
     // Clear previous errors
@@ -116,6 +125,9 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
         signalStrength: 'strong',
         lastSeen: Date.now()
       }]);
+      
+      // Auto-select the mock device
+      setSelectedDevice('mock-device-1');
       
       // Simulate scan completion after 2 seconds
       setTimeout(() => {
@@ -146,13 +158,16 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
     
     setIsSearching(true);
     setDevices([]);
+    setSelectedDevice(null);
     
     // Start scanning for devices
     await scanForDevices({ timeout: 10000 });
   };
   
-  const handleConnect = async (deviceId: string) => {
-    setConnecting(deviceId);
+  const handleConnect = async () => {
+    if (!selectedDevice) return;
+    
+    setConnecting(selectedDevice);
     setConnectionError(null);
     
     if (process.env.NODE_ENV === 'development') {
@@ -164,7 +179,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
     }
     
     // Connect to device
-    const success = await connectToDeviceById(deviceId);
+    const success = await connectToDeviceById(selectedDevice);
     
     if (!success) {
       setConnectionError('Failed to connect to device. Please try again.');
@@ -277,7 +292,13 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
           )}
 
           {devices.map(device => (
-            <div key={device.id} className="p-4 border border-blue-100 bg-blue-50 rounded-lg flex items-center justify-between">
+            <div 
+              key={device.id} 
+              className={`p-4 border rounded-lg flex items-center justify-between cursor-pointer ${
+                selectedDevice === device.id ? 'border-blue-100 bg-blue-50' : 'border-gray-200'
+              }`}
+              onClick={() => setSelectedDevice(device.id)}
+            >
               <div className="flex items-center">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
                   <BluetoothConnected size={20} className="text-nestor-blue" />
@@ -290,19 +311,10 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
                   </div>
                 </div>
               </div>
-              {connecting === device.id ? (
+              {connecting === device.id && (
                 <div className="flex items-center">
                   <RefreshCw size={16} className="text-nestor-blue animate-spin mr-2" />
                   <span className="text-sm">Connecting...</span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center">
-                  <button 
-                    className="px-4 py-2 bg-nestor-blue text-white text-sm font-medium rounded-lg flex-shrink-0"
-                    onClick={() => handleConnect(device.id)}
-                  >
-                    Connect
-                  </button>
                 </div>
               )}
             </div>
@@ -316,24 +328,50 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
         </div>
       )}
 
-      {/* Scan Button */}
-      <button 
-        className="w-full py-4 bg-nestor-blue text-white font-medium rounded-lg flex items-center justify-center disabled:bg-gray-300 disabled:cursor-not-allowed"
-        onClick={handleScan}
-        disabled={isSearching || !bluetoothAvailable}
-      >
-        {isSearching ? (
-          <>
-            <RefreshCw size={20} className="animate-spin mr-2" />
-            Scanning...
-          </>
-        ) : (
-          <>
-            <BluetoothSearching size={20} className="mr-2" />
-            Scan for Devices
-          </>
+      {/* Action Buttons - Connect and Scan */}
+      <div className="flex flex-col gap-4">
+        {/* Connect Button - Only show when a device is found and selected */}
+        {devices.length > 0 && selectedDevice && (
+          <button 
+            className={`w-full py-4 bg-nestor-blue text-white font-medium rounded-lg flex items-center justify-center ${
+              connecting ? 'opacity-75' : ''
+            }`}
+            onClick={handleConnect}
+            disabled={connecting !== null}
+          >
+            {connecting ? (
+              <>
+                <RefreshCw size={20} className="animate-spin mr-2" />
+                Connecting...
+              </>
+            ) : (
+              <>
+                <BluetoothConnected size={20} className="mr-2" />
+                Connect
+              </>
+            )}
+          </button>
         )}
-      </button>
+        
+        {/* Scan Button */}
+        <button 
+          className={`w-full py-4 ${devices.length > 0 ? 'bg-gray-200 text-gray-700' : 'bg-nestor-blue text-white'} font-medium rounded-lg flex items-center justify-center disabled:bg-gray-300 disabled:cursor-not-allowed`}
+          onClick={handleScan}
+          disabled={isSearching || !bluetoothAvailable}
+        >
+          {isSearching ? (
+            <>
+              <RefreshCw size={20} className="animate-spin mr-2" />
+              Scanning...
+            </>
+          ) : (
+            <>
+              <BluetoothSearching size={20} className="mr-2" />
+              Scan for Devices
+            </>
+          )}
+        </button>
+      </div>
 
       {/* Help Text */}
       <p className="text-center text-sm text-nestor-gray-500 mt-6">
