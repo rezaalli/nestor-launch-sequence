@@ -47,7 +47,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
       
       if (available) {
         const hasPerms = await requestBlePermissions();
-        setHasPermissions(hasPerms);
+        setHasPermissions(Boolean(hasPerms));
       }
     };
     
@@ -112,8 +112,8 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
     // If no permissions, request them
     if (hasPermissions === false) {
       const hasPerms = await requestBlePermissions();
-      // Fix: Instead of directly setting the state with a Promise
-      setHasPermissions(hasPerms);
+      // Fix: Use the resolved value from the promise, not the promise itself
+      setHasPermissions(Boolean(hasPerms));
       if (!hasPerms) {
         setConnectionError('Bluetooth permissions are required to scan for devices.');
         return;
