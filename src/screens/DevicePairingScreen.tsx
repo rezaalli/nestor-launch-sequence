@@ -338,7 +338,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
             className={`w-full py-4 bg-nestor-blue text-white font-medium rounded-lg flex items-center justify-center ${
               connecting ? 'opacity-75' : ''
             }`}
-            onClick={handleConnect}
+            onClick={() => handleConnect()}
             disabled={connecting !== null}
           >
             {connecting ? (
@@ -435,7 +435,10 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
                   </div>
                 ) : (
                   <button 
-                    onClick={() => handleConnect(device.id)} 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleConnect(device.id);
+                    }}
                     className="px-4 py-2 text-sm text-nestor-blue font-medium bg-blue-50 rounded-lg"
                   >
                     Connect
