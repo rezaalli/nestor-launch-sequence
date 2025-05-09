@@ -2,10 +2,20 @@
 import React, { useState, useEffect } from 'react';
 import OnboardingLayout from '../components/OnboardingLayout';
 import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
-import { Bluetooth, Bell, HeartPulse, Check } from 'lucide-react';
+import { Bluetooth, Bell, HeartPulse, Check, ChevronUp, ChevronDown } from 'lucide-react';
 import Toggle from '@/components/Toggle';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+} from "@/components/ui/select";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface PermissionsScreenProps {
   onNext: () => void;
@@ -23,17 +33,17 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
   
   // Calculate if all required fields are filled
   const isFormComplete = bluetooth && healthKit && notifications && 
-    age.trim() !== '' && weight.trim() !== '' && height.trim() !== '';
+    age !== '' && weight !== '' && height !== '';
   
-  // Calculate progress based on enabled permissions
+  // Calculate progress based on enabled permissions and filled fields
   const calculateProgress = () => {
     let progress = 0;
     if (bluetooth) progress += 20;
     if (healthKit) progress += 20;
     if (notifications) progress += 20;
-    if (age.trim() !== '') progress += 13;
-    if (weight.trim() !== '') progress += 13;
-    if (height.trim() !== '') progress += 14;
+    if (age !== '') progress += 13;
+    if (weight !== '') progress += 13;
+    if (height !== '') progress += 14;
     return progress;
   };
 
@@ -63,6 +73,19 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
       return;
     }
     onNext();
+  };
+
+  // Generate arrays for select options
+  const generateAgeOptions = () => {
+    return Array.from({ length: 100 }, (_, i) => (i + 1).toString());
+  };
+
+  const generateWeightOptions = () => {
+    return Array.from({ length: 200 }, (_, i) => (i + 40).toString());
+  };
+
+  const generateHeightOptions = () => {
+    return Array.from({ length: 120 }, (_, i) => (i + 120).toString());
   };
   
   return (
@@ -151,42 +174,75 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
           </div>
         </div>
 
-        {/* Optional Information */}
+        {/* Basic Information */}
         <div className="mt-8">
-          <h2 className="text-lg font-medium text-nestor-gray-900 mb-4">Basic Information (Optional)</h2>
+          <h2 className="text-lg font-medium text-nestor-gray-900 mb-4">Basic Information</h2>
           
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-nestor-gray-700 mb-2">Age</label>
-              <Input 
-                type="number" 
-                className="w-full p-4 border border-gray-200 rounded-lg" 
-                placeholder="Enter your age"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-              />
+              <Select value={age} onValueChange={setAge}>
+                <SelectTrigger className="w-full p-4 border border-gray-200 rounded-lg">
+                  <SelectValue placeholder="Select your age" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectScrollUpButton />
+                  <ScrollArea className="h-40">
+                    <SelectGroup>
+                      {generateAgeOptions().map((ageOption) => (
+                        <SelectItem key={ageOption} value={ageOption}>
+                          {ageOption}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </ScrollArea>
+                  <SelectScrollDownButton />
+                </SelectContent>
+              </Select>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-nestor-gray-700 mb-2">Weight (kg)</label>
-              <Input 
-                type="number" 
-                className="w-full p-4 border border-gray-200 rounded-lg" 
-                placeholder="Enter your weight"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-              />
+              <Select value={weight} onValueChange={setWeight}>
+                <SelectTrigger className="w-full p-4 border border-gray-200 rounded-lg">
+                  <SelectValue placeholder="Select your weight" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectScrollUpButton />
+                  <ScrollArea className="h-40">
+                    <SelectGroup>
+                      {generateWeightOptions().map((weightOption) => (
+                        <SelectItem key={weightOption} value={weightOption}>
+                          {weightOption}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </ScrollArea>
+                  <SelectScrollDownButton />
+                </SelectContent>
+              </Select>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-nestor-gray-700 mb-2">Height (cm)</label>
-              <Input 
-                type="number" 
-                className="w-full p-4 border border-gray-200 rounded-lg" 
-                placeholder="Enter your height"
-                value={height}
-                onChange={(e) => setHeight(e.target.value)}
-              />
+              <Select value={height} onValueChange={setHeight}>
+                <SelectTrigger className="w-full p-4 border border-gray-200 rounded-lg">
+                  <SelectValue placeholder="Select your height" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectScrollUpButton />
+                  <ScrollArea className="h-40">
+                    <SelectGroup>
+                      {generateHeightOptions().map((heightOption) => (
+                        <SelectItem key={heightOption} value={heightOption}>
+                          {heightOption}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </ScrollArea>
+                  <SelectScrollDownButton />
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -197,6 +253,7 @@ const PermissionsScreen = ({ onNext }: PermissionsScreenProps) => {
             isFormComplete ? 'bg-nestor-blue' : 'bg-gray-400'
           }`}
           onClick={handleContinue}
+          disabled={!isFormComplete}
         >
           Continue
         </button>
