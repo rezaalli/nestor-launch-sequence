@@ -15,6 +15,11 @@ let lastErrorTimestamp = 0;
 
 // Check if Web Bluetooth is available
 export const isBleAvailable = (): boolean => {
+  // In development mode, always return true
+  if (process.env.NODE_ENV === 'development') {
+    return true;
+  }
+  
   try {
     // Changed to synchronous return since BleClient.initialize() should be called 
     // separately during actual connection attempts
@@ -27,6 +32,12 @@ export const isBleAvailable = (): boolean => {
 
 // Request Bluetooth permissions
 export const requestBlePermissions = async (): Promise<boolean> => {
+  // In development mode, automatically grant permissions
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Development mode: automatically granting BLE permissions');
+    return true;
+  }
+  
   try {
     await BleClient.initialize();
     return true;
@@ -38,6 +49,18 @@ export const requestBlePermissions = async (): Promise<boolean> => {
 
 // Connect to a specific device by ID
 export const connectToDeviceById = async (deviceId: string): Promise<boolean> => {
+  // In development mode, simulate successful connection
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Development mode: simulating connection to device ${deviceId}...`);
+    isConnected = true;
+    deviceName = 'Nestor Dev Device';
+    reconnectionAttempts = 0;
+    
+    // Dispatch connected event
+    dispatchBleEvent('nestor-connected', { deviceId, deviceName });
+    return true;
+  }
+  
   try {
     console.log(`Connecting to device ${deviceId}...`);
     
@@ -84,6 +107,20 @@ export const connectToDeviceById = async (deviceId: string): Promise<boolean> =>
 
 // Connect to device (legacy function for backward compatibility)
 export const connectToDevice = async (): Promise<boolean> => {
+  // In development mode, simulate successful connection
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Development mode: simulating connection to device...');
+    isConnected = true;
+    deviceName = 'Nestor Dev Device';
+    
+    // Dispatch connected event with mock device ID
+    dispatchBleEvent('nestor-connected', { 
+      deviceId: 'mock-device-id', 
+      deviceName 
+    });
+    return true;
+  }
+  
   try {
     console.log('Connecting to BLE device...');
     
