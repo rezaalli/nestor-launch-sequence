@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3 } from 'lucide-react';
+import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3, RefreshCw } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/contexts/NotificationsContext";
@@ -14,6 +14,8 @@ import HealthMetrics from '@/components/HealthMetrics';
 import ReadinessScore from '@/components/ReadinessScore';
 import WeeklyTrendChart from '@/components/WeeklyTrendChart';
 import DeviceStatus from '@/components/DeviceStatus';
+import { Button } from '@/components/ui/button';
+import { connectToDevice, startFlashLogUpload, isFlashLogUploadInProgress } from '@/utils/bleUtils';
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -29,6 +31,7 @@ const Dashboard = () => {
     const savedLayout = localStorage.getItem('metricsLayout');
     return (savedLayout === '3x2' ? '3x2' : '2x3') as '3x2' | '2x3';
   });
+  const [isSyncing, setIsSyncing] = useState(false);
   
   // Create a ref for the metrics container
   const metricsGridRef = useRef<HTMLDivElement>(null);
@@ -267,6 +270,56 @@ const Dashboard = () => {
     navigate('/trends');
   };
   
+  const handleSyncNow = async () => {
+    if (isFlashLogUploadInProgress() || isSyncing) {
+      toast({
+        title: "Sync in progress",
+        description: "Please wait for the current sync to complete",
+      });
+      return;
+    }
+    
+    setIsSyncing(true);
+    
+    try {
+      // First reconnect to the device if necessary
+      const connected = await connectToDevice();
+      
+      if (connected) {
+        // Then start the flash log upload
+        const result = await startFlashLogUpload();
+        
+        if (result) {
+          toast({
+            title: "Sync started",
+            description: "Your device is syncing new data",
+          });
+        } else {
+          toast({
+            title: "Sync failed",
+            description: "Could not start syncing data from your device",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Connection failed",
+          description: "Unable to connect to your Nestor device",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Sync error:', error);
+      toast({
+        title: "Sync error",
+        description: "An error occurred while syncing",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+  
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
@@ -319,6 +372,19 @@ const Dashboard = () => {
           </button>
         </div>
         
+        {/* Sync Button - New addition */}
+        <div className="px-6 mt-2">
+          <Button 
+            variant="outline" 
+            className="w-full flex items-center justify-center gap-2"
+            onClick={handleSyncNow}
+            disabled={isSyncing}
+          >
+            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync Now'}
+          </Button>
+        </div>
+        
         {/* Readiness Score Card (replaced Wellness Score) */}
         <div className="mx-6 mt-4">
           <ReadinessScore />
@@ -352,7 +418,7 @@ const Dashboard = () => {
         </button>
         
         {/* Trends Preview */}
-        <div className="px-6 mt-6">
+        <div className="px-6 mt-6 pb-20">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-nestor-gray-500">WEEKLY TRENDS</h3>
             <span 

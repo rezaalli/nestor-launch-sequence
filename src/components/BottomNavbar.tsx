@@ -1,35 +1,60 @@
 
 import React from 'react';
-import { useLocation } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, Calendar, Bell, Trending, User, Clock } from 'lucide-react';
 
 const BottomNavbar = () => {
   const location = useLocation();
+  const currentPath = location.pathname;
+  
+  const isActive = (path: string) => {
+    return currentPath === path;
+  };
   
   return (
-    <div className="mt-auto pt-4">
-      <div className="h-16 px-6 border-t border-gray-200 flex items-center justify-between fixed bottom-0 left-0 right-0 bg-white">
-        <Link to="/dashboard" className="flex flex-col items-center w-16">
-          <i className={`fa-solid fa-house ${location.pathname === '/dashboard' ? "text-blue-900" : "text-gray-400"} text-lg`}></i>
-          <span className={`text-xs ${location.pathname === '/dashboard' ? "text-blue-900 font-medium" : "text-gray-400"} mt-1`}>Home</span>
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <div className="flex items-center justify-around">
+        <Link 
+          to="/dashboard" 
+          className={`flex flex-col items-center justify-center py-2 flex-1 ${isActive('/dashboard') ? 'text-blue-900' : 'text-gray-600'}`}
+        >
+          <Home size={20} />
+          <span className="text-xs mt-1">Home</span>
         </Link>
         
-        <Link to="/trends" className="flex flex-col items-center w-16">
-          <i className={`fa-solid fa-chart-line ${location.pathname === '/trends' ? "text-blue-900" : "text-gray-400"} text-lg`}></i>
-          <span className={`text-xs ${location.pathname === '/trends' ? "text-blue-900 font-medium" : "text-gray-400"} mt-1`}>Insights</span>
+        <Link 
+          to="/lifestyle-checkin" 
+          className={`flex flex-col items-center justify-center py-2 flex-1 ${isActive('/lifestyle-checkin') ? 'text-blue-900' : 'text-gray-600'}`}
+        >
+          <Calendar size={20} />
+          <span className="text-xs mt-1">Check-In</span>
         </Link>
         
-        <Link to="/reports" className="flex flex-col items-center w-16">
-          <i className={`fa-solid fa-file-lines ${location.pathname === '/reports' ? "text-blue-900" : "text-gray-400"} text-lg`}></i>
-          <span className={`text-xs ${location.pathname === '/reports' ? "text-blue-900 font-medium" : "text-gray-400"} mt-1`}>Reports</span>
+        <Link 
+          to="/history" 
+          className={`flex flex-col items-center justify-center py-2 flex-1 ${isActive('/history') ? 'text-blue-900' : 'text-gray-600'}`}
+        >
+          <Clock size={20} />
+          <span className="text-xs mt-1">History</span>
         </Link>
         
-        <Link to="/profile" className="flex flex-col items-center w-16">
-          <i className={`fa-regular fa-user ${location.pathname === '/profile' ? "text-blue-900" : "text-gray-400"} text-lg`}></i>
-          <span className={`text-xs ${location.pathname === '/profile' ? "text-blue-900 font-medium" : "text-gray-400"} mt-1`}>Profile</span>
+        <Link 
+          to="/trends" 
+          className={`flex flex-col items-center justify-center py-2 flex-1 ${isActive('/trends') ? 'text-blue-900' : 'text-gray-600'}`}
+        >
+          <Trending size={20} />
+          <span className="text-xs mt-1">Trends</span>
+        </Link>
+        
+        <Link 
+          to="/profile" 
+          className={`flex flex-col items-center justify-center py-2 flex-1 ${isActive('/profile') ? 'text-blue-900' : 'text-gray-600'}`}
+        >
+          <User size={20} />
+          <span className="text-xs mt-1">Profile</span>
         </Link>
       </div>
-    </div>
+    </nav>
   );
 };
 

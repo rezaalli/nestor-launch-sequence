@@ -7,6 +7,7 @@ import { NotificationsProvider } from "./contexts/NotificationsContext";
 import { UserProvider } from "./contexts/UserContext";
 import Onboarding from "./components/Onboarding";
 import Dashboard from "./pages/Dashboard";
+import History from "./pages/History";
 import LifestyleCheckIn from "./pages/LifestyleCheckIn";
 import TrendsAndInsights from "./pages/TrendsAndInsights";
 import Notifications from "./pages/Notifications";
@@ -197,6 +198,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Onboarding />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/history" element={<History />} /> {/* Add History route */}
                 <Route path="/lifestyle-checkin" element={<LifestyleCheckIn />} />
                 <Route path="/trends" element={<TrendsAndInsights />} />
                 <Route path="/notifications" element={<Notifications />} />
