@@ -1,22 +1,24 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { connectToDevice, isDeviceConnected, getLastReading, handleReconnection, isBleAvailable, requestBlePermissions } from "@/utils/bleUtils";
 import { BleClient } from '@capacitor-community/bluetooth-le';
 
 export const useDeviceConnection = () => {
-  // In development, default to connected state to make testing easier
+  // ALWAYS default to connected state in development to make testing easier
   const isDevelopment = process.env.NODE_ENV === 'development';
   const [connectionState, setConnectionState] = useState<'connected' | 'disconnected' | 'reconnecting'>(
     isDevelopment ? 'connected' : 'connected'
   );
   const [lastVitalUpdate, setLastVitalUpdate] = useState<number>(Date.now());
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Skip BLE connection checks in development environment unless overridden
-    if (isDevelopment && !window.location.search.includes('require_ble=true')) {
-      console.log('Development environment detected. BLE connection checks bypassed.');
+    // Always stay connected in development environment
+    if (isDevelopment) {
+      console.log('Development environment detected. BLE connection ALWAYS bypassed.');
       setConnectionState('connected');
-      return; // Skip the rest of the BLE initialization in development
+      return; // Skip all BLE initialization in development
     }
 
     const initializeConnection = async () => {
@@ -105,8 +107,8 @@ export const useDeviceConnection = () => {
 
   // Function to attempt device reconnection
   const attemptReconnection = async () => {
-    // In development, just return true to simulate successful connection
-    if (isDevelopment && !window.location.search.includes('require_ble=true')) {
+    // In development, always return true to simulate successful connection
+    if (isDevelopment) {
       setConnectionState('connected');
       return true;
     }
@@ -120,6 +122,8 @@ export const useDeviceConnection = () => {
   const continueWithoutDevice = () => {
     console.log('Continuing without device connection');
     setConnectionState('connected');
+    // Automatically navigate to dashboard when continuing without device
+    navigate('/dashboard');
   };
 
   return {

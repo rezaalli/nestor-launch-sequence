@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Bluetooth, Watch, RefreshCw } from 'lucide-react';
+import { Bluetooth, Watch, RefreshCw, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { connectToDevice } from '@/utils/ble/bleConnection';
@@ -50,6 +51,22 @@ const DeviceConnectionLostScreen = ({
     }
   };
 
+  const handleContinueWithoutDevice = () => {
+    toast({
+      title: "Continuing without device",
+      description: "You can connect your device later from the dashboard",
+    });
+    onContinueWithoutDevice();
+  };
+
+  const handleGoToDashboard = () => {
+    toast({
+      title: "Going to dashboard",
+      description: "Bypassing connection check",
+    });
+    navigate('/dashboard');
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center fixed inset-0 z-50">
       <div className="w-24 h-24 mb-8">
@@ -89,10 +106,11 @@ const DeviceConnectionLostScreen = ({
           </Button>
           
           <Button
-            onClick={onContinueWithoutDevice}
+            onClick={handleContinueWithoutDevice}
             variant="outline"
             className="w-full py-6 bg-white text-nestor-blue font-medium rounded-lg border border-nestor-blue"
           >
+            <ArrowRight size={18} className="mr-2" />
             Continue Without Device
           </Button>
         </div>
@@ -100,11 +118,12 @@ const DeviceConnectionLostScreen = ({
       
       <div className="absolute bottom-6 w-full max-w-xs text-center">
         <button 
-          onClick={() => navigate('/dashboard')}
-          className="text-sm text-nestor-gray-500 underline"
+          onClick={handleGoToDashboard}
+          className="text-sm text-nestor-blue underline font-medium flex items-center justify-center w-full"
           disabled={isConnecting}
         >
           Go to Dashboard Anyway
+          <ArrowRight size={14} className="ml-1" />
         </button>
       </div>
     </div>
