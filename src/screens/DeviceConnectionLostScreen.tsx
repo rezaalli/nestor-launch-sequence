@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Bluetooth, Watch, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -93,7 +92,6 @@ const DeviceConnectionLostScreen = ({
             onClick={onContinueWithoutDevice}
             variant="outline"
             className="w-full py-6 bg-white text-nestor-blue font-medium rounded-lg border border-nestor-blue"
-            disabled={isConnecting}
           >
             Continue Without Device
           </Button>
