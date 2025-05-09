@@ -25,6 +25,7 @@ import FirmwareUpdatePage from '@/components/FirmwareUpdatePage';
 
 const Profile = () => {
   const [activeSection, setActiveSection] = useState<'general' | 'firmware'>('general');
+  const [hapticSettingsOpen, setHapticSettingsOpen] = useState(false);
   const { user, updateUser } = useUser();
   const navigate = useNavigate();
   
@@ -89,9 +90,16 @@ const Profile = () => {
               {/* Alert Settings */}
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-nestor-gray-500">ALERT SETTINGS</h3>
-                <div className="bg-white rounded-xl p-4 shadow-sm">
-                  <HapticAlertSettings />
+                <div className="bg-white rounded-xl p-4 shadow-sm cursor-pointer" onClick={() => setHapticSettingsOpen(true)}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-nestor-gray-900">Haptic Alert Settings</h4>
+                      <p className="text-sm text-nestor-gray-500">Configure vibration alerts</p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-nestor-gray-500" />
+                  </div>
                 </div>
+                <HapticAlertSettings open={hapticSettingsOpen} onOpenChange={setHapticSettingsOpen} />
               </div>
               
               {/* Unit Preferences */}
