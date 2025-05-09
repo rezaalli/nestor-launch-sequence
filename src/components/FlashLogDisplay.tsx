@@ -175,7 +175,7 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
         <CardContent>
           <Tabs defaultValue={activeDataType} onValueChange={(value) => setActiveDataType(value as ReadingType)}>
             <div className="relative w-full">
-              <ScrollArea className="w-full pb-2" orientation="horizontal">
+              <ScrollArea className="w-full pb-2">
                 <TabsList className="w-full inline-flex px-1 py-1.5 justify-start space-x-2 overflow-hidden">
                   <TabsTrigger className="min-w-[100px] flex-shrink-0" value="hr">Heart Rate</TabsTrigger>
                   <TabsTrigger className="min-w-[100px] flex-shrink-0" value="spo2">SpO₂</TabsTrigger>
