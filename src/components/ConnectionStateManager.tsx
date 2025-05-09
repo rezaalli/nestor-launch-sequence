@@ -22,7 +22,7 @@ const ConnectionStateManager = ({
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // In development environment, ALWAYS bypass connection state
+  // ALWAYS bypass connection state in development environment
   if (process.env.NODE_ENV === 'development') {
     return null; // Never show connection lost screen in development
   }
