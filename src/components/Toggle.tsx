@@ -5,9 +5,10 @@ interface ToggleProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   size?: 'sm' | 'md' | 'lg';
+  disabled?: boolean; // Add the disabled property to the interface
 }
 
-const Toggle = ({ checked, onChange, size = 'md' }: ToggleProps) => {
+const Toggle = ({ checked, onChange, size = 'md', disabled = false }: ToggleProps) => {
   // Size classes
   const sizeClasses = {
     sm: {
@@ -28,18 +29,19 @@ const Toggle = ({ checked, onChange, size = 'md' }: ToggleProps) => {
   };
 
   return (
-    <label className="relative inline-flex items-center cursor-pointer">
+    <label className={`relative inline-flex items-center ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}>
       <input 
         type="checkbox" 
         checked={checked} 
-        onChange={(e) => onChange(e.target.checked)} 
-        className="sr-only peer" 
+        onChange={(e) => !disabled && onChange(e.target.checked)} 
+        className="sr-only peer"
+        disabled={disabled} 
       />
       <div
         className={`
           ${sizeClasses[size].container} 
-          bg-gray-200 
-          peer-checked:bg-green-500 
+          ${disabled ? 'bg-gray-300' : 'bg-gray-200'} 
+          ${checked && !disabled ? 'peer-checked:bg-green-500' : ''} 
           rounded-full 
           peer 
           peer-focus:ring-2 
