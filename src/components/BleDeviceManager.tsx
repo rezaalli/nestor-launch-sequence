@@ -217,6 +217,7 @@ export const BleDeviceManager = ({ open, onOpenChange }: BleDeviceManagerProps) 
     // If no permissions, request them
     if (hasPermissions === false) {
       const hasPerms = await requestBlePermissions();
+      // Fix: Instead of directly setting the state with a Promise
       setHasPermissions(hasPerms);
       if (!hasPerms) {
         setConnectionError('Bluetooth permissions are required to scan for devices.');

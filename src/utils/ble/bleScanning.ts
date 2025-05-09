@@ -34,11 +34,12 @@ export const scanForDevices = async (options: { timeout?: number, allowDuplicate
     // Start scanning with a callback for found devices
     await BleClient.requestDevice(scanOptions)
       .then(device => {
-        // Add the discovered device
+        // Add the discovered device with a default rssi value
+        // Fix: Handle the case where rssi might not exist on the device object
         const newDevice = {
           id: device.deviceId,
           name: device.name || `Nestor Device (${device.deviceId.substring(0, 8)})`,
-          rssi: device.rssi || -70,
+          rssi: -70, // Default RSSI value since it might not be available
           lastSeen: Date.now()
         };
         

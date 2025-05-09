@@ -12,7 +12,8 @@ let lastReading: PackedVitals | null = null;
 let isWorn = true; // Assume worn by default until notified otherwise
 let pollingInterval: number | null = null;
 
-export const startDataPolling = async (): void => {
+// Fix: Change return type from void to Promise<void>
+export const startDataPolling = async (): Promise<void> => {
   if (pollingInterval) return; // Already polling
   
   try {

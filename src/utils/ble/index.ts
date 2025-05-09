@@ -5,7 +5,9 @@
 // Re-export everything from the individual modules
 export * from './bleConfig';
 export * from './bleScanning';
-export * from './bleConnection';
+// Fix: Resolve the ambiguity by importing and re-exporting with explicit names
+import * as ConnectionUtils from './bleConnection';
+export { ConnectionUtils };
 export * from './bleDataMonitoring';
 export * from './bleFlashLog';
 export * from './bleEvents';
