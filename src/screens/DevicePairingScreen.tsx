@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Bluetooth, BluetoothSearching, BluetoothOff, BluetoothConnected, Plus, ArrowLeft, Battery, Watch, LightbulbIcon, RefreshCw } from 'lucide-react';
 import OnboardingLayout from '../components/OnboardingLayout';
@@ -164,10 +163,13 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
     await scanForDevices({ timeout: 10000 });
   };
   
-  const handleConnect = async () => {
-    if (!selectedDevice) return;
+  const handleConnect = async (deviceIdToConnect?: string) => {
+    // Use the provided deviceId or the selectedDevice state
+    const deviceId = deviceIdToConnect || selectedDevice;
     
-    setConnecting(selectedDevice);
+    if (!deviceId) return;
+    
+    setConnecting(deviceId);
     setConnectionError(null);
     
     if (process.env.NODE_ENV === 'development') {
@@ -179,7 +181,7 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
     }
     
     // Connect to device
-    const success = await connectToDeviceById(selectedDevice);
+    const success = await connectToDeviceById(deviceId);
     
     if (!success) {
       setConnectionError('Failed to connect to device. Please try again.');
