@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import { 
   ArrowLeft, Plus, Calendar, Bike, Dumbbell, Utensils, 
-  Check, X, Activity
+  Check, X, Activity, Edit
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StatusBar from "@/components/StatusBar";
@@ -81,6 +80,11 @@ const Log = () => {
       // You could add additional logic here, like navigating to a form
       // to collect more details about the activity
     }
+  };
+
+  const handleEditWellnessSurvey = () => {
+    // Navigate to the lifestyle check-in page
+    navigate("/lifestyle-checkin");
   };
   
   return (
@@ -265,6 +269,18 @@ const Log = () => {
               <div className="pt-2">
                 <span className="text-sm text-gray-600">Notes</span>
                 <p className="mt-1 text-sm text-gray-900">Feeling energetic after morning workout. Good focus throughout the day.</p>
+              </div>
+
+              {/* Edit button */}
+              <div className="pt-3">
+                <Button 
+                  variant="outline" 
+                  className="w-full flex items-center justify-center text-blue-900 border-blue-900 hover:bg-blue-50"
+                  onClick={handleEditWellnessSurvey}
+                >
+                  <Edit size={16} className="mr-2" />
+                  Edit Survey
+                </Button>
               </div>
             </div>
           </div>
