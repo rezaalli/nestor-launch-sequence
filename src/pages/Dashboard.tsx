@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3, RefreshCw, Move } from 'lucide-react';
+import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3, RefreshCw, Move, Cog } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/contexts/NotificationsContext";
@@ -16,6 +16,15 @@ import WeeklyTrendChart from '@/components/WeeklyTrendChart';
 import DeviceStatus from '@/components/DeviceStatus';
 import { Button } from '@/components/ui/button';
 import { connectToDevice, startFlashLogUpload, isFlashLogUploadInProgress } from '@/utils/bleUtils';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -33,6 +42,17 @@ const Dashboard = () => {
   });
   const [isSyncing, setIsSyncing] = useState(false);
   const [customizeMode, setCustomizeMode] = useState(false);
+  const [showMetricsDialog, setShowMetricsDialog] = useState(false);
+  const [availableMetrics, setAvailableMetrics] = useState({
+    heartRate: true,
+    spo2: true,
+    ecg: true,
+    temperature: true,
+    // Additional metrics that can be added
+    hrv: false,
+    respiratoryRate: false,
+    steps: false
+  });
   
   // Create a ref for the metrics container
   const metricsGridRef = useRef<HTMLDivElement>(null);
@@ -341,6 +361,33 @@ const Dashboard = () => {
     }
   };
   
+  // Save metrics preferences
+  const saveMetricsPreferences = () => {
+    localStorage.setItem('metricsPreferences', JSON.stringify(availableMetrics));
+    setShowMetricsDialog(false);
+    
+    toast({
+      title: "Metrics Updated",
+      description: "Your metrics preferences have been saved",
+    });
+  };
+  
+  // Load saved metrics preferences
+  useEffect(() => {
+    const savedMetrics = localStorage.getItem('metricsPreferences');
+    if (savedMetrics) {
+      try {
+        const parsedMetrics = JSON.parse(savedMetrics);
+        setAvailableMetrics(prevMetrics => ({
+          ...prevMetrics,
+          ...parsedMetrics
+        }));
+      } catch (e) {
+        console.error('Error loading metrics preferences:', e);
+      }
+    }
+  }, []);
+  
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
@@ -416,23 +463,23 @@ const Dashboard = () => {
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-nestor-gray-500">REAL-TIME METRICS</h3>
             <button 
-              className={`text-xs font-medium flex items-center ${customizeMode ? 'text-red-600' : 'text-blue-900'}`}
-              onClick={toggleCustomizeMode}
+              className={`w-8 h-8 flex items-center justify-center rounded-full ${customizeMode ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-blue-900'}`}
+              onClick={customizeMode ? toggleCustomizeMode : () => setShowMetricsDialog(true)}
             >
               {customizeMode ? (
                 <>Done</>
               ) : (
-                <>
-                  <Move className="mr-1" size={14} />
-                  Customize
-                </>
+                <Cog size={16} />
               )}
             </button>
           </div>
           
           {/* Health Metrics component with ref for drag-and-drop */}
           <div ref={metricsGridRef}>
-            <HealthMetrics customizeMode={customizeMode} />
+            <HealthMetrics 
+              customizeMode={customizeMode} 
+              availableMetrics={availableMetrics}
+            />
           </div>
         </div>
         
@@ -469,6 +516,70 @@ const Dashboard = () => {
         
         <BottomNavbar />
       </div>
+      
+      {/* Metrics Configuration Dialog */}
+      <Dialog open={showMetricsDialog} onOpenChange={setShowMetricsDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Customize Metrics</DialogTitle>
+            <DialogDescription>
+              Select which metrics you want to display on your dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-4">
+              {Object.entries(availableMetrics).map(([key, value]) => (
+                <div className="flex items-center space-x-2" key={key}>
+                  <Checkbox 
+                    id={`metric-${key}`}
+                    checked={value}
+                    onCheckedChange={(checked) => {
+                      setAvailableMetrics(prev => ({
+                        ...prev,
+                        [key]: checked === true
+                      }));
+                    }}
+                  />
+                  <label
+                    htmlFor={`metric-${key}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {key === 'heartRate' ? 'Heart Rate' : 
+                     key === 'spo2' ? 'Blood Oxygen (SpO₂)' : 
+                     key === 'ecg' ? 'ECG' : 
+                     key === 'temperature' ? 'Temperature' :
+                     key === 'hrv' ? 'Heart Rate Variability' :
+                     key === 'respiratoryRate' ? 'Respiratory Rate' :
+                     key === 'steps' ? 'Steps' : key}
+                  </label>
+                </div>
+              ))}
+            </div>
+            
+            <div className="pt-2">
+              <p className="text-sm text-muted-foreground">
+                {customizeMode ? "Exit customize mode to save changes" : "You can drag and drop metrics to rearrange them by entering customize mode."}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMetricsDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveMetricsPreferences}>
+              Save Changes
+            </Button>
+            {!customizeMode && (
+              <Button variant="secondary" onClick={() => {
+                setShowMetricsDialog(false);
+                toggleCustomizeMode();
+              }}>
+                Rearrange Metrics
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       {/* Alert Dialogs */}
       <EcgAlertDialog
