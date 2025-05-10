@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StatusBar from "@/components/StatusBar";
+import BottomNavbar from "@/components/BottomNavbar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -108,6 +109,11 @@ const Log = () => {
     setSelectedActivity(activities[index]);
   };
   
+  // Handle back button click to navigate to dashboard
+  const handleBackClick = () => {
+    navigate('/dashboard');
+  };
+  
   useEffect(() => {
     if (currentActivityIndex >= 0 && currentActivityIndex < activities.length) {
       setSelectedActivity(activities[currentActivityIndex]);
@@ -122,7 +128,7 @@ const Log = () => {
       <div className="px-6 pt-4 pb-2 flex items-center justify-between">
         <button 
           className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
-          onClick={() => navigate(-1)}
+          onClick={handleBackClick}
         >
           <ArrowLeft className="text-gray-700" size={18} />
         </button>
@@ -368,6 +374,9 @@ const Log = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Add BottomNavbar component */}
+      <BottomNavbar />
 
       {/* Replace the style jsx tag with regular CSS classes */}
       <style>
