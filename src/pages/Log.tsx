@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   ArrowLeft, Plus, Calendar, Activity, Dumbbell, 
-  Utensils, Check, X, Edit, RunningIcon, Bike, Route,
+  Utensils, Check, X, Edit, Bike, Route,
   Clock, Hourglass, Flame, Radar
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -313,6 +312,9 @@ const Log = () => {
       {/* New Activity Dialog */}
       <Dialog open={showActivityModal} onOpenChange={setShowActivityModal}>
         <DialogContent className="max-w-md p-0 gap-0 rounded-xl">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Add Activity</DialogTitle>
+          </DialogHeader>
           {/* Header */}
           <div className="px-6 pt-4 pb-2 flex items-center justify-between">
             <button 
@@ -330,7 +332,7 @@ const Log = () => {
             </button>
           </div>
 
-          {/* Activity Type Selector */}
+          {/* Activity Type Selector - Simplified without RunningIcon */}
           <div className="px-6 mt-4">
             <label className="text-sm font-medium text-gray-500">ACTIVITY TYPE</label>
             <div className="mt-3 grid grid-cols-4 gap-3">
@@ -338,7 +340,7 @@ const Log = () => {
                 className={`p-3 ${activityType === 'Run' ? 'bg-blue-900' : 'border border-gray-200'} rounded-xl flex flex-col items-center`}
                 onClick={() => handleSelectActivityType('Run')}
               >
-                <RunningIcon className={`${activityType === 'Run' ? 'text-white' : 'text-gray-600'} mb-1`} size={21} />
+                <Activity className={`${activityType === 'Run' ? 'text-white' : 'text-gray-600'} mb-1`} size={21} />
                 <span className={`text-xs ${activityType === 'Run' ? 'text-white' : 'text-gray-600'}`}>Run</span>
               </button>
               
