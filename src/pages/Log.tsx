@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { ArrowLeft, Plus, Calendar, Running, Dumbbell, Utensils, Check, X } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, Bike, Dumbbell, Utensils, Check, X, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StatusBar from "@/components/StatusBar";
 
@@ -55,7 +55,7 @@ const Log = () => {
             <div className="p-4 bg-white border border-gray-200 rounded-xl">
               <div className="flex items-start">
                 <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
-                  <Running className="text-green-600" size={20} />
+                  <Activity className="text-green-600" size={20} />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
@@ -212,12 +212,11 @@ const Log = () => {
             
             <div className="grid grid-cols-3 gap-3 mb-6">
               <button className="p-4 border border-gray-200 rounded-xl flex flex-col items-center">
-                <Running className="text-blue-900 mb-2" size={24} />
+                <Activity className="text-blue-900 mb-2" size={24} />
                 <span className="text-sm text-gray-900">Run</span>
               </button>
               <button className="p-4 border border-gray-200 rounded-xl flex flex-col items-center">
-                {/* Using Bicycle icon instead of PersonRunning */}
-                <Calendar className="text-blue-900 mb-2" size={24} />
+                <Bike className="text-blue-900 mb-2" size={24} />
                 <span className="text-sm text-gray-900">Cycle</span>
               </button>
               <button className="p-4 border border-gray-200 rounded-xl flex flex-col items-center">
