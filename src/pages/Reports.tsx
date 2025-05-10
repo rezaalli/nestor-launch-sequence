@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FileText, FileType, Heart, Bed, Activity, RotateCw, Eye, Share2, Trash2, ArrowLeft, MoreVertical, CalendarDays, Calendar, CheckSquare, Sliders, AlertTriangle } from 'lucide-react';
+import { FileText, FileType, Heart, Bed, Activity, RotateCw, Eye, Share2, Trash2, ArrowLeft, MoreVertical, CalendarDays, Calendar, CheckSquare, Sliders, AlertTriangle, LineChart } from 'lucide-react';
 import StatusBar from '@/components/StatusBar';
 import BottomNavbar from '@/components/BottomNavbar';
 import Toggle from '@/components/Toggle';
@@ -232,7 +232,7 @@ const Reports = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
-                    <ChartLine className="text-blue-900" size={16} />
+                    <LineChart className="text-blue-900" size={16} />
                   </div>
                   <span className="text-gray-800">Readiness Scores</span>
                 </div>
