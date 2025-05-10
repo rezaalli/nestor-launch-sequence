@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Plus, Calendar, Activity, Dumbbell, Utensils, Check, X, Edit, Bike, Route, Clock, Hourglass, Flame, Radar } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, Activity, Dumbbell, Utensils, Check, X, Edit, Bike, Route, Clock, Hourglass, Flame, Radar, Heart, Moon, Coffee, Brain } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import StatusBar from "@/components/StatusBar";
@@ -11,6 +11,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import AddMealModal from "@/components/AddMealModal";
 import { useToast } from "@/hooks/use-toast";
+
 const Log = () => {
   const navigate = useNavigate();
   const {
@@ -31,6 +32,7 @@ const Log = () => {
 
   // Activities data sorted by popularity (most popular first)
   const activities = ["Run", "Walk", "Ride", "Hike", "Weight Training", "Yoga", "Workout", "HIIT", "Swim", "Trail Run", "Crossfit", "Virtual Run", "Mountain Bike Ride", "Pilates", "Elliptical", "Stair Stepper", "Tennis", "Soccer", "Golf", "Gravel Ride", "E-Bike Ride", "E-Mountain Bike Ride", "Alpine Ski", "Snowboard", "Backcountry Ski", "Nordic Ski", "Snowshoe", "Ice Skate", "Canoe", "Kayak", "Rowing", "Stand Up Paddling", "Surf", "Windsurf", "Kitesurf", "Sail", "Velomobile", "Virtual Ride", "Pickleball", "Badminton", "Squash", "Racquetball", "Table Tennis", "Skateboard", "Inline Skate", "Roller Ski", "Rock Climb", "Handcycle", "Wheelchair", "Virtual Row"];
+  
   const handleCloseActivityModal = () => {
     setShowActivityModal(false);
   };
@@ -67,8 +69,8 @@ const Log = () => {
     });
   };
   const handleEditWellnessSurvey = () => {
-    // Navigate to the lifestyle check-in page
-    navigate("/lifestyle-checkin");
+    // Navigate to the daily assessment page
+    navigate("/dailyassessment");
   };
 
   // Handle back button click to navigate to dashboard
@@ -244,7 +246,7 @@ const Log = () => {
           </div>
         </div>
 
-        {/* Daily Wellness Survey */}
+        {/* Daily Wellness Survey - Updated to reflect assessment structure */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">DAILY WELLNESS ASSESSMENT</h3>
@@ -252,46 +254,106 @@ const Log = () => {
           </div>
           
           <div className="p-4 bg-white border border-gray-200 rounded-xl">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Mood</span>
-                <div className="flex items-center">
-                  {/* Using a generic happy face emoji for now */}
-                  <span className="text-blue-900 text-xl">😊</span>
-                  <span className="ml-2 text-sm font-medium text-gray-900">Good</span>
+            <div className="space-y-5">
+              {/* General Wellness */}
+              <div className="pb-3 border-b border-gray-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">General Wellness</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Heart className="mr-2 text-blue-900" size={16} />
+                      <span className="text-sm text-gray-600">How do you feel today?</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">Good</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Moon className="mr-2 text-blue-900" size={16} />
+                      <span className="text-sm text-gray-600">Sleep quality</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">Well rested</span>
+                  </div>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Sleep Quality</span>
-                <span className="text-sm font-medium text-gray-900">7/10</span>
+              {/* Consumption */}
+              <div className="pb-3 border-b border-gray-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Consumption</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Coffee className="mr-2 text-blue-900" size={16} />
+                      <span className="text-sm text-gray-600">Caffeine</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">1-2 cups (morning)</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Utensils className="mr-2 text-blue-900" size={16} />
+                      <span className="text-sm text-gray-600">Meals</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">Balanced</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <span className="mr-2 text-blue-900 text-sm">🍷</span>
+                      <span className="text-sm text-gray-600">Alcohol</span>
+                    </div>
+                    <X className="text-gray-400" size={16} />
+                  </div>
+                </div>
               </div>
               
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Energy Level</span>
-                <span className="text-sm font-medium text-gray-900">8/10</span>
+              {/* Physical Health */}
+              <div className="pb-3 border-b border-gray-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Physical Health</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Activity className="mr-2 text-blue-900" size={16} />
+                      <span className="text-sm text-gray-600">Exercise</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">Cardio (Moderate)</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <span className="mr-2 text-blue-900 text-sm">💧</span>
+                      <span className="text-sm text-gray-600">Hydration</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">Normal</span>
+                  </div>
+                </div>
               </div>
               
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Caffeine</span>
-                <Check className="text-green-500" size={16} />
+              {/* Mental Health */}
+              <div className="pb-3 border-b border-gray-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Mental Health</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Brain className="mr-2 text-blue-900" size={16} />
+                      <span className="text-sm text-gray-600">Mental State</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">Good/Stable</span>
+                  </div>
+                </div>
               </div>
               
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Alcohol</span>
-                <X className="text-gray-400" size={16} />
-              </div>
-              
-              <div className="pt-2">
-                <span className="text-sm text-gray-600">Notes</span>
-                <p className="mt-1 text-sm text-gray-900">Feeling energetic after morning workout. Good focus throughout the day.</p>
+              {/* Notes */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Notes</h4>
+                <p className="text-sm text-gray-600">Feeling energetic after morning workout. Good focus throughout the day.</p>
               </div>
 
               {/* Edit button */}
               <div className="pt-3">
                 <Button variant="outline" className="w-full flex items-center justify-center text-blue-900 border-blue-900 hover:bg-blue-50" onClick={handleEditWellnessSurvey}>
                   <Edit size={16} className="mr-2" />
-                  Edit Survey
+                  Complete Today's Assessment
                 </Button>
               </div>
             </div>
