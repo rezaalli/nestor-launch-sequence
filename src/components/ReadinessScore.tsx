@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Star, ArrowUp, ArrowDown, Info } from 'lucide-react';
-import { getLastReading, getReadings } from '@/utils/bleUtils';
+import { getLastReading } from '@/utils/bleUtils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAssessment } from '@/contexts/AssessmentContext';
+import { getContributingFactors, getReadinessGrade } from '@/utils/readinessScoring';
 
 interface ReadinessScoreProps {
   className?: string;
@@ -10,6 +12,8 @@ interface ReadinessScoreProps {
 }
 
 const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScoreProps) => {
+  const { completedAssessments, getReadinessHistory } = useAssessment();
+  
   // State to store the latest readiness score
   const [readinessData, setReadinessData] = useState({
     readinessScore: getLastReading()?.readiness ?? 82,
@@ -19,116 +23,133 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
   
   // State for historical readiness trend
   const [weeklyTrend, setWeeklyTrend] = useState<number[]>([]);
+  // State for contributing factors
+  const [contributingFactors, setContributingFactors] = useState<{ name: string; percentage: number }[]>([
+    { name: 'Sleep Quality', percentage: 75 },
+    { name: 'HRV', percentage: 85 },
+    { name: 'Recovery', percentage: 78 }
+  ]);
   
-  // Update readiness data when new readings come in
+  // Update readiness data when new assessments come in
   useEffect(() => {
-    const calculateChange = () => {
-      const lastReading = getLastReading();
-      if (!lastReading) return;
+    // Check if we have a recent assessment
+    if (completedAssessments.length > 0) {
+      const sortedAssessments = [...completedAssessments].sort((a, b) => 
+        new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+      );
       
-      // Get readings from the last 2 days to calculate change
-      const recentReadings = getReadings(2);
+      const latestAssessment = sortedAssessments[0];
       
-      // Split readings into today and yesterday
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-      
-      const todayReadings = recentReadings.filter(r => r.timestamp >= todayStart);
-      const yesterdayReadings = recentReadings.filter(r => r.timestamp < todayStart);
-      
-      // Calculate average readiness scores
-      let todayAvg = 0;
-      let yesterdayAvg = 0;
-      
-      if (todayReadings.length > 0) {
-        todayAvg = todayReadings.reduce((sum, r) => sum + r.readiness, 0) / todayReadings.length;
-      } else if (lastReading) {
-        todayAvg = lastReading.readiness;
+      if (latestAssessment.readinessScore !== undefined) {
+        // Get the previous day's assessment if available
+        const previousAssessment = sortedAssessments.length > 1 ? sortedAssessments[1] : null;
+        let changePercentage = 0;
+        let isPositiveChange = true;
+        
+        if (previousAssessment?.readinessScore !== undefined) {
+          const currentScore = latestAssessment.readinessScore;
+          const previousScore = previousAssessment.readinessScore;
+          
+          if (previousScore > 0) {
+            changePercentage = Math.round(((currentScore - previousScore) / previousScore) * 100);
+            isPositiveChange = changePercentage > 0;
+          }
+        }
+        
+        setReadinessData({
+          readinessScore: Math.round(latestAssessment.readinessScore),
+          changePercentage: Math.abs(changePercentage),
+          isPositiveChange
+        });
+        
+        // Calculate contributing factors if assessment data available
+        if (latestAssessment.data) {
+          const factors = getContributingFactors(latestAssessment.data);
+          setContributingFactors(factors);
+        }
       }
-      
-      if (yesterdayReadings.length > 0) {
-        yesterdayAvg = yesterdayReadings.reduce((sum, r) => sum + r.readiness, 0) / yesterdayReadings.length;
-      }
-      
-      // Calculate percentage change if both values exist
-      let changePercentage = 0;
-      let isPositiveChange = true;
-      
-      if (todayAvg > 0 && yesterdayAvg > 0) {
-        changePercentage = Math.round(((todayAvg - yesterdayAvg) / yesterdayAvg) * 100);
-        isPositiveChange = changePercentage > 0;
-      }
-      
-      setReadinessData({
-        readinessScore: Math.round(todayAvg),
-        changePercentage: Math.abs(changePercentage),
-        isPositiveChange
-      });
-      
-      // Calculate weekly trend
-      calculateWeeklyTrend();
-    };
+    }
     
-    const calculateWeeklyTrend = () => {
-      const recentReadings = getReadings(7);
-      const now = new Date();
-      
-      // Create an array for the past 7 days
+    // Calculate weekly trend from assessment history
+    const readinessHistory = getReadinessHistory(7);
+    
+    if (readinessHistory.length > 0) {
+      // Fill in missing days with estimated values
       const weeklyData = [];
+      const now = new Date();
       
       for (let i = 6; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
-        const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-        const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+        const targetDate = new Date(now);
+        targetDate.setDate(targetDate.getDate() - i);
+        const targetDateStr = targetDate.toISOString().split('T')[0];
         
-        const dayReadings = recentReadings.filter(r => r.timestamp >= dayStart && r.timestamp < dayEnd);
+        const historyItem = readinessHistory.find(item => item.date.startsWith(targetDateStr));
         
-        if (dayReadings.length > 0) {
-          const dayAvg = dayReadings.reduce((sum, r) => sum + r.readiness, 0) / dayReadings.length;
-          weeklyData.push(Math.round(dayAvg));
+        if (historyItem) {
+          weeklyData.push(historyItem.score);
         } else {
-          // If no readings for this day, use estimated value or null
+          // Use previous value or default if no data
           const prevValue = weeklyData.length > 0 ? weeklyData[weeklyData.length - 1] : null;
-          weeklyData.push(prevValue ?? 70); // Use previous value or default to 70
+          weeklyData.push(prevValue ?? 70);
         }
       }
       
       setWeeklyTrend(weeklyData);
-    };
+    } else {
+      // Fall back to device data if no assessment data
+      const calculateDeviceBasedTrend = () => {
+        // This function uses the existing device-based logic from the original component
+        const recentReadings = getReadings(7);
+        const now = new Date();
+        const weeklyData = [];
+        
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date(now);
+          date.setDate(date.getDate() - i);
+          const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+          const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+          
+          const dayReadings = recentReadings.filter(r => r.timestamp >= dayStart && r.timestamp < dayEnd);
+          
+          if (dayReadings.length > 0) {
+            const dayAvg = dayReadings.reduce((sum, r) => sum + r.readiness, 0) / dayReadings.length;
+            weeklyData.push(Math.round(dayAvg));
+          } else {
+            const prevValue = weeklyData.length > 0 ? weeklyData[weeklyData.length - 1] : null;
+            weeklyData.push(prevValue ?? 70);
+          }
+        }
+        
+        return weeklyData;
+      };
+      
+      setWeeklyTrend(calculateDeviceBasedTrend());
+    }
+  }, [completedAssessments, getReadinessHistory]);
+  
+  // Helper function for compatibility with original code
+  const getReadings = (days: number) => {
+    // Mock function to maintain compatibility
+    const lastReading = getLastReading();
+    if (!lastReading) return [];
     
-    // Calculate initially
-    calculateChange();
+    // Create mock readings for the past days
+    const readings = [];
+    const now = Date.now();
     
-    // Update when new readings come in
-    const handleVitalUpdate = () => {
-      calculateChange();
-    };
+    for (let i = 0; i < days; i++) {
+      readings.push({
+        ...lastReading,
+        timestamp: now - (i * 24 * 60 * 60 * 1000)
+      });
+    }
     
-    window.addEventListener('nestor-vital-update', handleVitalUpdate);
-    
-    return () => {
-      window.removeEventListener('nestor-vital-update', handleVitalUpdate);
-    };
-  }, []);
+    return readings;
+  };
   
   // Determine score grade and color
-  let scoreGrade: string;
-  let scoreColor: string;
-  
-  if (readinessData.readinessScore >= 85) {
-    scoreGrade = 'Optimal';
-    scoreColor = 'text-green-600';
-  } else if (readinessData.readinessScore >= 70) {
-    scoreGrade = 'Good';
-    scoreColor = 'text-blue-600';
-  } else if (readinessData.readinessScore >= 50) {
-    scoreGrade = 'Moderate';
-    scoreColor = 'text-yellow-600';
-  } else {
-    scoreGrade = 'Low';
-    scoreColor = 'text-red-600';
-  }
+  const scoreGradeInfo = getReadinessGrade(readinessData.readinessScore);
+  const { grade: scoreGrade, color: scoreColor } = scoreGradeInfo;
 
   const renderDetailedView = () => (
     <div className={`p-5 bg-blue-50 rounded-xl ${className}`}>
@@ -226,35 +247,24 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
         </h4>
         
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-600">Sleep Quality</span>
-            <div className="flex-1 mx-4">
-              <div className="h-1.5 bg-gray-200 rounded-full">
-                <div className="h-full bg-blue-500 rounded-full" style={{ width: '75%' }}></div>
+          {contributingFactors.map((factor, index) => (
+            <div className="flex items-center justify-between" key={index}>
+              <span className="text-xs text-gray-600">{factor.name}</span>
+              <div className="flex-1 mx-4">
+                <div className="h-1.5 bg-gray-200 rounded-full">
+                  <div 
+                    className={`h-full rounded-full ${
+                      factor.percentage >= 85 ? 'bg-green-500' : 
+                      factor.percentage >= 70 ? 'bg-blue-500' : 
+                      factor.percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}
+                    style={{ width: `${factor.percentage}%` }}
+                  ></div>
+                </div>
               </div>
+              <span className="text-xs font-medium">{factor.percentage}%</span>
             </div>
-            <span className="text-xs font-medium">75%</span>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-600">HRV</span>
-            <div className="flex-1 mx-4">
-              <div className="h-1.5 bg-gray-200 rounded-full">
-                <div className="h-full bg-green-500 rounded-full" style={{ width: '85%' }}></div>
-              </div>
-            </div>
-            <span className="text-xs font-medium">85%</span>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-600">Recovery</span>
-            <div className="flex-1 mx-4">
-              <div className="h-1.5 bg-gray-200 rounded-full">
-                <div className="h-full bg-blue-500 rounded-full" style={{ width: '78%' }}></div>
-              </div>
-            </div>
-            <span className="text-xs font-medium">78%</span>
-          </div>
+          ))}
         </div>
       </div>
     </div>
