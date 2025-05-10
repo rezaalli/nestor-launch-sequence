@@ -21,6 +21,9 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
+import { format, subDays, startOfDay } from 'date-fns';
 
 type ReadingType = 'hr' | 'spo2' | 'temp' | 'readiness' | 'motion';
 
@@ -44,7 +47,7 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
   };
   
   const [activeDataType, setActiveDataType] = useState<ReadingType>(getReadingTypeFromMetric(metricType));
-  const [timeRange, setTimeRange] = useState<number>(7); // days
+  const [timeRange, setTimeRange] = useState<number | 'today' | 'yesterday' | 'custom'>(7); // days
   const unitPreference = 'imperial'; // Default to imperial units
   
   const [chartData, setChartData] = useState<any[]>([]);
@@ -56,7 +59,21 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
   
   useEffect(() => {
     // Generate mock data for demonstration
-    const mockData = generateMockData(timeRange, activeDataType, unitPreference);
+    let days: number = typeof timeRange === 'number' ? timeRange : 7;
+    let startDate = new Date();
+    let endDate = new Date();
+    
+    if (timeRange === 'today') {
+      days = 1;
+      startDate = startOfDay(new Date());
+    } else if (timeRange === 'yesterday') {
+      days = 1;
+      startDate = startOfDay(subDays(new Date(), 1));
+      endDate = subDays(new Date(), 1);
+      endDate.setHours(23, 59, 59, 999);
+    }
+    
+    const mockData = generateMockData(days, activeDataType, unitPreference, timeRange);
     setChartData(mockData);
   }, [activeDataType, timeRange, unitPreference]);
   
@@ -129,6 +146,13 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
     }
   };
   
+  // Format the time range for display
+  const formatTimeRange = () => {
+    if (timeRange === 'today') return 'Today';
+    if (timeRange === 'yesterday') return 'Yesterday';
+    return `Last ${timeRange} days`;
+  };
+  
   const metrics = getDataMetrics();
 
   return (
@@ -137,7 +161,7 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
         <CardHeader>
           <CardTitle>{getChartTitle()} History</CardTitle>
           <CardDescription>
-            View your historical health data from the past {timeRange} days
+            View your historical health data from the {formatTimeRange()}
           </CardDescription>
         </CardHeader>
         
@@ -235,9 +259,19 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
           </div>
           
           <div className="flex justify-between w-full">
-            <Button variant="outline" onClick={() => setTimeRange(prev => prev === 7 ? 30 : 7)}>
-              Show {timeRange === 7 ? '30' : '7'} Days
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  {formatTimeRange()} <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => setTimeRange('today')}>Today</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTimeRange('yesterday')}>Yesterday</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTimeRange(7)}>Last 7 Days</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTimeRange(30)}>Last 30 Days</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="outline" onClick={handleExportData}>
               Export Data
             </Button>
@@ -249,23 +283,28 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
 };
 
 // Helper function to generate mock data
-const generateMockData = (days: number, dataType: ReadingType, unitPreference: 'metric' | 'imperial'): any[] => {
+const generateMockData = (days: number, dataType: ReadingType, unitPreference: 'metric' | 'imperial', timeRangeType: number | string): any[] => {
   const data = [];
   const now = new Date();
   
-  // Generate data for each day
-  for (let i = days; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    
-    // Generate multiple readings per day
-    for (let h = 0; h < 24; h += 4) {
-      const entryDate = new Date(date);
-      entryDate.setHours(h);
+  // For today or yesterday view, generate hourly data
+  const isToday = timeRangeType === 'today';
+  const isYesterday = timeRangeType === 'yesterday';
+  const isSingleDay = isToday || isYesterday;
+  
+  const dateToUse = isYesterday ? subDays(now, 1) : now;
+  const startPoint = isSingleDay ? startOfDay(dateToUse) : subDays(now, days);
+  
+  // For single day view, generate data every hour
+  if (isSingleDay) {
+    for (let h = 0; h < 24; h++) {
+      const entryDate = new Date(startPoint);
+      entryDate.setHours(h, 0, 0, 0);
+      
+      if (isToday && entryDate > now) continue; // Don't generate future data for today
       
       let value: number;
       
-      // Generate realistic mock data based on data type
       switch (dataType) {
         case 'hr':
           value = Math.round(60 + Math.random() * 30); // 60-90 bpm
@@ -290,8 +329,8 @@ const generateMockData = (days: number, dataType: ReadingType, unitPreference: '
       }
       
       data.push({
-        date: entryDate.toLocaleDateString(),
-        time: entryDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+        date: format(entryDate, 'MMM d'),
+        time: format(entryDate, 'h:mm a'),
         value,
         raw: {
           timestamp: entryDate.getTime(),
@@ -299,9 +338,58 @@ const generateMockData = (days: number, dataType: ReadingType, unitPreference: '
         }
       });
     }
+  } else {
+    // Generate multiple readings per day for multi-day view
+    for (let i = days; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      
+      // Generate multiple readings per day
+      for (let h = 0; h < 24; h += 8) {
+        const entryDate = new Date(date);
+        entryDate.setHours(h);
+        
+        let value: number;
+        
+        // Generate realistic mock data based on data type
+        switch (dataType) {
+          case 'hr':
+            value = Math.round(60 + Math.random() * 30); // 60-90 bpm
+            break;
+          case 'spo2':
+            value = Math.round(95 + Math.random() * 5); // 95-100%
+            break;
+          case 'temp':
+            const celsius = 36.5 + (Math.random() * 1.5 - 0.5); // 36.0-37.5°C
+            value = unitPreference === 'imperial' 
+              ? Math.round((celsius * 9/5 + 32) * 10) / 10 // Convert to Fahrenheit
+              : Math.round(celsius * 10) / 10;
+            break;
+          case 'readiness':
+            value = Math.round(70 + Math.random() * 30); // 70-100 score
+            break;
+          case 'motion':
+            value = Math.round(Math.random() * 3); // 0-3 intensity
+            break;
+          default:
+            value = 0;
+        }
+        
+        data.push({
+          date: format(entryDate, 'MMM d'),
+          time: format(entryDate, 'h:mm a'),
+          value,
+          raw: {
+            timestamp: entryDate.getTime(),
+            value
+          }
+        });
+      }
+    }
   }
   
-  return data;
+  // Sort by timestamp (oldest to newest)
+  return data.sort((a, b) => a.raw.timestamp - b.raw.timestamp);
 };
 
 export default FlashLogDisplay;

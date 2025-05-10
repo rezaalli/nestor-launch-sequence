@@ -463,6 +463,7 @@ const Dashboard = () => {
             dataType="heartRate" 
             days={7} 
             onViewAllClick={handleViewAllTrends}
+            allowMetricChange={true}
           />
         </div>
         
