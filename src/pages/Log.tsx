@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   ArrowLeft, Plus, Calendar, Activity, Dumbbell, Utensils, 
   Check, X, Edit
@@ -7,18 +7,13 @@ import {
 import { useNavigate } from "react-router-dom";
 import StatusBar from "@/components/StatusBar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
 
 const Log = () => {
   const navigate = useNavigate();
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
+  const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
   
   // Activities data sorted by popularity (most popular first)
   const activities = [
@@ -92,6 +87,32 @@ const Log = () => {
     // Navigate to the lifestyle check-in page
     navigate("/lifestyle-checkin");
   };
+  
+  // Functions for wheel picker
+  const handleScroll = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (e.deltaY > 0) {
+      // Scroll down
+      setCurrentActivityIndex((prev) => 
+        prev === activities.length - 1 ? 0 : prev + 1
+      );
+    } else {
+      // Scroll up
+      setCurrentActivityIndex((prev) => 
+        prev === 0 ? activities.length - 1 : prev - 1
+      );
+    }
+  };
+
+  const handleActivityClick = (index: number) => {
+    setCurrentActivityIndex(index);
+    setSelectedActivity(activities[index]);
+  };
+  
+  useEffect(() => {
+    if (currentActivityIndex >= 0 && currentActivityIndex < activities.length) {
+      setSelectedActivity(activities[currentActivityIndex]);
+    }
+  }, [currentActivityIndex, activities]);
   
   return (
     <div className="min-h-screen bg-white">
@@ -302,7 +323,10 @@ const Log = () => {
           
           <div className="px-6 py-4">
             <div className="flex flex-col items-center">
-              <div className="relative w-full h-64 overflow-hidden">
+              <div 
+                className="relative w-full h-64 overflow-hidden"
+                onWheel={handleScroll}
+              >
                 {/* Overlay gradients for wheel effect */}
                 <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-white to-transparent z-10"></div>
                 <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-white to-transparent z-10"></div>
@@ -310,30 +334,19 @@ const Log = () => {
                 {/* Center selection indicator */}
                 <div className="absolute top-1/2 left-0 right-0 h-16 -mt-8 border-t border-b border-gray-200 z-0"></div>
                 
-                <Carousel
-                  opts={{
-                    align: "center",
-                    loop: true,
-                  }}
-                  className="w-full h-full"
-                  orientation="vertical"
-                >
-                  <CarouselContent className="h-full py-28">
-                    {activities.map((activity, index) => (
-                      <CarouselItem 
-                        key={index} 
-                        onClick={() => handleSelectActivity(activity)}
-                        className={`h-16 flex items-center justify-center cursor-pointer transition-all duration-200
-                          ${selectedActivity === activity 
-                            ? 'text-blue-900 font-semibold text-xl' 
-                            : 'text-gray-500 text-lg'
-                          }`}
-                      >
-                        {activity}
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                </Carousel>
+                {/* Custom wheel picker implementation */}
+                <div className="absolute inset-0 flex flex-col items-center justify-start pt-28 pb-28 overflow-auto hide-scrollbar">
+                  {activities.map((activity, index) => (
+                    <div 
+                      key={index} 
+                      onClick={() => handleActivityClick(index)}
+                      className={`h-16 min-h-[64px] w-full flex items-center justify-center cursor-pointer transition-all duration-200
+                        ${index === currentActivityIndex ? 'text-blue-900 font-semibold text-xl' : 'text-gray-500 text-lg'}`}
+                    >
+                      {activity}
+                    </div>
+                  ))}
+                </div>
               </div>
               
               <div className="text-center mt-6">
@@ -355,6 +368,16 @@ const Log = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <style jsx>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 };
