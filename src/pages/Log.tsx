@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   ArrowLeft, Plus, Calendar, Activity, Dumbbell, 
@@ -9,10 +10,12 @@ import StatusBar from "@/components/StatusBar";
 import BottomNavbar from "@/components/BottomNavbar";
 import { Dialog, DialogContentWithoutCloseButton, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Log = () => {
   const navigate = useNavigate();
   const [showActivityModal, setShowActivityModal] = useState(false);
+  const [showActivityPicker, setShowActivityPicker] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
   const [activityType, setActivityType] = useState<string>("Run");
   const [startTime, setStartTime] = useState<string>("09:30");
@@ -96,7 +99,16 @@ const Log = () => {
   };
 
   const handleSelectActivityType = (type: string) => {
+    if (type === 'More') {
+      setShowActivityPicker(true);
+    } else {
+      setActivityType(type);
+    }
+  };
+
+  const handleSelectActivityFromPicker = (type: string) => {
     setActivityType(type);
+    setShowActivityPicker(false);
   };
 
   const handleEditWellnessSurvey = () => {
@@ -488,6 +500,51 @@ const Log = () => {
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-900"></div>
               </label>
             </div>
+          </div>
+        </DialogContentWithoutCloseButton>
+      </Dialog>
+
+      {/* Activity Type Picker Dialog */}
+      <Dialog open={showActivityPicker} onOpenChange={setShowActivityPicker}>
+        <DialogContentWithoutCloseButton className="max-w-md p-0 gap-0 rounded-xl">
+          <div className="px-6 pt-4 pb-2 flex items-center justify-between">
+            <button 
+              className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+              onClick={() => setShowActivityPicker(false)}
+            >
+              <X className="text-gray-700" size={18} />
+            </button>
+            <h2 className="text-lg font-medium text-gray-900">Select Activity</h2>
+            <button 
+              className="text-sm font-medium text-blue-900"
+              onClick={() => setShowActivityPicker(false)}
+            >
+              Done
+            </button>
+          </div>
+
+          {/* Activity Picker Wheel */}
+          <div className="relative">
+            {/* Highlight for selected item */}
+            <div className="absolute left-0 right-0 h-12 bg-gray-50 border-y border-gray-200 top-1/2 -mt-6 pointer-events-none"></div>
+            
+            <ScrollArea className="h-[240px] px-6">
+              <div className="py-[88px] space-y-1">
+                {activities.map((activity) => (
+                  <button
+                    key={activity}
+                    className={`block w-full text-left py-3 px-4 rounded-lg ${
+                      activityType === activity 
+                        ? "text-blue-900 font-semibold text-base" 
+                        : "text-gray-600 text-sm"
+                    }`}
+                    onClick={() => handleSelectActivityFromPicker(activity)}
+                  >
+                    {activity}
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
         </DialogContentWithoutCloseButton>
       </Dialog>
