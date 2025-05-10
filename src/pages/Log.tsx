@@ -6,32 +6,45 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StatusBar from "@/components/StatusBar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
 const Log = () => {
   const navigate = useNavigate();
   const [showActivityModal, setShowActivityModal] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
   
-  // Activities data based on the provided list
+  // Activities data sorted by popularity (most popular first)
   const activities = [
     "Run",
-    "Trail Run",
     "Walk",
-    "Hike",
-    "Virtual Run",
     "Ride",
+    "Hike",
+    "Weight Training",
+    "Yoga",
+    "Workout",
+    "HIIT",
+    "Swim",
+    "Trail Run",
+    "Crossfit",
+    "Virtual Run",
     "Mountain Bike Ride",
+    "Pilates",
+    "Elliptical",
+    "Stair Stepper",
+    "Tennis",
+    "Soccer",
+    "Golf",
     "Gravel Ride",
     "E-Bike Ride",
     "E-Mountain Bike Ride",
-    "Velomobile",
-    "Virtual Ride",
     "Alpine Ski",
+    "Snowboard",
     "Backcountry Ski",
     "Nordic Ski",
-    "Snowboard",
     "Snowshoe",
     "Ice Skate",
-    "Swim",
     "Canoe",
     "Kayak",
     "Rowing",
@@ -40,22 +53,13 @@ const Log = () => {
     "Windsurf",
     "Kitesurf",
     "Sail",
-    "Workout",
-    "Weight Training",
-    "Crossfit",
-    "HIIT",
-    "Pilates",
-    "Yoga",
-    "Elliptical",
-    "Stair Stepper",
-    "Tennis",
+    "Velomobile",
+    "Virtual Ride",
     "Pickleball",
     "Badminton",
     "Squash",
     "Racquetball",
     "Table Tennis",
-    "Soccer",
-    "Golf",
     "Skateboard",
     "Inline Skate",
     "Roller Ski",
@@ -64,6 +68,20 @@ const Log = () => {
     "Wheelchair",
     "Virtual Row"
   ];
+  
+  const handleSelectActivity = (activity: string) => {
+    setSelectedActivity(activity);
+  };
+  
+  const handleContinue = () => {
+    if (selectedActivity) {
+      // Here you would typically handle saving the selected activity
+      console.log(`Selected activity: ${selectedActivity}`);
+      setShowActivityModal(false);
+      // You could add additional logic here, like navigating to a form
+      // to collect more details about the activity
+    }
+  };
   
   return (
     <div className="min-h-screen bg-white">
@@ -253,37 +271,42 @@ const Log = () => {
         </div>
       </div>
 
-      {/* Add Activity Modal */}
-      {showActivityModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
-          <div className="absolute bottom-0 w-full bg-white rounded-t-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-medium text-gray-900">Add Activity</h3>
-              <button 
-                className="text-gray-400"
-                onClick={() => setShowActivityModal(false)}
-              >
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-3 mb-6 max-h-[400px] overflow-y-auto">
-              {activities.map((activity, index) => (
+      {/* Activity Selection Dialog */}
+      <Dialog open={showActivityModal} onOpenChange={setShowActivityModal}>
+        <DialogContent className="max-w-md p-0 gap-0 rounded-xl">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle className="text-2xl font-medium">Add Activity</DialogTitle>
+          </DialogHeader>
+          
+          <ScrollArea className="h-[400px] px-6">
+            <div className="grid grid-cols-3 gap-3 pb-6">
+              {activities.map((activity) => (
                 <button 
-                  key={index} 
-                  className="p-4 border border-gray-200 rounded-xl flex items-center justify-center"
+                  key={activity}
+                  onClick={() => handleSelectActivity(activity)} 
+                  className={`p-4 border rounded-2xl flex items-center justify-center text-center h-24
+                    ${selectedActivity === activity 
+                      ? 'border-blue-900 bg-blue-50' 
+                      : 'border-gray-200'
+                    }`}
                 >
-                  <span className="text-sm text-gray-900 text-center">{activity}</span>
+                  <span className="text-base text-gray-900">{activity}</span>
                 </button>
               ))}
             </div>
-            
-            <button className="w-full py-4 bg-blue-900 text-white font-medium rounded-lg">
+          </ScrollArea>
+          
+          <div className="p-6 border-t border-gray-200">
+            <Button 
+              onClick={handleContinue}
+              disabled={!selectedActivity}
+              className="w-full py-6 text-base bg-blue-900 hover:bg-blue-800"
+            >
               Continue
-            </button>
+            </Button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
