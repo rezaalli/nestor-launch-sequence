@@ -5,11 +5,14 @@ import {
   Clock, Hourglass, Flame, Radar
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 import StatusBar from "@/components/StatusBar";
 import BottomNavbar from "@/components/BottomNavbar";
 import { Dialog, DialogContentWithoutCloseButton, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import AddMealModal from "@/components/AddMealModal";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,6 +30,7 @@ const Log = () => {
   const [intensity, setIntensity] = useState<string>("Moderate");
   const [notes, setNotes] = useState<string>("");
   const [autoDetection, setAutoDetection] = useState<boolean>(true);
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   
   // Activities data sorted by popularity (most popular first)
   const activities = [
@@ -133,6 +137,17 @@ const Log = () => {
     navigate('/dashboard');
   };
   
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      setCurrentDate(date);
+      // Here you would typically fetch data for the selected date
+      toast({
+        title: "Date Selected",
+        description: `Viewing logs for ${format(date, "MMMM d, yyyy")}`,
+      });
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-white">
       <StatusBar />
@@ -146,18 +161,62 @@ const Log = () => {
           <ArrowLeft className="text-gray-700" size={18} />
         </button>
         <h2 className="text-lg font-medium text-gray-900">Daily Logs</h2>
-        <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-          <Calendar className="text-gray-700" size={18} />
-        </button>
+        
+        {/* Calendar Button with Popover */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+              <Calendar className="text-gray-700" size={18} />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <CalendarComponent
+              mode="single"
+              selected={currentDate}
+              onSelect={handleDateChange}
+              initialFocus
+              className="p-3 pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Date Selector */}
       <div className="px-6 mt-4">
         <div className="flex space-x-4 overflow-x-auto pb-2">
-          <button className="flex-shrink-0 px-4 py-2 rounded-full bg-blue-900 text-white text-sm">Today</button>
-          <button className="flex-shrink-0 px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm">Yesterday</button>
-          <button className="flex-shrink-0 px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm">May 8</button>
-          <button className="flex-shrink-0 px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm">May 7</button>
+          <button className="flex-shrink-0 px-4 py-2 rounded-full bg-blue-900 text-white text-sm">
+            {format(currentDate, "MMM d") === format(new Date(), "MMM d") ? "Today" : format(currentDate, "MMM d")}
+          </button>
+          <button 
+            className="flex-shrink-0 px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm"
+            onClick={() => {
+              const yesterday = new Date();
+              yesterday.setDate(yesterday.getDate() - 1);
+              setCurrentDate(yesterday);
+            }}
+          >
+            Yesterday
+          </button>
+          <button 
+            className="flex-shrink-0 px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm"
+            onClick={() => {
+              const twoDaysAgo = new Date();
+              twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+              setCurrentDate(twoDaysAgo);
+            }}
+          >
+            {format(new Date(new Date().setDate(new Date().getDate() - 2)), "MMM d")}
+          </button>
+          <button 
+            className="flex-shrink-0 px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm"
+            onClick={() => {
+              const threeDaysAgo = new Date();
+              threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+              setCurrentDate(threeDaysAgo);
+            }}
+          >
+            {format(new Date(new Date().setDate(new Date().getDate() - 3)), "MMM d")}
+          </button>
         </div>
       </div>
 
