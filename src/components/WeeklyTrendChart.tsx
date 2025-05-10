@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { getReadings } from '@/utils/bleUtils';
-import { ChevronDown, TrendingUp, ChevronUp } from 'lucide-react';
+import { ChevronDown, TrendingUp, ChevronUp, Calendar } from 'lucide-react';
 import {
   ChartContainer,
   ChartTooltip,
@@ -18,8 +17,12 @@ import {
 } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format, subDays } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { DateRange } from 'react-day-picker';
 
-export type ReadingType = 'readiness' | 'heartRate' | 'temperature' | 'spo2';
+export type ReadingType = 'readiness' | 'heartRate' | 'temperature' | 'spo2' | 'steps';
 
 interface WeeklyTrendChartProps {
   dataType?: ReadingType;
@@ -42,9 +45,14 @@ const WeeklyTrendChart = ({
   const [loading, setLoading] = useState(true);
   const [deviceWorn, setDeviceWorn] = useState(true);
   const [selectedDataType, setSelectedDataType] = useState<ReadingType>(dataType);
-  const [timeRange, setTimeRange] = useState<number>(days);
+  const [timeRange, setTimeRange] = useState<number | 'custom'>(days);
   const { user } = useUser();
   const unitPreference = user.unitPreference || 'imperial'; // Default to imperial
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 7),
+    to: new Date()
+  });
+  const [isRangePickerOpen, setIsRangePickerOpen] = useState(false);
   
   // Chart config settings
   const chartConfig = {
@@ -58,7 +66,15 @@ const WeeklyTrendChart = ({
   
   useEffect(() => {
     // Get readings from BLE utils
-    const readings = getReadings(timeRange);
+    let effectiveTimeRange = typeof timeRange === 'number' ? timeRange : 7;
+    
+    // If custom range, calculate the number of days between the dates
+    if (timeRange === 'custom' && dateRange?.from && dateRange?.to) {
+      const diffTime = Math.abs(dateRange.to.getTime() - dateRange.from.getTime());
+      effectiveTimeRange = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    }
+    
+    const readings = getReadings(effectiveTimeRange);
     
     if (readings.length === 0) {
       setLoading(false);
@@ -82,7 +98,7 @@ const WeeklyTrendChart = ({
     
     // Listen for vital updates to refresh chart
     const handleVitalUpdate = () => {
-      const updatedReadings = getReadings(timeRange);
+      const updatedReadings = getReadings(effectiveTimeRange);
       const updatedData = processReadings(updatedReadings);
       setChartData(updatedData);
     };
@@ -93,7 +109,7 @@ const WeeklyTrendChart = ({
       window.removeEventListener('nestor-wear-state', handleWearStateChange);
       window.removeEventListener('nestor-vital-update', handleVitalUpdate);
     };
-  }, [selectedDataType, timeRange, unitPreference]); // Added selectedDataType as dependency
+  }, [selectedDataType, timeRange, unitPreference, dateRange]); 
 
   // Update dataType when a prop change occurs
   useEffect(() => {
@@ -102,11 +118,24 @@ const WeeklyTrendChart = ({
   
   // Process the readings into chart data
   function processReadings(readings: any[]) {
+    // Filter readings by date range if custom range is selected
+    let filteredReadings = [...readings];
+    if (timeRange === 'custom' && dateRange?.from && dateRange?.to) {
+      const fromTime = dateRange.from.setHours(0, 0, 0, 0);
+      const toTime = dateRange.to.setHours(23, 59, 59, 999);
+      
+      filteredReadings = readings.filter(reading => {
+        const readingTime = new Date(reading.timestamp).getTime();
+        return readingTime >= fromTime && readingTime <= toTime;
+      });
+    }
+    
     // Group readings by day
     const groupedByDay: { [key: string]: any[] } = {};
     
-    readings.forEach(reading => {
+    filteredReadings.forEach(reading => {
       const date = new Date(reading.timestamp);
+      // Use short weekday name for display
       const day = date.toLocaleDateString('en-US', { 
         weekday: 'short' 
       });
@@ -125,7 +154,7 @@ const WeeklyTrendChart = ({
       
       switch (selectedDataType) {
         case 'readiness':
-          value = dayReadings.reduce((sum, r) => sum + r.readiness, 0) / dayReadings.length;
+          value = dayReadings.reduce((sum, r) => sum + (r.readiness || 0), 0) / dayReadings.length;
           break;
         case 'heartRate':
           value = dayReadings.reduce((sum, r) => sum + r.hr, 0) / dayReadings.length;
@@ -138,17 +167,37 @@ const WeeklyTrendChart = ({
         case 'spo2':
           value = dayReadings.reduce((sum, r) => sum + r.spo2, 0) / dayReadings.length;
           break;
+        case 'steps':
+          // Assuming steps are stored in the readings
+          value = dayReadings.reduce((sum, r) => sum + (r.steps || 0), 0) / dayReadings.length;
+          break;
       }
       
       return {
         day,
-        value: Math.round(value * 10) / 10 // Round to 1 decimal place
+        value: Math.round(value * 10) / 10, // Round to 1 decimal place
+        date: new Date(dayReadings[0].timestamp).toLocaleDateString()
       };
     });
     
-    // Sort days in order (Sun, Mon, Tue, Wed, Thu, Fri, Sat)
-    const daysOrder = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    return chartData.sort((a, b) => daysOrder.indexOf(a.day) - daysOrder.indexOf(b.day));
+    // Sort days in order (Today, Yesterday, and then the rest)
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-US', { weekday: 'short' });
+    
+    return chartData.sort((a, b) => {
+      // If a is today, it comes first
+      if (a.day === today) return -1;
+      // If b is today, it comes first
+      if (b.day === today) return 1;
+      // If a is yesterday, it comes second
+      if (a.day === yesterday) return -1;
+      // If b is yesterday, it comes second
+      if (b.day === yesterday) return 1;
+      
+      // Otherwise, use the standard day order
+      const daysOrder = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      return daysOrder.indexOf(a.day) - daysOrder.indexOf(b.day);
+    });
   }
   
   // Get chart title and y-axis label based on data type
@@ -162,6 +211,8 @@ const WeeklyTrendChart = ({
         return 'Temperature';
       case 'spo2':
         return 'Blood Oxygen';
+      case 'steps':
+        return 'Steps';
       default:
         return '';
     }
@@ -177,6 +228,8 @@ const WeeklyTrendChart = ({
         return unitPreference === 'imperial' ? '°F' : '°C';
       case 'spo2':
         return '%';
+      case 'steps':
+        return 'steps';
       default:
         return '';
     }
@@ -193,6 +246,8 @@ const WeeklyTrendChart = ({
         return "#f97316"; // Orange
       case 'spo2':
         return "#3b82f6"; // Blue
+      case 'steps':
+        return "#8b5cf6"; // Purple
       default:
         return "#0F172A";
     }
@@ -225,6 +280,30 @@ const WeeklyTrendChart = ({
     setSelectedDataType(value);
   };
   
+  const handleTimeRangeChange = (value: number | 'custom') => {
+    setTimeRange(value);
+    if (value === 'custom') {
+      setIsRangePickerOpen(true);
+    } else {
+      setIsRangePickerOpen(false);
+    }
+  };
+  
+  const formatDateRange = () => {
+    if (timeRange !== 'custom') {
+      return `Last ${timeRange} days`;
+    }
+    
+    if (dateRange?.from && dateRange?.to) {
+      if (dateRange.from.toDateString() === dateRange.to.toDateString()) {
+        return format(dateRange.from, 'MMM d, yyyy');
+      }
+      return `${format(dateRange.from, 'MMM d')} - ${format(dateRange.to, 'MMM d')}`;
+    }
+    
+    return 'Custom Range';
+  };
+  
   // For empty state or loading
   if (loading) {
     return (
@@ -243,7 +322,7 @@ const WeeklyTrendChart = ({
           <h4 className="font-medium text-nestor-gray-900">{getChartTitle()}</h4>
           {!compact && (
             <div className="text-xs flex items-center text-nestor-gray-600 cursor-pointer">
-              <span>Last {timeRange} days</span>
+              <span>{formatDateRange()}</span>
               <ChevronDown className="ml-1" size={12} />
             </div>
           )}
@@ -271,6 +350,7 @@ const WeeklyTrendChart = ({
                 <SelectItem value="spo2">Blood Oxygen</SelectItem>
                 <SelectItem value="temperature">Temperature</SelectItem>
                 <SelectItem value="readiness">Readiness</SelectItem>
+                <SelectItem value="steps">Steps</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -278,19 +358,35 @@ const WeeklyTrendChart = ({
           <h4 className="font-medium text-lg text-nestor-gray-900">{getChartTitle()}</h4>
         )}
         
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
-              Last {timeRange} days
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setTimeRange(7)}>Last 7 days</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTimeRange(14)}>Last 14 days</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTimeRange(30)}>Last 30 days</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Popover open={isRangePickerOpen} onOpenChange={setIsRangePickerOpen}>
+          <PopoverTrigger asChild>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-1 min-w-[150px] justify-between">
+                  {formatDateRange()}
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleTimeRangeChange(7)}>Last 7 days</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleTimeRangeChange(14)}>Last 14 days</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleTimeRangeChange(30)}>Last 30 days</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleTimeRangeChange('custom')}>Custom Range</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <CalendarComponent
+              initialFocus
+              mode="range"
+              defaultMonth={dateRange?.from}
+              selected={dateRange}
+              onSelect={setDateRange}
+              numberOfMonths={1}
+              className="p-3 pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
       
       <div className="h-44 mb-3">
@@ -305,19 +401,19 @@ const WeeklyTrendChart = ({
                 dataKey="day" 
                 axisLine={false} 
                 tickLine={false}
-                tick={{ fontSize: 14, fill: '#374151', fontWeight: 600 }}
+                tick={{ fontSize: 16, fill: '#374151', fontWeight: 600 }}
                 dy={8}
               />
               <YAxis 
                 hide={compact} 
                 domain={selectedDataType === 'readiness' ? [0, 100] : ['auto', 'auto']} 
-                tick={{ fontSize: 14, fill: '#374151' }}
+                tick={{ fontSize: 14, fill: '#374151', fontWeight: 500 }}
                 width={40}
                 label={{ 
                   value: getYAxisLabel(), 
                   angle: -90, 
                   position: 'insideLeft',
-                  style: { fontSize: '14px', fill: '#374151', textAnchor: 'middle' },
+                  style: { fontSize: '16px', fill: '#374151', textAnchor: 'middle', fontWeight: 500 },
                   offset: -5
                 }}
               />
@@ -326,7 +422,7 @@ const WeeklyTrendChart = ({
                   if (active && payload && payload.length) {
                     return (
                       <div className="bg-white p-3 shadow-lg rounded border border-gray-100">
-                        <p className="text-sm font-medium text-nestor-gray-800">{payload[0].payload.day}</p>
+                        <p className="text-sm font-medium text-nestor-gray-800">{payload[0].payload.day} - {payload[0].payload.date}</p>
                         <p className="text-base font-medium text-nestor-gray-900">{`${payload[0].value} ${getYAxisLabel()}`}</p>
                       </div>
                     );
@@ -346,7 +442,7 @@ const WeeklyTrendChart = ({
                   value={`${stats.max} ${getYAxisLabel()}`} 
                   position="top" 
                   fill="#ef4444"
-                  fontSize={12}
+                  fontSize={14}
                   fontWeight={600}
                 />
               </ReferenceLine>
@@ -361,7 +457,7 @@ const WeeklyTrendChart = ({
                   value={`${stats.min} ${getYAxisLabel()}`} 
                   position="bottom" 
                   fill="#3b82f6"
-                  fontSize={12}
+                  fontSize={14}
                   fontWeight={600}
                 />
               </ReferenceLine>

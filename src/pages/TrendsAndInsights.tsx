@@ -11,7 +11,7 @@ import { getLastReading } from '@/utils/bleUtils';
 
 const TrendsAndInsights = () => {
   const navigate = useNavigate();
-  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month'>('week');
+  const [selectedMetric, setSelectedMetric] = useState<ReadingType>('heartRate');
   const lastReading = getLastReading();
   
   return (
@@ -79,31 +79,12 @@ const TrendsAndInsights = () => {
           </div>
         </section>
 
-        {/* Period Selector */}
-        <section className="mb-4">
-          <div className="flex justify-center space-x-4">
-            <Button 
-              variant={selectedPeriod === 'week' ? 'default' : 'outline'} 
-              className="rounded-full"
-              onClick={() => setSelectedPeriod('week')}
-            >
-              Week
-            </Button>
-            <Button 
-              variant={selectedPeriod === 'month' ? 'default' : 'outline'} 
-              className="rounded-full"
-              onClick={() => setSelectedPeriod('month')}
-            >
-              Month
-            </Button>
-          </div>
-        </section>
-
         {/* Enhanced Chart with Metric Selection */}
         <section className="mb-8">
           <WeeklyTrendChart 
-            days={selectedPeriod === 'week' ? 7 : 30}
+            dataType={selectedMetric}
             allowMetricChange={true}
+            onViewAllClick={() => navigate('/history')}
           />
         </section>
 
