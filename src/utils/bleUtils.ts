@@ -18,16 +18,27 @@ export const formatTemperature = (value: number, unitPreference: 'metric' | 'imp
   return { value: celsius.toFixed(1), unit: '°C' };
 };
 
+// Define a type for health readings
+type HealthReading = {
+  hr: number; // Heart rate in bpm
+  spo2: number; // Blood oxygen percentage
+  temp: number; // Temperature in tenths of a degree Celsius (36.7°C)
+  timestamp: number;
+  readiness: number; // Readiness score
+  calories: number; // Calories burned
+};
+
 /**
  * Mock function to get the last health reading
  */
-export const getLastReading = () => {
+export const getLastReading = (): HealthReading => {
   return {
     hr: 72, // Heart rate in bpm
     spo2: 98, // Blood oxygen percentage
     temp: 367, // Temperature in tenths of a degree Celsius (36.7°C)
     timestamp: Date.now(),
-    readiness: 82 // Adding readiness score
+    readiness: 82, // Readiness score
+    calories: 475 // Calories burned
   };
 };
 
@@ -46,7 +57,8 @@ export const getReadings = (days = 7) => {
       spo2: 95 + Math.floor(Math.random() * 5),
       temp: 365 + Math.floor(Math.random() * 10),
       timestamp,
-      readiness: 70 + Math.floor(Math.random() * 30)
+      readiness: 70 + Math.floor(Math.random() * 30),
+      calories: 300 + Math.floor(Math.random() * 500) // Random calories between 300-800
     });
   }
   
