@@ -2,8 +2,7 @@
 import React, { useState } from "react";
 import { 
   ArrowLeft, Plus, Calendar, Bike, Dumbbell, Utensils, 
-  Check, X, Activity, Walk, Hike, Swim, Canoe, Yoga,
-  Snowboard, Skateboard, Golf, Workout, Run
+  Check, X, Activity
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StatusBar from "@/components/StatusBar";
@@ -14,56 +13,56 @@ const Log = () => {
   
   // Activities data based on the provided list
   const activities = [
-    { name: "Run", icon: Run },
-    { name: "Trail Run", icon: Run },
-    { name: "Walk", icon: Walk },
-    { name: "Hike", icon: Hike },
-    { name: "Virtual Run", icon: Run },
-    { name: "Ride", icon: Bike },
-    { name: "Mountain Bike Ride", icon: Bike },
-    { name: "Gravel Ride", icon: Bike },
-    { name: "E-Bike Ride", icon: Bike },
-    { name: "E-Mountain Bike Ride", icon: Bike },
-    { name: "Velomobile", icon: Bike },
-    { name: "Virtual Ride", icon: Bike },
-    { name: "Alpine Ski", icon: Activity },
-    { name: "Backcountry Ski", icon: Activity },
-    { name: "Nordic Ski", icon: Activity },
-    { name: "Snowboard", icon: Snowboard },
-    { name: "Snowshoe", icon: Activity },
-    { name: "Ice Skate", icon: Activity },
-    { name: "Swim", icon: Swim },
-    { name: "Canoe", icon: Canoe },
-    { name: "Kayak", icon: Activity },
-    { name: "Rowing", icon: Activity },
-    { name: "Stand Up Paddling", icon: Activity },
-    { name: "Surf", icon: Activity },
-    { name: "Windsurf", icon: Activity },
-    { name: "Kitesurf", icon: Activity },
-    { name: "Sail", icon: Activity },
-    { name: "Workout", icon: Workout },
-    { name: "Weight Training", icon: Dumbbell },
-    { name: "Crossfit", icon: Dumbbell },
-    { name: "HIIT", icon: Workout },
-    { name: "Pilates", icon: Yoga },
-    { name: "Yoga", icon: Yoga },
-    { name: "Elliptical", icon: Activity },
-    { name: "Stair Stepper", icon: Activity },
-    { name: "Tennis", icon: Activity },
-    { name: "Pickleball", icon: Activity },
-    { name: "Badminton", icon: Activity },
-    { name: "Squash", icon: Activity },
-    { name: "Racquetball", icon: Activity },
-    { name: "Table Tennis", icon: Activity },
-    { name: "Soccer", icon: Activity },
-    { name: "Golf", icon: Golf },
-    { name: "Skateboard", icon: Skateboard },
-    { name: "Inline Skate", icon: Activity },
-    { name: "Roller Ski", icon: Activity },
-    { name: "Rock Climb", icon: Activity },
-    { name: "Handcycle", icon: Activity },
-    { name: "Wheelchair", icon: Activity },
-    { name: "Virtual Row", icon: Activity }
+    "Run",
+    "Trail Run",
+    "Walk",
+    "Hike",
+    "Virtual Run",
+    "Ride",
+    "Mountain Bike Ride",
+    "Gravel Ride",
+    "E-Bike Ride",
+    "E-Mountain Bike Ride",
+    "Velomobile",
+    "Virtual Ride",
+    "Alpine Ski",
+    "Backcountry Ski",
+    "Nordic Ski",
+    "Snowboard",
+    "Snowshoe",
+    "Ice Skate",
+    "Swim",
+    "Canoe",
+    "Kayak",
+    "Rowing",
+    "Stand Up Paddling",
+    "Surf",
+    "Windsurf",
+    "Kitesurf",
+    "Sail",
+    "Workout",
+    "Weight Training",
+    "Crossfit",
+    "HIIT",
+    "Pilates",
+    "Yoga",
+    "Elliptical",
+    "Stair Stepper",
+    "Tennis",
+    "Pickleball",
+    "Badminton",
+    "Squash",
+    "Racquetball",
+    "Table Tennis",
+    "Soccer",
+    "Golf",
+    "Skateboard",
+    "Inline Skate",
+    "Roller Ski",
+    "Rock Climb",
+    "Handcycle",
+    "Wheelchair",
+    "Virtual Row"
   ];
   
   return (
@@ -272,10 +271,9 @@ const Log = () => {
               {activities.map((activity, index) => (
                 <button 
                   key={index} 
-                  className="p-4 border border-gray-200 rounded-xl flex flex-col items-center"
+                  className="p-4 border border-gray-200 rounded-xl flex items-center justify-center"
                 >
-                  <activity.icon className="text-blue-900 mb-2" size={24} />
-                  <span className="text-sm text-gray-900 text-center">{activity.name}</span>
+                  <span className="text-sm text-gray-900 text-center">{activity}</span>
                 </button>
               ))}
             </div>
