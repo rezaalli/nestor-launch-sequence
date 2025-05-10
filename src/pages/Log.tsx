@@ -548,7 +548,7 @@ const Log = () => {
       </Dialog>
 
       {/* Updated AddMeal Modal */}
-      <AddMealModalWrapper open={showAddMealModal} onOpenChange={setShowAddMealModal} onSave={handleSaveMeal} />
+      <AddMealModalWrapper open={showAddMealModal} onOpenChange={setShowAddMealModal} />
 
       {/* Add BottomNavbar component */}
       <BottomNavbar />

@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 interface AddMealModalWrapperProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  // Remove the onSave prop since we handle that internally
 }
 
 const AddMealModalWrapper: React.FC<AddMealModalWrapperProps> = ({ 

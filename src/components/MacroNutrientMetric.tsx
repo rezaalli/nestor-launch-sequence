@@ -9,6 +9,7 @@ interface MacroNutrientMetricProps {
   className?: string;
   showDragHandle?: boolean;
   onDragHandleClick?: () => void;
+  // The id prop isn't needed since we're not using it
 }
 
 const MacroNutrientMetric = ({ 
