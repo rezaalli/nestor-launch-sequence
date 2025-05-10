@@ -82,6 +82,7 @@ const TrendsAndInsights = () => {
         {/* Enhanced Chart with Metric Selection */}
         <section className="mb-8">
           <WeeklyTrendChart 
+            key="trends-chart"
             dataType={selectedMetric}
             allowMetricChange={true}
             onViewAllClick={() => navigate('/trends')}

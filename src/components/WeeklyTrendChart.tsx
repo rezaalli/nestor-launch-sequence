@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { getReadings } from '@/utils/bleUtils';
 import { ChevronDown, TrendingUp, Calendar } from 'lucide-react';
@@ -220,7 +219,7 @@ const WeeklyTrendChart = ({
     });
     
     // Sort by timestamp (newest to oldest)
-    return chartData.sort((a, b) => b.timestamp - a.timestamp);
+    return chartData.sort((a, b) => a.timestamp - b.timestamp);
   }
   
   // Get chart title and y-axis label based on data type
@@ -442,30 +441,31 @@ const WeeklyTrendChart = ({
         </DropdownMenu>
       </div>
       
-      {/* Calendar popover for custom date range selection - improved implementation */}
+      {/* Calendar popover for custom date range selection - fixed implementation */}
       <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
         <PopoverTrigger asChild>
-          <div className="hidden">Open calendar</div> {/* Hidden trigger, controlled programmatically */}
+          <Button variant="ghost" className="hidden">Calendar</Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 z-50 bg-white" align="end">
-          <CalendarComponent
-            initialFocus
-            mode="range"
-            defaultMonth={dateRange?.from}
-            selected={dateRange}
-            onSelect={handleCalendarSelect}
-            numberOfMonths={1}
-            className="p-3 pointer-events-auto"
-          />
-          <div className="p-3 border-t">
-            <Button 
-              variant="default" 
-              className="w-full"
-              onClick={applyDateRange}
-              disabled={!dateRange?.from || !dateRange?.to}
-            >
-              Apply Range
-            </Button>
+        <PopoverContent className="w-auto p-0 z-[100]" align="end">
+          <div className="p-3">
+            <CalendarComponent
+              initialFocus
+              mode="range"
+              defaultMonth={dateRange?.from}
+              selected={dateRange}
+              onSelect={handleCalendarSelect}
+              numberOfMonths={1}
+            />
+            <div className="mt-3 border-t pt-3">
+              <Button 
+                variant="default" 
+                className="w-full"
+                onClick={applyDateRange}
+                disabled={!dateRange?.from || !dateRange?.to}
+              >
+                Apply Range
+              </Button>
+            </div>
           </div>
         </PopoverContent>
       </Popover>

@@ -457,8 +457,9 @@ const Dashboard = () => {
             </span>
           </div>
           
-          {/* Replace with WeeklyTrendChart */}
+          {/* WeeklyTrendChart with key to force re-render when needed */}
           <WeeklyTrendChart 
+            key="dashboard-trend-chart"
             dataType="heartRate" 
             days={7} 
             onViewAllClick={handleViewAllTrends}
