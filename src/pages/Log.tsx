@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import AddMealModal from "@/components/AddMealModal";
+import AddMealModalWrapper from "@/components/AddMealModalWrapper";
 import { useToast } from "@/hooks/use-toast";
 import { useAssessment } from "@/contexts/AssessmentContext";
 
@@ -62,7 +62,6 @@ const Log = () => {
     setShowActivityPicker(false);
   };
   const handleSaveMeal = (mealData: any) => {
-    // Here you would typically save the meal data to your backend or local state
     console.log("Meal saved:", mealData);
     toast({
       title: "Meal Added",
@@ -548,8 +547,8 @@ const Log = () => {
         </DialogContentWithoutCloseButton>
       </Dialog>
 
-      {/* Add Meal Modal */}
-      <AddMealModal open={showAddMealModal} onOpenChange={setShowAddMealModal} onSave={handleSaveMeal} />
+      {/* Updated AddMeal Modal */}
+      <AddMealModalWrapper open={showAddMealModal} onOpenChange={setShowAddMealModal} onSave={handleSaveMeal} />
 
       {/* Add BottomNavbar component */}
       <BottomNavbar />
@@ -568,4 +567,5 @@ const Log = () => {
       </style>
     </div>;
 };
+
 export default Log;

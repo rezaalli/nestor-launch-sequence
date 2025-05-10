@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { NotificationsProvider } from "./contexts/NotificationsContext";
 import { UserProvider } from "./contexts/UserContext";
 import { AssessmentProvider } from "./contexts/AssessmentContext";
+import { NutritionProvider } from "./contexts/NutritionContext";
 import Onboarding from "./components/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import DailyAssessment from "./pages/DailyAssessment";
@@ -27,26 +28,28 @@ const App = () => {
       <NotificationsProvider>
         <UserProvider>
           <AssessmentProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Onboarding />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/dailyassessment" element={<DailyAssessment />} />
-                  <Route path="/trends" element={<TrendsAndInsights />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/log" element={<Log />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                
-                <HealthAlertsManager />
-                <FlashLogManager />
-              </BrowserRouter>
-            </TooltipProvider>
+            <NutritionProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/" element={<Onboarding />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/dailyassessment" element={<DailyAssessment />} />
+                    <Route path="/trends" element={<TrendsAndInsights />} />
+                    <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/log" element={<Log />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  
+                  <HealthAlertsManager />
+                  <FlashLogManager />
+                </BrowserRouter>
+              </TooltipProvider>
+            </NutritionProvider>
           </AssessmentProvider>
         </UserProvider>
       </NotificationsProvider>

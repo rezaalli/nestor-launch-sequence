@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3, RefreshCw, Move, Cog } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -52,7 +53,8 @@ const Dashboard = () => {
     hrv: false,
     respiratoryRate: false,
     steps: false,
-    caloriesBurned: false // Added new calories burned metric option
+    caloriesBurned: false,
+    macronutrients: false // Added new macronutrients metric option
   });
   
   // Create a ref for the metrics container
@@ -391,6 +393,7 @@ const Dashboard = () => {
                      key === 'hrv' ? 'Heart Rate Variability' :
                      key === 'respiratoryRate' ? 'Respiratory Rate' :
                      key === 'steps' ? 'Steps' :
+                     key === 'macronutrients' ? 'Nutrition & Macronutrients' :
                      key === 'caloriesBurned' ? 'Calories Burned' : key}
                   </label>
                 </div>
