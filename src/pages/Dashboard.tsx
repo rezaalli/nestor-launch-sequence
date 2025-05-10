@@ -113,7 +113,7 @@ const Dashboard = () => {
   };
   
   const handleLifestyleCheckIn = () => {
-    navigate("/lifestyle-checkin");
+    navigate("/dailyassessment");
   };
   
   const handleTakeEcg = () => {
