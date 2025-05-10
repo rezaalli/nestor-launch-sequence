@@ -23,11 +23,11 @@ const BottomNavbar = () => {
         </Link>
         
         <Link 
-          to="/lifestyle-checkin" 
-          className={`flex flex-col items-center justify-center py-2 flex-1 ${isActive('/lifestyle-checkin') ? 'text-blue-900' : 'text-gray-600'}`}
+          to="/log" 
+          className={`flex flex-col items-center justify-center py-2 flex-1 ${isActive('/log') ? 'text-blue-900' : 'text-gray-600'}`}
         >
           <Calendar size={20} />
-          <span className="text-xs mt-1">Check-In</span>
+          <span className="text-xs mt-1">Log</span>
         </Link>
         
         <Link 

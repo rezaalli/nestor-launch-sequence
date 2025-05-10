@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import HealthAlertsManager from "./components/HealthAlertsManager";
 import FlashLogManager from "./components/FlashLogManager";
+import Log from "./pages/Log";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => {
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/log" element={<Log />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               

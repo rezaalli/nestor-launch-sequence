@@ -323,7 +323,7 @@ const Dashboard = () => {
           />
         </div>
         
-        {/* Lifestyle Check-In Button - Updated text */}
+        {/* Daily Wellness Survey Button */}
         <button 
           className="mx-6 mt-6 py-3.5 bg-blue-900 text-white font-medium rounded-lg flex items-center justify-center"
           onClick={handleLifestyleCheckIn}
