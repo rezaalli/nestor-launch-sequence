@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '@/components/StatusBar';
@@ -39,12 +38,14 @@ import DeviceStatus from '@/components/DeviceStatus';
 import HapticAlertSettings from '@/components/HapticAlertSettings';
 import { formatTemperature } from '@/utils/bleUtils';
 import FirmwareUpdatePage from '@/components/FirmwareUpdatePage';
+import { useToast } from '@/hooks/use-toast';
 
 const Profile = () => {
   const [activeScreen, setActiveScreen] = useState<'overview' | 'account' | 'privacy' | 'appearance' | 'firmware'>('overview');
   const [hapticSettingsOpen, setHapticSettingsOpen] = useState(false);
   const { user, updateUser } = useUser();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Set user preference to imperial units when component mounts
   useEffect(() => {
@@ -148,7 +149,10 @@ const Profile = () => {
         </div>
         
         {/* Haptic Alert Settings Modal */}
-        <HapticAlertSettings open={hapticSettingsOpen} onOpenChange={setHapticSettingsOpen} />
+        <HapticAlertSettings 
+          open={hapticSettingsOpen} 
+          onOpenChange={setHapticSettingsOpen} 
+        />
         
         {/* Connected Devices */}
         <div className="p-4 bg-white rounded-lg border border-gray-200 flex flex-col">
@@ -428,6 +432,12 @@ const Profile = () => {
           <ScrollBar />
         </ScrollArea>
       </div>
+      
+      {/* Haptic Alert Settings Modal */}
+      <HapticAlertSettings 
+        open={hapticSettingsOpen} 
+        onOpenChange={setHapticSettingsOpen} 
+      />
       
       <BottomNavbar />
     </div>
