@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { 
   ResponsiveContainer, 
   LineChart, 
@@ -9,8 +10,6 @@ import {
   Tooltip, 
   Legend 
 } from 'recharts';
-import { getReadings, formatTemperature } from '@/utils/bleUtils';
-import { useUser } from '@/contexts/UserContext';
 import { Button } from '@/components/ui/button';
 import { 
   Card,
@@ -21,7 +20,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { exportDataAsCSV } from '@/utils/bleUtils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 type ReadingType = 'hr' | 'spo2' | 'temp' | 'readiness' | 'motion';
@@ -47,8 +45,7 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
   
   const [activeDataType, setActiveDataType] = useState<ReadingType>(getReadingTypeFromMetric(metricType));
   const [timeRange, setTimeRange] = useState<number>(7); // days
-  const { user } = useUser();
-  const unitPreference = user.unitPreference || 'imperial';
+  const unitPreference = 'imperial'; // Default to imperial units
   
   const [chartData, setChartData] = useState<any[]>([]);
   
@@ -58,56 +55,28 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
   }, [metricType]);
   
   useEffect(() => {
-    // Get all readings from BLE utils
-    const readings = getReadings(timeRange);
-    if (readings.length === 0) return;
-    
-    // Process readings into chart-friendly format
-    const processedData = readings.map(reading => {
-      const date = new Date(reading.timestamp);
-      let formattedDate = date.toLocaleDateString();
-      let value: number | string = 0;
-      
-      switch(activeDataType) {
-        case 'hr':
-          value = reading.hr;
-          break;
-        case 'spo2':
-          value = reading.spo2;
-          break;
-        case 'temp':
-          const tempFormat = formatTemperature(reading.temp, unitPreference);
-          value = parseFloat(tempFormat.value);
-          break;
-        case 'readiness':
-          value = reading.readiness;
-          break;
-        case 'motion':
-          value = reading.motion;
-          break;
-      }
-      
-      return {
-        date: formattedDate,
-        time: date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-        value,
-        raw: reading
-      };
-    });
-    
-    setChartData(processedData);
+    // Generate mock data for demonstration
+    const mockData = generateMockData(timeRange, activeDataType, unitPreference);
+    setChartData(mockData);
   }, [activeDataType, timeRange, unitPreference]);
   
   const handleExportData = () => {
-    const csvData = exportDataAsCSV();
+    // Create a simple CSV from chart data
+    const headers = ['date', 'time', 'value'];
+    let csvContent = headers.join(',') + '\n';
+    
+    chartData.forEach(item => {
+      const row = [item.date, item.time, item.value].join(',');
+      csvContent += row + '\n';
+    });
     
     // Create a blob and download the CSV
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     
     link.setAttribute('href', url);
-    link.setAttribute('download', 'nestor-health-data.csv');
+    link.setAttribute('download', 'health-data.csv');
     link.style.visibility = 'hidden';
     
     document.body.appendChild(link);
@@ -277,6 +246,62 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
       </Card>
     </div>
   );
+};
+
+// Helper function to generate mock data
+const generateMockData = (days: number, dataType: ReadingType, unitPreference: 'metric' | 'imperial'): any[] => {
+  const data = [];
+  const now = new Date();
+  
+  // Generate data for each day
+  for (let i = days; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    
+    // Generate multiple readings per day
+    for (let h = 0; h < 24; h += 4) {
+      const entryDate = new Date(date);
+      entryDate.setHours(h);
+      
+      let value: number;
+      
+      // Generate realistic mock data based on data type
+      switch (dataType) {
+        case 'hr':
+          value = Math.round(60 + Math.random() * 30); // 60-90 bpm
+          break;
+        case 'spo2':
+          value = Math.round(95 + Math.random() * 5); // 95-100%
+          break;
+        case 'temp':
+          const celsius = 36.5 + (Math.random() * 1.5 - 0.5); // 36.0-37.5°C
+          value = unitPreference === 'imperial' 
+            ? Math.round((celsius * 9/5 + 32) * 10) / 10 // Convert to Fahrenheit
+            : Math.round(celsius * 10) / 10;
+          break;
+        case 'readiness':
+          value = Math.round(70 + Math.random() * 30); // 70-100 score
+          break;
+        case 'motion':
+          value = Math.round(Math.random() * 3); // 0-3 intensity
+          break;
+        default:
+          value = 0;
+      }
+      
+      data.push({
+        date: entryDate.toLocaleDateString(),
+        time: entryDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+        value,
+        raw: {
+          timestamp: entryDate.getTime(),
+          value
+        }
+      });
+    }
+  }
+  
+  return data;
 };
 
 export default FlashLogDisplay;
