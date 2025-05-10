@@ -7,8 +7,6 @@ import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 
@@ -72,32 +70,46 @@ const DeviceNameScreen = ({ onNext }: DeviceNameScreenProps) => {
                 <Camera size={18} className="text-white" />
               </button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Choose Image Source</DialogTitle>
-              </DialogHeader>
-              <div className="grid grid-cols-3 gap-4 py-4">
-                <button
-                  className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg hover:bg-gray-50"
-                  onClick={() => handleImageSourceSelection('camera')}
-                >
-                  <Camera className="h-8 w-8 text-nestor-blue" />
-                  <span className="text-sm">Take Photo</span>
-                </button>
-                <button
-                  className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg hover:bg-gray-50"
-                  onClick={() => handleImageSourceSelection('gallery')}
-                >
-                  <Image className="h-8 w-8 text-nestor-blue" />
-                  <span className="text-sm">Photo Library</span>
-                </button>
-                <button
-                  className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg hover:bg-gray-50"
-                  onClick={() => handleImageSourceSelection('file')}
-                >
-                  <File className="h-8 w-8 text-nestor-blue" />
-                  <span className="text-sm">Choose File</span>
-                </button>
+            <DialogContent className="p-0 max-w-[320px] rounded-xl bg-white border-none overflow-hidden">
+              <div className="flex flex-col w-full">
+                <h3 className="text-center text-xl font-medium py-4 border-b border-gray-200">
+                  Add Activity
+                </h3>
+
+                <div className="overflow-y-auto max-h-[300px]">
+                  {/* Photo Library option */}
+                  <button
+                    className="flex items-center justify-center w-full py-5 hover:bg-gray-50 border-b border-gray-100"
+                    onClick={() => handleImageSourceSelection('gallery')}
+                  >
+                    <span className="text-base">Photo Library</span>
+                  </button>
+                  
+                  {/* Take Photo option */}
+                  <button
+                    className="flex items-center justify-center w-full py-5 hover:bg-gray-50 border-b border-gray-100"
+                    onClick={() => handleImageSourceSelection('camera')}
+                  >
+                    <span className="text-base">Take Photo</span>
+                  </button>
+                  
+                  {/* Choose Files option */}
+                  <button
+                    className="flex items-center justify-center w-full py-5 hover:bg-gray-50"
+                    onClick={() => handleImageSourceSelection('file')}
+                  >
+                    <span className="text-base">Choose Files</span>
+                  </button>
+                </div>
+
+                <div className="p-4">
+                  <Button
+                    className="w-full py-4 bg-blue-800 text-white font-medium rounded-lg"
+                    onClick={() => setDialogOpen(false)}
+                  >
+                    Continue
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
