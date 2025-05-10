@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { getReadings } from '@/utils/bleUtils';
 import { ChevronDown, TrendingUp, Calendar } from 'lucide-react';
@@ -442,7 +441,7 @@ const WeeklyTrendChart = ({
         {allowMetricChange ? (
           <div className="flex items-center">
             <Select value={selectedDataType} onValueChange={(value) => handleMetricChange(value as ReadingType)}>
-              <SelectTrigger className="w-44">
+              <SelectTrigger className="w-32">
                 <SelectValue placeholder={getChartTitle()} />
               </SelectTrigger>
               <SelectContent>
