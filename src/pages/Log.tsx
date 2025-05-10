@@ -11,12 +11,13 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import AddMealModal from "@/components/AddMealModal";
 import { useToast } from "@/hooks/use-toast";
+import { useAssessment } from "@/contexts/AssessmentContext";
 
 const Log = () => {
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const { isAssessmentCompletedForDate } = useAssessment();
+  
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [showActivityPicker, setShowActivityPicker] = useState(false);
   const [showAddMealModal, setShowAddMealModal] = useState(false);
@@ -68,6 +69,10 @@ const Log = () => {
       description: `${mealData.mealType} has been added to your log.`
     });
   };
+  
+  // Check if assessment is completed for the current date
+  const isAssessmentCompleted = isAssessmentCompletedForDate(currentDate);
+
   const handleEditWellnessSurvey = () => {
     // Navigate to the daily assessment page
     navigate("/dailyassessment");
@@ -250,7 +255,11 @@ const Log = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">DAILY WELLNESS ASSESSMENT</h3>
-            <span className="px-2 py-1 bg-green-100 text-green-600 text-xs font-medium rounded">Completed</span>
+            {isAssessmentCompleted ? (
+              <span className="px-2 py-1 bg-green-100 text-green-600 text-xs font-medium rounded">Completed</span>
+            ) : (
+              <span className="px-2 py-1 bg-yellow-100 text-yellow-600 text-xs font-medium rounded">Pending</span>
+            )}
           </div>
           
           <div className="p-4 bg-white border border-gray-200 rounded-xl">
@@ -349,11 +358,24 @@ const Log = () => {
                 <p className="text-sm text-gray-600">Feeling energetic after morning workout. Good focus throughout the day.</p>
               </div>
 
-              {/* Edit button */}
+              {/* Edit button - changes based on completion status */}
               <div className="pt-3">
-                <Button variant="outline" className="w-full flex items-center justify-center text-blue-900 border-blue-900 hover:bg-blue-50" onClick={handleEditWellnessSurvey}>
-                  <Edit size={16} className="mr-2" />
-                  Complete Today's Assessment
+                <Button 
+                  variant="outline" 
+                  className="w-full flex items-center justify-center text-blue-900 border-blue-900 hover:bg-blue-50" 
+                  onClick={handleEditWellnessSurvey}
+                >
+                  {isAssessmentCompleted ? (
+                    <>
+                      <Edit size={16} className="mr-2" />
+                      Edit Assessment
+                    </>
+                  ) : (
+                    <>
+                      <Edit size={16} className="mr-2" />
+                      Complete Today's Assessment
+                    </>
+                  )}
                 </Button>
               </div>
             </div>

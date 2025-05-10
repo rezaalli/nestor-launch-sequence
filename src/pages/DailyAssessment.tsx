@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, ArrowRight, Bookmark, CheckCircle, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import StatusBar from "@/components/StatusBar";
+import { useAssessment } from "@/contexts/AssessmentContext";
 
 // Define question types and structures
 interface Question {
@@ -33,6 +33,7 @@ interface AssessmentState {
 const DailyAssessment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { saveAssessment } = useAssessment();
   
   // Initial assessment state
   const [assessmentState, setAssessmentState] = useState<AssessmentState>({
@@ -713,8 +714,19 @@ const DailyAssessment = () => {
 
   // Handle final submission
   const handleSubmitAssessment = () => {
-    // Here we would typically send data to an API
-    console.log("Submitting assessment data:", assessmentState);
+    // Prepare data to save
+    const assessmentData = {
+      selectedOptions: assessmentState.selectedOptions,
+      notes: assessmentState.notes,
+      customInputs: assessmentState.customInputs,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Save the assessment data
+    saveAssessment(assessmentData);
+    
+    // Log to console
+    console.log("Submitting assessment data:", assessmentData);
     
     // Show success toast
     toast({
