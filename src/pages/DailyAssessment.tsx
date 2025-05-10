@@ -74,6 +74,9 @@ const DailyAssessment = () => {
         { text: "Nausea", value: "nausea" },
         { text: "Muscle Pain", value: "muscle_pain" },
         { text: "Dizziness", value: "dizziness" },
+        { text: "Shortness of Breath", value: "shortness_of_breath" },
+        { text: "Chest Pain", value: "chest_pain" },
+        { text: "Joint Pain", value: "joint_pain" },
         { text: "Other", value: "other", requiresInput: true }
       ],
       hasNotes: true,
@@ -99,6 +102,8 @@ const DailyAssessment = () => {
         { text: "Discomfort or Pain", value: "pain" },
         { text: "Frequent Waking", value: "frequent_waking" },
         { text: "Stress or Anxiety", value: "stress" },
+        { text: "Sleep Apnea", value: "sleep_apnea" },
+        { text: "Restless Leg Syndrome", value: "restless_leg" },
         { text: "Unknown", value: "unknown" },
         { text: "Other", value: "other", requiresInput: true }
       ],
@@ -123,6 +128,17 @@ const DailyAssessment = () => {
         { text: "1-2 cups", value: "1_2_cups" },
         { text: "3+ cups", value: "3_plus_cups" }
       ],
+      hasNotes: false,
+      nextQuestion: () => 3.2
+    },
+    {
+      id: 3.2,
+      text: "What time did you consume caffeine?",
+      options: [
+        { text: "Morning", value: "morning" },
+        { text: "Afternoon", value: "afternoon" },
+        { text: "Evening", value: "evening" }
+      ],
       hasNotes: true,
       notesPlaceholder: "Describe your typical daily intake and how it affects you...",
       nextQuestion: () => 4
@@ -135,22 +151,54 @@ const DailyAssessment = () => {
         { text: "No", value: "no" }
       ],
       hasNotes: false,
-      nextQuestion: (selectedOption) => selectedOption === "yes" ? 4.1 : 4.2
+      nextQuestion: (selectedOption) => selectedOption === "yes" ? 4.1 : 4.5
     },
     {
       id: 4.1,
+      text: "What type of exercise did you do?",
+      options: [
+        { text: "Cardio (Running, Cycling, Swimming)", value: "cardio" },
+        { text: "Strength Training (Weights, Resistance Bands)", value: "strength" },
+        { text: "Mixed (Combination of Cardio and Strength)", value: "mixed" }
+      ],
+      hasNotes: false,
+      nextQuestion: () => 4.2
+    },
+    {
+      id: 4.2,
       text: "What was the intensity and duration?",
       options: [
-        { text: "Light (e.g., walking, stretching)", value: "light" },
-        { text: "Moderate (e.g., running, strength training)", value: "moderate" },
-        { text: "Intense (e.g., HIIT, endurance training)", value: "intense" }
+        { text: "Light (15-30 mins)", value: "light" },
+        { text: "Moderate (30-60 mins)", value: "moderate" },
+        { text: "Intense (60+ mins)", value: "intense" }
+      ],
+      hasNotes: false,
+      nextQuestion: () => 4.3
+    },
+    {
+      id: 4.3,
+      text: "How many times did you work out today?",
+      options: [
+        { text: "1 time", value: "one_time" },
+        { text: "2 times", value: "two_times" },
+        { text: "3 or more times", value: "three_plus_times" }
+      ],
+      hasNotes: false,
+      nextQuestion: () => 4.4
+    },
+    {
+      id: 4.4,
+      text: "Would you like to log or reference today's workout metrics?",
+      options: [
+        { text: "Yes", value: "yes" },
+        { text: "No", value: "no" }
       ],
       hasNotes: true,
       notesPlaceholder: "Describe how the exercise made you feel, any soreness, or improvements noticed...",
       nextQuestion: () => 5
     },
     {
-      id: 4.2,
+      id: 4.5,
       text: "Why didn't you exercise today?",
       options: [
         { text: "No time", value: "no_time" },
@@ -164,55 +212,46 @@ const DailyAssessment = () => {
     },
     {
       id: 5,
-      text: "How much water did you drink today?",
+      text: "Urination frequency and hue?",
       options: [
-        { text: "Less than 1 liter", value: "less_than_1L" },
-        { text: "1–2 liters", value: "1_2L" },
-        { text: "More than 2 liters", value: "more_than_2L" }
+        { text: "Normal Frequency and Color", value: "normal" },
+        { text: "Increased Frequency or Unusual Color", value: "increased" },
+        { text: "Decreased Frequency", value: "decreased" }
       ],
       hasNotes: false,
-      nextQuestion: () => 5.1
+      nextQuestion: (selectedOption) => selectedOption === "normal" ? 6 : 
+                                       (selectedOption === "increased" ? 5.1 : 5.2)
     },
     {
       id: 5.1,
-      text: "Signs of dehydration? (select all that apply)",
+      text: "What did you observe? (select all that apply)",
       options: [
-        { text: "Dry mouth", value: "dry_mouth" },
-        { text: "Dark urine", value: "dark_urine" },
-        { text: "Dizziness", value: "dizziness" },
-        { text: "Fatigue", value: "fatigue" },
-        { text: "None", value: "none" }
+        { text: "Dark yellow or amber", value: "dark_yellow" },
+        { text: "Cloudy", value: "cloudy" },
+        { text: "Reddish or pinkish", value: "reddish" },
+        { text: "Foamy", value: "foamy" },
+        { text: "Strong odor", value: "strong_odor" },
+        { text: "Other", value: "other", requiresInput: true }
       ],
       hasNotes: true,
-      notesPlaceholder: "Share any reasons for low water intake or symptoms noticed...",
+      notesPlaceholder: "Describe if you noticed reduced fluid intake or any other changes...",
+      nextQuestion: () => 6
+    },
+    {
+      id: 5.2,
+      text: "What did you observe? (select all that apply)",
+      options: [
+        { text: "Less than usual", value: "less_than_usual" },
+        { text: "Difficulty urinating", value: "difficulty" },
+        { text: "Uncomfortable sensation", value: "uncomfortable" },
+        { text: "Other", value: "other", requiresInput: true }
+      ],
+      hasNotes: true,
+      notesPlaceholder: "Describe if you noticed reduced fluid intake or any other changes...",
       nextQuestion: () => 6
     },
     {
       id: 6,
-      text: "Urination frequency and hue?",
-      options: [
-        { text: "Normal Frequency and Color", value: "normal" },
-        { text: "Increased Frequency or Abnormal Color", value: "increased" },
-        { text: "Decreased Frequency", value: "decreased" }
-      ],
-      hasNotes: true,
-      notesPlaceholder: "Describe if you noticed reduced fluid intake or any other changes...",
-      nextQuestion: (selectedOption) => selectedOption === "increased" ? 6.1 : 7
-    },
-    {
-      id: 6.1,
-      text: "Explore possible causes:",
-      options: [
-        { text: "Hydration", value: "hydration" },
-        { text: "Infection (UTI)", value: "uti" },
-        { text: "Diabetes Symptoms", value: "diabetes" },
-        { text: "Other", value: "other", requiresInput: true }
-      ],
-      hasNotes: false,
-      nextQuestion: () => 7
-    },
-    {
-      id: 7,
       text: "Bowel movements and stool consistency?",
       options: [
         { text: "Normal", value: "normal" },
@@ -222,11 +261,38 @@ const DailyAssessment = () => {
       ],
       hasNotes: true,
       notesPlaceholder: "Mention if this is linked to specific foods or stress events...",
+      nextQuestion: () => 7
+    },
+    {
+      id: 7,
+      text: "Did you feel any aches or pains anywhere?",
+      options: [
+        { text: "Yes", value: "yes" },
+        { text: "No", value: "no" }
+      ],
+      hasNotes: false,
+      nextQuestion: (selectedOption) => selectedOption === "yes" ? 7.1 : 8
+    },
+    {
+      id: 7.1,
+      text: "Location and type? (select all that apply)",
+      options: [
+        { text: "Joint pain", value: "joint" },
+        { text: "Muscle pain", value: "muscle" },
+        { text: "Headache", value: "headache" },
+        { text: "Abdominal pain", value: "abdominal" },
+        { text: "Back pain", value: "back" },
+        { text: "Chest pain", value: "chest" },
+        { text: "Migraines", value: "migraines" },
+        { text: "Other", value: "other", requiresInput: true }
+      ],
+      hasNotes: true,
+      notesPlaceholder: "Describe pain intensity, duration, and any triggers...",
       nextQuestion: () => 8
     },
     {
       id: 8,
-      text: "Did you feel any aches or pains anywhere?",
+      text: "Do you have any chronic conditions?",
       options: [
         { text: "Yes", value: "yes" },
         { text: "No", value: "no" }
@@ -236,22 +302,24 @@ const DailyAssessment = () => {
     },
     {
       id: 8.1,
-      text: "Location and type? (select all that apply)",
+      text: "Which conditions? (select all that apply)",
       options: [
-        { text: "Joint pain", value: "joint" },
-        { text: "Muscle pain", value: "muscle" },
-        { text: "Headache", value: "headache" },
-        { text: "Abdominal pain", value: "abdominal" },
-        { text: "Back pain", value: "back" },
+        { text: "Hypertension", value: "hypertension" },
+        { text: "Diabetes", value: "diabetes" },
+        { text: "Asthma", value: "asthma" },
+        { text: "Migraines", value: "migraines" },
+        { text: "Arthritis", value: "arthritis" },
+        { text: "Heart Disease", value: "heart_disease" },
+        { text: "Respiratory Disorders", value: "respiratory" },
         { text: "Other", value: "other", requiresInput: true }
       ],
       hasNotes: true,
-      notesPlaceholder: "Describe pain intensity, duration, and any triggers...",
+      notesPlaceholder: "Add details about symptoms or medication adherence today...",
       nextQuestion: () => 9
     },
     {
       id: 9,
-      text: "Do you have any chronic conditions?",
+      text: "Did you consume any alcohol?",
       options: [
         { text: "Yes", value: "yes" },
         { text: "No", value: "no" }
@@ -261,22 +329,46 @@ const DailyAssessment = () => {
     },
     {
       id: 9.1,
-      text: "Which conditions? (select all that apply)",
+      text: "What type of alcohol did you consume?",
       options: [
-        { text: "Hypertension", value: "hypertension" },
-        { text: "Diabetes", value: "diabetes" },
-        { text: "Asthma", value: "asthma" },
-        { text: "Migraines", value: "migraines" },
-        { text: "Arthritis", value: "arthritis" },
+        { text: "Beer", value: "beer" },
+        { text: "Wine", value: "wine" },
+        { text: "Whiskey", value: "whiskey" },
+        { text: "Vodka", value: "vodka" },
+        { text: "Rum", value: "rum" },
+        { text: "Tequila", value: "tequila" },
         { text: "Other", value: "other", requiresInput: true }
       ],
+      hasNotes: false,
+      nextQuestion: () => 9.2
+    },
+    {
+      id: 9.2,
+      text: "How much did you consume?",
+      options: [
+        { text: "1 Drink", value: "one_drink" },
+        { text: "2–3 Drinks", value: "two_three_drinks" },
+        { text: "More than 3 Drinks", value: "more_than_three" },
+        { text: "Binge Drinking", value: "binge" }
+      ],
+      hasNotes: false,
+      nextQuestion: () => 9.3
+    },
+    {
+      id: 9.3,
+      text: "When did you consume it?",
+      options: [
+        { text: "Morning", value: "morning" },
+        { text: "Afternoon", value: "afternoon" },
+        { text: "Evening", value: "evening" }
+      ],
       hasNotes: true,
-      notesPlaceholder: "Add details about symptoms or medication adherence today...",
+      notesPlaceholder: "Add context such as social drinking, celebrations, or coping mechanisms...",
       nextQuestion: () => 10
     },
     {
       id: 10,
-      text: "Did you consume any alcohol?",
+      text: "Did you consume any substances?",
       options: [
         { text: "Yes", value: "yes" },
         { text: "No", value: "no" }
@@ -286,107 +378,208 @@ const DailyAssessment = () => {
     },
     {
       id: 10.1,
-      text: "Amount and type?",
+      text: "Type of substance?",
       options: [
-        { text: "Light to moderate", value: "light_moderate" },
-        { text: "Heavy", value: "heavy" },
-        { text: "Occasional", value: "occasional" }
+        { text: "Marijuana", value: "marijuana" },
+        { text: "Cocaine", value: "cocaine" },
+        { text: "MDMA", value: "mdma" },
+        { text: "Prescription Drugs", value: "prescription" },
+        { text: "Over-the-Counter Medications", value: "otc" },
+        { text: "Other", value: "other", requiresInput: true }
+      ],
+      hasNotes: false,
+      nextQuestion: () => 10.2
+    },
+    {
+      id: 10.2,
+      text: "Frequency of use?",
+      options: [
+        { text: "First Time", value: "first_time" },
+        { text: "Occasional", value: "occasional" },
+        { text: "Regular Use", value: "regular" },
+        { text: "Heavy Use", value: "heavy" }
       ],
       hasNotes: true,
-      notesPlaceholder: "Add context such as social drinking, celebrations, or coping mechanisms...",
+      notesPlaceholder: "Add context such as medical reasons, frequency, and effects felt...",
       nextQuestion: () => 11
     },
     {
       id: 11,
-      text: "Did you consume any substances?",
-      options: [
-        { text: "Yes", value: "yes" },
-        { text: "No", value: "no" }
-      ],
-      hasNotes: false,
-      nextQuestion: (selectedOption) => selectedOption === "yes" ? 11.1 : 12
-    },
-    {
-      id: 11.1,
-      text: "Type and quantity?",
-      options: [
-        { text: "Recreational", value: "recreational" },
-        { text: "Prescription", value: "prescription" },
-        { text: "Non-prescribed", value: "non_prescribed" }
-      ],
-      hasNotes: true,
-      notesPlaceholder: "Add context such as medical reasons, frequency, and effects felt...",
-      nextQuestion: () => 12
-    },
-    {
-      id: 12,
       text: "How were your meals today?",
       options: [
         { text: "Balanced and Nutritious", value: "balanced" },
         { text: "Skipped or Poor Quality", value: "poor" }
       ],
       hasNotes: false,
-      nextQuestion: (selectedOption) => selectedOption === "poor" ? 12.1 : 13
+      nextQuestion: (selectedOption) => selectedOption === "balanced" ? 12 : 11.1
     },
     {
-      id: 12.1,
+      id: 11.1,
       text: "Reason for poor quality meals?",
       options: [
         { text: "No appetite", value: "no_appetite" },
         { text: "No time", value: "no_time" },
-        { text: "Lack of healthy options", value: "lack_options" }
+        { text: "Lack of healthy options", value: "lack_options" },
+        { text: "Stress-related", value: "stress" }
+      ],
+      hasNotes: false,
+      nextQuestion: () => 11.2
+    },
+    {
+      id: 11.2,
+      text: "Would you like to reference your Meal Log?",
+      options: [
+        { text: "Yes", value: "yes" },
+        { text: "No", value: "no" }
       ],
       hasNotes: true,
       notesPlaceholder: "Describe reasons and any plans to improve...",
-      nextQuestion: () => 13
+      nextQuestion: () => 12
     },
     {
-      id: 13,
+      id: 12,
       text: "How are you feeling mentally?",
       options: [
         { text: "Good/Stable", value: "good" },
         { text: "Stressed/Anxious/Depressed", value: "stressed" }
       ],
       hasNotes: false,
-      nextQuestion: (selectedOption) => selectedOption === "stressed" ? 13.1 : 14
+      nextQuestion: (selectedOption) => selectedOption === "good" ? 13 : 12.1
     },
     {
-      id: 13.1,
-      text: "Explore triggers:",
+      id: 12.1,
+      text: "Explore triggers: (select all that apply)",
       options: [
         { text: "Work/school stress", value: "work" },
         { text: "Personal relationships", value: "relationships" },
         { text: "Financial concerns", value: "financial" },
-        { text: "Health worries", value: "health" }
+        { text: "Health worries", value: "health" },
+        { text: "Trauma or PTSD", value: "trauma" },
+        { text: "Recent life event (e.g., loss, major change)", value: "life_event" },
+        { text: "Unknown", value: "unknown" }
+      ],
+      hasNotes: false,
+      nextQuestion: () => 12.2
+    },
+    {
+      id: 12.2,
+      text: "Current symptoms: (select all that apply)",
+      options: [
+        { text: "Racing thoughts", value: "racing_thoughts" },
+        { text: "Difficulty concentrating", value: "difficulty_concentrating" },
+        { text: "Mood swings", value: "mood_swings" },
+        { text: "Irritability", value: "irritability" },
+        { text: "Insomnia", value: "insomnia" },
+        { text: "Appetite changes", value: "appetite_changes" },
+        { text: "Other", value: "other", requiresInput: true }
+      ],
+      hasNotes: false,
+      nextQuestion: () => 12.3
+    },
+    {
+      id: 12.3,
+      text: "Coping mechanisms used: (select all that apply)",
+      options: [
+        { text: "Exercise", value: "exercise" },
+        { text: "Meditation", value: "meditation" },
+        { text: "Journaling", value: "journaling" },
+        { text: "Talking with friends/family", value: "talking" },
+        { text: "Substance use", value: "substance_use" },
+        { text: "Other", value: "other", requiresInput: true }
       ],
       hasNotes: true,
       notesPlaceholder: "Add details about thoughts, triggers, or coping strategies...",
-      nextQuestion: () => 14
+      nextQuestion: () => 13
     },
     {
-      id: 14,
+      id: 13,
       text: "Have you noticed anything different about yourself today?",
       options: [
         { text: "Yes", value: "yes" },
         { text: "No", value: "no" }
       ],
       hasNotes: false,
-      nextQuestion: (selectedOption) => selectedOption === "yes" ? 14.1 : 15
+      nextQuestion: (selectedOption) => selectedOption === "yes" ? 13.1 : 14
     },
     {
-      id: 14.1,
+      id: 13.1,
       text: "Type of change?",
       options: [
-        { text: "Physical (e.g., swelling, rash)", value: "physical" },
-        { text: "Emotional (e.g., mood swings)", value: "emotional" },
-        { text: "Cognitive (e.g., forgetfulness)", value: "cognitive" }
+        { text: "Physical", value: "physical" },
+        { text: "Emotional", value: "emotional" },
+        { text: "Cognitive", value: "cognitive" }
+      ],
+      hasNotes: false,
+      nextQuestion: (selectedOption) => {
+        if (selectedOption === "physical") return 13.2;
+        if (selectedOption === "emotional") return 13.3;
+        if (selectedOption === "cognitive") return 13.4;
+        return 13.5;
+      }
+    },
+    {
+      id: 13.2,
+      text: "Physical changes: (select all that apply)",
+      options: [
+        { text: "Swelling", value: "swelling" },
+        { text: "Rash", value: "rash" },
+        { text: "Discoloration", value: "discoloration" },
+        { text: "Hair Loss", value: "hair_loss" },
+        { text: "Weight change", value: "weight_change" },
+        { text: "Other", value: "other", requiresInput: true }
+      ],
+      hasNotes: false,
+      nextQuestion: () => 13.5
+    },
+    {
+      id: 13.3,
+      text: "Emotional changes: (select all that apply)",
+      options: [
+        { text: "Mood swings", value: "mood_swings" },
+        { text: "Sudden sadness", value: "sadness" },
+        { text: "Heightened anxiety", value: "anxiety" },
+        { text: "Irritability", value: "irritability" }
+      ],
+      hasNotes: false,
+      nextQuestion: () => 13.5
+    },
+    {
+      id: 13.4,
+      text: "Cognitive changes: (select all that apply)",
+      options: [
+        { text: "Forgetfulness", value: "forgetfulness" },
+        { text: "Confusion", value: "confusion" },
+        { text: "Brain fog", value: "brain_fog" },
+        { text: "Difficulty focusing", value: "focusing" }
+      ],
+      hasNotes: false,
+      nextQuestion: () => 13.5
+    },
+    {
+      id: 13.5,
+      text: "Duration of change:",
+      options: [
+        { text: "Less than 24 hours", value: "less_24" },
+        { text: "1–3 Days", value: "1_3_days" },
+        { text: "4–7 Days", value: "4_7_days" },
+        { text: "More than a week", value: "more_than_week" }
+      ],
+      hasNotes: false,
+      nextQuestion: () => 13.6
+    },
+    {
+      id: 13.6,
+      text: "Have you experienced this before?",
+      options: [
+        { text: "Yes", value: "yes", requiresInput: true },
+        { text: "No", value: "no" }
       ],
       hasNotes: true,
       notesPlaceholder: "Describe the change and its impact on your day...",
-      nextQuestion: () => 15
+      nextQuestion: () => 14
     },
     {
-      id: 15,
+      id: 14,
       text: "Assessment Complete",
       options: [
         { text: "Submit Assessment", value: "submit" }
@@ -481,7 +674,7 @@ const DailyAssessment = () => {
     const selectedOption = assessmentState.selectedOptions[currentQuestion.id]?.[0] || "";
     
     // If we're at the last question, submit the assessment
-    if (currentQuestion.id === 15) {
+    if (currentQuestion.id === 14) {
       handleSubmitAssessment();
       return;
     }
@@ -685,7 +878,7 @@ const DailyAssessment = () => {
               assessmentState.selectedOptions[currentQuestion.id].length === 0
             }
           >
-            {currentQuestion.id === 15 ? 'Submit' : 'Continue'}
+            {currentQuestion.id === 14 ? 'Submit' : 'Continue'}
             <ArrowRight className="ml-2" size={16} />
           </button>
         </div>
