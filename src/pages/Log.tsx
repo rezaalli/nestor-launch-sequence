@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from "react";
 import { 
-  ArrowLeft, Plus, Calendar, Activity, Dumbbell, Utensils, 
-  Check, X, Edit
+  ArrowLeft, Plus, Calendar, Activity, Dumbbell, 
+  Utensils, Check, X, Edit, PersonRunning, Bike, Route,
+  Clock, Hourglass, Flame, Radar
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StatusBar from "@/components/StatusBar";
@@ -14,7 +15,13 @@ const Log = () => {
   const navigate = useNavigate();
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
-  const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
+  const [activityType, setActivityType] = useState<string>("Run");
+  const [startTime, setStartTime] = useState<string>("09:30");
+  const [duration, setDuration] = useState<string>("45:00");
+  const [distance, setDistance] = useState<string>("5.2");
+  const [intensity, setIntensity] = useState<string>("Moderate");
+  const [notes, setNotes] = useState<string>("");
+  const [autoDetection, setAutoDetection] = useState<boolean>(true);
   
   // Activities data sorted by popularity (most popular first)
   const activities = [
@@ -70,18 +77,27 @@ const Log = () => {
     "Virtual Row"
   ];
   
-  const handleSelectActivity = (activity: string) => {
-    setSelectedActivity(activity);
+  const handleCloseActivityModal = () => {
+    setShowActivityModal(false);
   };
   
-  const handleContinue = () => {
-    if (selectedActivity) {
-      // Here you would typically handle saving the selected activity
-      console.log(`Selected activity: ${selectedActivity}`);
-      setShowActivityModal(false);
-      // You could add additional logic here, like navigating to a form
-      // to collect more details about the activity
-    }
+  const handleSaveActivity = () => {
+    // Here you would typically handle saving the activity data
+    console.log({
+      activityType,
+      startTime,
+      duration,
+      distance,
+      intensity,
+      notes,
+      autoDetection
+    });
+    
+    setShowActivityModal(false);
+  };
+
+  const handleSelectActivityType = (type: string) => {
+    setActivityType(type);
   };
 
   const handleEditWellnessSurvey = () => {
@@ -89,36 +105,10 @@ const Log = () => {
     navigate("/lifestyle-checkin");
   };
   
-  // Functions for wheel picker
-  const handleScroll = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (e.deltaY > 0) {
-      // Scroll down
-      setCurrentActivityIndex((prev) => 
-        prev === activities.length - 1 ? 0 : prev + 1
-      );
-    } else {
-      // Scroll up
-      setCurrentActivityIndex((prev) => 
-        prev === 0 ? activities.length - 1 : prev - 1
-      );
-    }
-  };
-
-  const handleActivityClick = (index: number) => {
-    setCurrentActivityIndex(index);
-    setSelectedActivity(activities[index]);
-  };
-  
   // Handle back button click to navigate to dashboard
   const handleBackClick = () => {
     navigate('/dashboard');
   };
-  
-  useEffect(() => {
-    if (currentActivityIndex >= 0 && currentActivityIndex < activities.length) {
-      setSelectedActivity(activities[currentActivityIndex]);
-    }
-  }, [currentActivityIndex, activities]);
   
   return (
     <div className="min-h-screen bg-white">
@@ -320,57 +310,182 @@ const Log = () => {
         </div>
       </div>
 
-      {/* Activity Selection Dialog */}
+      {/* New Activity Dialog */}
       <Dialog open={showActivityModal} onOpenChange={setShowActivityModal}>
         <DialogContent className="max-w-md p-0 gap-0 rounded-xl">
-          <DialogHeader className="p-6 pb-2">
-            <DialogTitle className="text-2xl font-medium">Add Activity</DialogTitle>
-          </DialogHeader>
-          
-          <div className="px-6 py-4">
-            <div className="flex flex-col items-center">
-              <div 
-                className="relative w-full h-64 overflow-hidden"
-                onWheel={handleScroll}
+          {/* Header */}
+          <div className="px-6 pt-4 pb-2 flex items-center justify-between">
+            <button 
+              className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+              onClick={handleCloseActivityModal}
+            >
+              <X className="text-gray-700" size={18} />
+            </button>
+            <h2 className="text-lg font-medium text-gray-900">Add Activity</h2>
+            <button 
+              className="text-sm font-medium text-blue-900"
+              onClick={handleSaveActivity}
+            >
+              Save
+            </button>
+          </div>
+
+          {/* Activity Type Selector */}
+          <div className="px-6 mt-4">
+            <label className="text-sm font-medium text-gray-500">ACTIVITY TYPE</label>
+            <div className="mt-3 grid grid-cols-4 gap-3">
+              <button 
+                className={`p-3 ${activityType === 'Run' ? 'bg-blue-900' : 'border border-gray-200'} rounded-xl flex flex-col items-center`}
+                onClick={() => handleSelectActivityType('Run')}
               >
-                {/* Overlay gradients for wheel effect */}
-                <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-white to-transparent z-10"></div>
-                <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-white to-transparent z-10"></div>
-                
-                {/* Center selection indicator */}
-                <div className="absolute top-1/2 left-0 right-0 h-16 -mt-8 border-t border-b border-gray-200 z-0"></div>
-                
-                {/* Custom wheel picker implementation */}
-                <div className="absolute inset-0 flex flex-col items-center justify-start pt-28 pb-28 overflow-auto hide-scrollbar">
-                  {activities.map((activity, index) => (
-                    <div 
-                      key={index} 
-                      onClick={() => handleActivityClick(index)}
-                      className={`h-16 min-h-[64px] w-full flex items-center justify-center cursor-pointer transition-all duration-200
-                        ${index === currentActivityIndex ? 'text-blue-900 font-semibold text-xl' : 'text-gray-500 text-lg'}`}
-                    >
-                      {activity}
-                    </div>
-                  ))}
+                <PersonRunning className={`${activityType === 'Run' ? 'text-white' : 'text-gray-600'} mb-1`} size={21} />
+                <span className={`text-xs ${activityType === 'Run' ? 'text-white' : 'text-gray-600'}`}>Run</span>
+              </button>
+              
+              <button 
+                className={`p-3 ${activityType === 'Cycle' ? 'bg-blue-900' : 'border border-gray-200'} rounded-xl flex flex-col items-center`}
+                onClick={() => handleSelectActivityType('Cycle')}
+              >
+                <Bike className={`${activityType === 'Cycle' ? 'text-white' : 'text-gray-600'} mb-1`} size={21} />
+                <span className={`text-xs ${activityType === 'Cycle' ? 'text-white' : 'text-gray-600'}`}>Cycle</span>
+              </button>
+              
+              <button 
+                className={`p-3 ${activityType === 'Strength' ? 'bg-blue-900' : 'border border-gray-200'} rounded-xl flex flex-col items-center`}
+                onClick={() => handleSelectActivityType('Strength')}
+              >
+                <Dumbbell className={`${activityType === 'Strength' ? 'text-white' : 'text-gray-600'} mb-1`} size={21} />
+                <span className={`text-xs ${activityType === 'Strength' ? 'text-white' : 'text-gray-600'}`}>Strength</span>
+              </button>
+              
+              <button 
+                className="p-3 border border-gray-200 rounded-xl flex flex-col items-center"
+                onClick={() => handleSelectActivityType('More')}
+              >
+                <Plus className="text-gray-600 mb-1" size={21} />
+                <span className="text-xs text-gray-600">More</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Activity Details Form */}
+          <div className="px-6 mt-6 overflow-auto max-h-[60vh]">
+            <div className="space-y-5">
+              {/* Time & Duration */}
+              <div className="flex space-x-4">
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-gray-500">START TIME</label>
+                  <div className="mt-2 flex items-center p-3 border border-gray-200 rounded-lg">
+                    <Clock className="text-gray-400 mr-2" size={18} />
+                    <input 
+                      type="time" 
+                      className="w-full text-gray-900 bg-transparent" 
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-gray-500">DURATION</label>
+                  <div className="mt-2 flex items-center p-3 border border-gray-200 rounded-lg">
+                    <Hourglass className="text-gray-400 mr-2" size={18} />
+                    <input 
+                      type="text" 
+                      className="w-full text-gray-900 bg-transparent" 
+                      value={duration}
+                      onChange={(e) => setDuration(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
-              
-              <div className="text-center mt-6">
-                <p className="font-medium text-gray-900 text-lg">
-                  {selectedActivity || "Select an activity"}
-                </p>
+
+              {/* Distance & Intensity */}
+              <div className="flex space-x-4">
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-gray-500">DISTANCE (KM)</label>
+                  <div className="mt-2 flex items-center p-3 border border-gray-200 rounded-lg">
+                    <Route className="text-gray-400 mr-2" size={18} />
+                    <input 
+                      type="number" 
+                      className="w-full text-gray-900 bg-transparent" 
+                      value={distance}
+                      onChange={(e) => setDistance(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-gray-500">INTENSITY</label>
+                  <div className="mt-2 flex items-center p-3 border border-gray-200 rounded-lg">
+                    <Flame className="text-gray-400 mr-2" size={18} />
+                    <select 
+                      className="w-full text-gray-900 bg-transparent"
+                      value={intensity}
+                      onChange={(e) => setIntensity(e.target.value)}
+                    >
+                      <option>Moderate</option>
+                      <option>Light</option>
+                      <option>Vigorous</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Heart Rate Zones */}
+              <div>
+                <label className="text-sm font-medium text-gray-500">HEART RATE ZONES</label>
+                <div className="mt-2 p-4 border border-gray-200 rounded-lg">
+                  <div className="h-24 flex items-end space-x-1">
+                    <div className="flex-1 h-[20%] bg-blue-100 rounded-t"></div>
+                    <div className="flex-1 h-[45%] bg-green-100 rounded-t"></div>
+                    <div className="flex-1 h-[80%] bg-yellow-100 rounded-t"></div>
+                    <div className="flex-1 h-[40%] bg-orange-100 rounded-t"></div>
+                    <div className="flex-1 h-[15%] bg-red-100 rounded-t"></div>
+                  </div>
+                  <div className="mt-2 flex justify-between text-xs text-gray-500">
+                    <span>Zone 1</span>
+                    <span>Zone 2</span>
+                    <span>Zone 3</span>
+                    <span>Zone 4</span>
+                    <span>Zone 5</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="text-sm font-medium text-gray-500">NOTES</label>
+                <div className="mt-2">
+                  <textarea 
+                    className="w-full p-3 border border-gray-200 rounded-lg text-gray-900 h-24" 
+                    placeholder="Add notes about your activity..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  ></textarea>
+                </div>
               </div>
             </div>
           </div>
-          
-          <div className="p-6 border-t border-gray-200">
-            <Button 
-              onClick={handleContinue}
-              disabled={!selectedActivity}
-              className="w-full py-6 text-base bg-blue-900 hover:bg-blue-800"
-            >
-              Continue
-            </Button>
+
+          {/* Auto-Detection Notice */}
+          <div className="mt-6 bg-gray-50 border-t border-gray-200">
+            <div className="px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center">
+                <Radar className="text-blue-900 mr-3" size={21} />
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Auto-Detection</p>
+                  <p className="text-xs text-gray-500">Device will automatically detect your activities</p>
+                </div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={autoDetection}
+                  onChange={(e) => setAutoDetection(e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-900"></div>
+              </label>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -378,7 +493,7 @@ const Log = () => {
       {/* Add BottomNavbar component */}
       <BottomNavbar />
 
-      {/* Replace the style jsx tag with regular CSS classes */}
+      {/* Styles for scrollbar hiding */}
       <style>
         {`
           .hide-scrollbar::-webkit-scrollbar {
