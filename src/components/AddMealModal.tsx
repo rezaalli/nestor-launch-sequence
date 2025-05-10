@@ -133,6 +133,13 @@ const AddMealModal: React.FC<AddMealModalProps> = ({
     // Would normally update nutrition targets in a context or API
   };
 
+  // Handler for meal type selection change
+  const handleMealTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // Cast the string value to our allowed meal type
+    const value = e.target.value as "Breakfast" | "Lunch" | "Dinner" | "Snack";
+    setMealType(value);
+  };
+
   return (
     <>
       {/* Main Add Meal Modal */}
@@ -207,12 +214,12 @@ const AddMealModal: React.FC<AddMealModalProps> = ({
                   <select 
                     className="bg-transparent text-gray-900 flex-1 focus:outline-none"
                     value={mealType}
-                    onChange={(e) => setMealType(e.target.value)}
+                    onChange={handleMealTypeChange}
                   >
-                    <option>Breakfast</option>
-                    <option>Lunch</option>
-                    <option>Dinner</option>
-                    <option>Snack</option>
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                    <option value="Snack">Snack</option>
                   </select>
                 </div>
               </div>
