@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   ArrowLeft, Plus, Calendar, Activity, Dumbbell, 
@@ -11,11 +10,15 @@ import BottomNavbar from "@/components/BottomNavbar";
 import { Dialog, DialogContentWithoutCloseButton, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import AddMealModal from "@/components/AddMealModal";
+import { useToast } from "@/hooks/use-toast";
 
 const Log = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [showActivityPicker, setShowActivityPicker] = useState(false);
+  const [showAddMealModal, setShowAddMealModal] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
   const [activityType, setActivityType] = useState<string>("Run");
   const [startTime, setStartTime] = useState<string>("09:30");
@@ -109,6 +112,15 @@ const Log = () => {
   const handleSelectActivityFromPicker = (type: string) => {
     setActivityType(type);
     setShowActivityPicker(false);
+  };
+
+  const handleSaveMeal = (mealData: any) => {
+    // Here you would typically save the meal data to your backend or local state
+    console.log("Meal saved:", mealData);
+    toast({
+      title: "Meal Added",
+      description: `${mealData.mealType} has been added to your log.`,
+    });
   };
 
   const handleEditWellnessSurvey = () => {
@@ -216,7 +228,10 @@ const Log = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">MEAL LOG</h3>
-            <button className="text-sm text-blue-900 font-medium flex items-center">
+            <button 
+              className="text-sm text-blue-900 font-medium flex items-center"
+              onClick={() => setShowAddMealModal(true)}
+            >
               <Plus className="mr-1" size={16} />
               Add Meal
             </button>
@@ -548,6 +563,13 @@ const Log = () => {
           </div>
         </DialogContentWithoutCloseButton>
       </Dialog>
+
+      {/* Add Meal Modal */}
+      <AddMealModal 
+        open={showAddMealModal}
+        onOpenChange={setShowAddMealModal}
+        onSave={handleSaveMeal}
+      />
 
       {/* Add BottomNavbar component */}
       <BottomNavbar />
