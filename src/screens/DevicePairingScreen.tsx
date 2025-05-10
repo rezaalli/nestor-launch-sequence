@@ -491,21 +491,11 @@ const DevicePairingScreen = ({ onNext }: DevicePairingScreenProps) => {
       {/* Header with tabs */}
       <div className="flex flex-col mb-4">
         <div className="flex items-center justify-between mb-4">
-          {/* Removed the redundant back button that was here */}
-          <div className="w-10 h-10"></div> {/* Empty div to maintain layout */}
-          <h2 className="text-lg font-medium text-nestor-gray-900">{tabs[selectedTabIndex]}</h2>
-          <button 
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
-            onClick={() => setSelectedTabIndex(selectedTabIndex === 0 ? 1 : 0)}
-          >
-            {selectedTabIndex === 0 ? (
-              <div className="flex items-center justify-center">
-                <Watch size={20} className="text-nestor-gray-700" />
-              </div>
-            ) : (
-              <Plus size={20} className="text-nestor-gray-700" />
-            )}
+          <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+            <ArrowLeft size={20} className="text-nestor-gray-700" />
           </button>
+          <h2 className="text-lg font-medium text-nestor-gray-900">{tabs[selectedTabIndex]}</h2>
+          <div className="w-10 h-10"></div> {/* Empty div to maintain layout */}
         </div>
 
         {/* Tab navigation */}
