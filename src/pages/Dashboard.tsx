@@ -323,13 +323,13 @@ const Dashboard = () => {
           />
         </div>
         
-        {/* Lifestyle Check-In Button */}
+        {/* Lifestyle Check-In Button - Updated text */}
         <button 
           className="mx-6 mt-6 py-3.5 bg-blue-900 text-white font-medium rounded-lg flex items-center justify-center"
           onClick={handleLifestyleCheckIn}
         >
           <ClipboardList className="mr-2" size={18} />
-          Log Lifestyle Check-In
+          Daily Wellness Survey
         </button>
         
         {/* Trends Preview */}
