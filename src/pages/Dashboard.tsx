@@ -51,7 +51,8 @@ const Dashboard = () => {
     // Additional metrics that can be added
     hrv: false,
     respiratoryRate: false,
-    steps: false
+    steps: false,
+    caloriesBurned: false // Added new calories burned metric option
   });
   
   // Create a ref for the metrics container
@@ -389,7 +390,8 @@ const Dashboard = () => {
                      key === 'temperature' ? 'Temperature' :
                      key === 'hrv' ? 'Heart Rate Variability' :
                      key === 'respiratoryRate' ? 'Respiratory Rate' :
-                     key === 'steps' ? 'Steps' : key}
+                     key === 'steps' ? 'Steps' :
+                     key === 'caloriesBurned' ? 'Calories Burned' : key}
                   </label>
                 </div>
               ))}

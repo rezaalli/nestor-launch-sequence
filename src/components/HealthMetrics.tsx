@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { HeartPulse, Droplet, Activity, Thermometer, Move, Activity as HrvIcon, Wind, Footprints } from 'lucide-react';
+import { HeartPulse, Droplet, Activity, Thermometer, Move, Activity as HrvIcon, Wind, Footprints, Flame } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { getLastReading, isDeviceWorn, formatTemperature } from '@/utils/bleUtils';
 
@@ -14,6 +13,7 @@ interface HealthMetricsProps {
     hrv: boolean;
     respiratoryRate: boolean;
     steps: boolean;
+    caloriesBurned: boolean;
     [key: string]: boolean;
   };
 }
@@ -27,7 +27,8 @@ const HealthMetrics = ({
     temperature: true,
     hrv: false,
     respiratoryRate: false,
-    steps: false
+    steps: false,
+    caloriesBurned: false
   }
 }: HealthMetricsProps) => {
   // Get unit preference from user context
@@ -224,6 +225,7 @@ const HealthMetrics = ({
   const heartRate = lastReading?.hr ?? 72;
   const spo2 = lastReading?.spo2 ?? 98;
   const tempCelsius = (lastReading?.temp ?? 367) / 10;
+  const caloriesBurned = lastReading?.calories ?? 475; // Default calories if not available
   
   // Display temperature based on user preference
   const tempDisplay = formatTemperature(lastReading?.temp ?? 367, unitPreference);
@@ -410,6 +412,29 @@ const HealthMetrics = ({
             <div className="flex justify-between mt-1">
               <span className="text-xs text-nestor-gray-500">0</span>
               <span className="text-xs text-nestor-gray-500">10k</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {availableMetrics.caloriesBurned && (
+        <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card relative" id="caloriesBurned">
+          {renderDragHandle()}
+          <div className="flex items-center mb-2">
+            <Flame className="text-orange-400 mr-2" size={16} />
+            <span className="text-xs text-gray-600">Calories Burned</span>
+          </div>
+          <div className="flex items-end">
+            <span className="text-2xl font-semibold text-nestor-gray-900">{caloriesBurned}</span>
+            <span className="text-sm text-nestor-gray-600 ml-1 mb-0.5">kcal</span>
+          </div>
+          <div className="mt-2">
+            <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div className="bg-orange-400 h-1.5 rounded-full" style={{width: `${Math.min(100, (caloriesBurned / 2000) * 100)}%`}}></div>
+            </div>
+            <div className="flex justify-between mt-1">
+              <span className="text-xs text-nestor-gray-500">0</span>
+              <span className="text-xs text-nestor-gray-500">2000</span>
             </div>
           </div>
         </div>
