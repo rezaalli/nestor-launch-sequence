@@ -84,7 +84,7 @@ const TrendsAndInsights = () => {
           <WeeklyTrendChart 
             dataType={selectedMetric}
             allowMetricChange={true}
-            onViewAllClick={() => navigate('/history')}
+            onViewAllClick={() => navigate('/trends')}
           />
         </section>
 

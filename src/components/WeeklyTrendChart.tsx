@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 import { getReadings } from '@/utils/bleUtils';
-import { ChevronDown, TrendingUp, ChevronUp, Calendar } from 'lucide-react';
+import { ChevronDown, TrendingUp, Calendar } from 'lucide-react';
 import {
   ChartContainer,
   ChartTooltip,
@@ -49,7 +50,7 @@ const WeeklyTrendChart = ({
   const { user } = useUser();
   const unitPreference = user.unitPreference || 'imperial'; // Default to imperial
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subDays(new Date(), 7),
+    from: subDays(new Date(), days),
     to: new Date()
   });
   const [isRangePickerOpen, setIsRangePickerOpen] = useState(false);
@@ -282,9 +283,20 @@ const WeeklyTrendChart = ({
   
   const handleTimeRangeChange = (value: number | 'custom') => {
     setTimeRange(value);
+    
     if (value === 'custom') {
+      // When switching to custom, open the date picker
       setIsRangePickerOpen(true);
     } else {
+      // For predefined ranges, update the date range automatically
+      const endDate = new Date();
+      const startDate = subDays(endDate, value as number);
+      
+      setDateRange({
+        from: startDate,
+        to: endDate
+      });
+      
       setIsRangePickerOpen(false);
     }
   };
@@ -358,36 +370,65 @@ const WeeklyTrendChart = ({
           <h4 className="font-medium text-lg text-nestor-gray-900">{getChartTitle()}</h4>
         )}
         
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="flex items-center gap-1 min-w-[150px] justify-between">
+              {formatDateRange()}
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleTimeRangeChange(7)}>Last 7 days</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleTimeRangeChange(14)}>Last 14 days</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleTimeRangeChange(30)}>Last 30 days</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleTimeRangeChange('custom')}>Custom Range</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      
+      {/* Calendar popover for custom date range selection */}
+      {timeRange === 'custom' && (
         <Popover open={isRangePickerOpen} onOpenChange={setIsRangePickerOpen}>
           <PopoverTrigger asChild>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-1 min-w-[150px] justify-between">
-                  {formatDateRange()}
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleTimeRangeChange(7)}>Last 7 days</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleTimeRangeChange(14)}>Last 14 days</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleTimeRangeChange(30)}>Last 30 days</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleTimeRangeChange('custom')}>Custom Range</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="sr-only">Open date picker</div>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
+          <PopoverContent className="w-auto p-0 z-50" align="end">
             <CalendarComponent
               initialFocus
               mode="range"
               defaultMonth={dateRange?.from}
               selected={dateRange}
-              onSelect={setDateRange}
+              onSelect={(range) => {
+                if (range?.from && range?.to) {
+                  setDateRange(range);
+                  // Don't automatically close the popover to allow refining the selection
+                } else if (range?.from) {
+                  setDateRange({
+                    from: range.from,
+                    to: range.from // Default to same day if only start is selected
+                  });
+                }
+              }}
               numberOfMonths={1}
               className="p-3 pointer-events-auto"
             />
+            <div className="p-3 border-t">
+              <Button 
+                variant="default" 
+                className="w-full" 
+                onClick={() => {
+                  // Only close if we have a complete range
+                  if (dateRange?.from && dateRange?.to) {
+                    setIsRangePickerOpen(false);
+                  }
+                }}
+              >
+                Apply Range
+              </Button>
+            </div>
           </PopoverContent>
         </Popover>
-      </div>
+      )}
       
       <div className="h-44 mb-3">
         <ChartContainer config={chartConfig}>
