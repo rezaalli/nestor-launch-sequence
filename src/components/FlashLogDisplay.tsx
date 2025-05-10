@@ -167,14 +167,36 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
         
         <CardContent>
           <Tabs defaultValue={activeDataType} onValueChange={(value) => setActiveDataType(value as ReadingType)}>
-            <div className="relative w-full">
-              <ScrollArea className="w-full pb-2">
-                <TabsList className="w-full inline-flex px-1 py-1.5 justify-start space-x-2 overflow-hidden">
-                  <TabsTrigger className="min-w-[100px] flex-shrink-0" value="hr">Heart Rate</TabsTrigger>
-                  <TabsTrigger className="min-w-[100px] flex-shrink-0" value="spo2">SpO₂</TabsTrigger>
-                  <TabsTrigger className="min-w-[100px] flex-shrink-0" value="temp">Temperature</TabsTrigger>
-                  <TabsTrigger className="min-w-[100px] flex-shrink-0" value="readiness">Readiness</TabsTrigger>
-                </TabsList>
+            <div className="relative w-full mb-2">
+              <ScrollArea className="w-full pb-1">
+                <div className="px-1">
+                  <TabsList className="w-full flex justify-start h-auto py-1">
+                    <TabsTrigger 
+                      className="min-w-[90px] text-sm px-3 py-1 flex-shrink-0" 
+                      value="hr"
+                    >
+                      Heart Rate
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      className="min-w-[60px] text-sm px-3 py-1 flex-shrink-0" 
+                      value="spo2"
+                    >
+                      SpO₂
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      className="min-w-[90px] text-sm px-3 py-1 flex-shrink-0" 
+                      value="temp"
+                    >
+                      Temperature
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      className="min-w-[80px] text-sm px-3 py-1 flex-shrink-0" 
+                      value="readiness"
+                    >
+                      Readiness
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
               </ScrollArea>
             </div>
             
@@ -265,7 +287,7 @@ const FlashLogDisplay: React.FC<FlashLogDisplayProps> = ({ metricType = 'heart-r
                   {formatTimeRange()} <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="start" className="bg-white">
                 <DropdownMenuItem onClick={() => setTimeRange('today')}>Today</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTimeRange('yesterday')}>Yesterday</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTimeRange(7)}>Last 7 Days</DropdownMenuItem>
