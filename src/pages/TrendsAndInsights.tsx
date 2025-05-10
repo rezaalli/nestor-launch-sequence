@@ -5,7 +5,7 @@ import StatusBar from '@/components/StatusBar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import WeeklyTrendChart from '@/components/WeeklyTrendChart';
+import WeeklyTrendChart, { ReadingType } from '@/components/WeeklyTrendChart';
 import BottomNavbar from '@/components/BottomNavbar';
 import { getLastReading } from '@/utils/bleUtils';
 
@@ -99,26 +99,11 @@ const TrendsAndInsights = () => {
           </div>
         </section>
 
-        {/* Trends Charts */}
-        <section className="space-y-4 mb-8">
+        {/* Enhanced Chart with Metric Selection */}
+        <section className="mb-8">
           <WeeklyTrendChart 
-            dataType="heartRate" 
-            days={selectedPeriod === 'week' ? 7 : 30} 
-          />
-          
-          <WeeklyTrendChart 
-            dataType="readiness" 
-            days={selectedPeriod === 'week' ? 7 : 30} 
-          />
-          
-          <WeeklyTrendChart 
-            dataType="temperature" 
-            days={selectedPeriod === 'week' ? 7 : 30} 
-          />
-          
-          <WeeklyTrendChart 
-            dataType="spo2" 
-            days={selectedPeriod === 'week' ? 7 : 30} 
+            days={selectedPeriod === 'week' ? 7 : 30}
+            allowMetricChange={true}
           />
         </section>
 

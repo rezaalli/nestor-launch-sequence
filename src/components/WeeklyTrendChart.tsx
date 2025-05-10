@@ -1,33 +1,48 @@
 
 import React, { useEffect, useState } from 'react';
 import { getReadings } from '@/utils/bleUtils';
-import { ChevronDown, TrendingUp } from 'lucide-react';
+import { ChevronDown, TrendingUp, ChevronUp } from 'lucide-react';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent
 } from '@/components/ui/chart';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Label } from 'recharts';
 import { useUser } from '@/contexts/UserContext';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+
+export type ReadingType = 'readiness' | 'heartRate' | 'temperature' | 'spo2';
 
 interface WeeklyTrendChartProps {
-  dataType: 'readiness' | 'heartRate' | 'temperature' | 'spo2';
+  dataType?: ReadingType;
   days?: number;
   compact?: boolean;
   className?: string;
   onViewAllClick?: () => void;
+  allowMetricChange?: boolean;
 }
 
 const WeeklyTrendChart = ({ 
-  dataType, 
+  dataType = 'heartRate', 
   days = 7, 
   compact = false,
   className = '',
-  onViewAllClick
+  onViewAllClick,
+  allowMetricChange = false
 }: WeeklyTrendChartProps) => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deviceWorn, setDeviceWorn] = useState(true);
+  const [selectedDataType, setSelectedDataType] = useState<ReadingType>(dataType);
+  const [timeRange, setTimeRange] = useState<number>(days);
   const { user } = useUser();
   const unitPreference = user.unitPreference || 'imperial'; // Default to imperial
   
@@ -43,7 +58,7 @@ const WeeklyTrendChart = ({
   
   useEffect(() => {
     // Get readings from BLE utils
-    const readings = getReadings(days);
+    const readings = getReadings(timeRange);
     
     if (readings.length === 0) {
       setLoading(false);
@@ -67,7 +82,7 @@ const WeeklyTrendChart = ({
     
     // Listen for vital updates to refresh chart
     const handleVitalUpdate = () => {
-      const updatedReadings = getReadings(days);
+      const updatedReadings = getReadings(timeRange);
       const updatedData = processReadings(updatedReadings);
       setChartData(updatedData);
     };
@@ -78,7 +93,12 @@ const WeeklyTrendChart = ({
       window.removeEventListener('nestor-wear-state', handleWearStateChange);
       window.removeEventListener('nestor-vital-update', handleVitalUpdate);
     };
-  }, [dataType, days, unitPreference]); // Added unitPreference as dependency
+  }, [selectedDataType, timeRange, unitPreference]); // Added selectedDataType as dependency
+
+  // Update dataType when a prop change occurs
+  useEffect(() => {
+    setSelectedDataType(dataType);
+  }, [dataType]);
   
   // Process the readings into chart data
   function processReadings(readings: any[]) {
@@ -103,7 +123,7 @@ const WeeklyTrendChart = ({
       const dayReadings = groupedByDay[day];
       let value = 0;
       
-      switch (dataType) {
+      switch (selectedDataType) {
         case 'readiness':
           value = dayReadings.reduce((sum, r) => sum + r.readiness, 0) / dayReadings.length;
           break;
@@ -133,7 +153,7 @@ const WeeklyTrendChart = ({
   
   // Get chart title and y-axis label based on data type
   function getChartTitle() {
-    switch (dataType) {
+    switch (selectedDataType) {
       case 'readiness':
         return 'Readiness Score';
       case 'heartRate':
@@ -148,7 +168,7 @@ const WeeklyTrendChart = ({
   }
   
   function getYAxisLabel() {
-    switch (dataType) {
+    switch (selectedDataType) {
       case 'readiness':
         return '';
       case 'heartRate':
@@ -164,7 +184,7 @@ const WeeklyTrendChart = ({
   
   // Get line color based on data type
   function getLineColor() {
-    switch (dataType) {
+    switch (selectedDataType) {
       case 'readiness':
         return "#0F172A"; // Blue
       case 'heartRate':
@@ -180,17 +200,30 @@ const WeeklyTrendChart = ({
   
   // Calculate stats
   const calculateStats = () => {
-    if (chartData.length === 0) return { avg: 0, min: 0, max: 0 };
+    if (chartData.length === 0) return { avg: 0, min: 0, max: 0, minDay: '', maxDay: '' };
     
     const values = chartData.map(d => d.value);
     const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
     const min = Math.min(...values);
     const max = Math.max(...values);
     
-    return { avg: Math.round(avg * 10) / 10, min, max };
+    const minDay = chartData.find(d => d.value === min)?.day || '';
+    const maxDay = chartData.find(d => d.value === max)?.day || '';
+    
+    return { 
+      avg: Math.round(avg * 10) / 10, 
+      min, 
+      max,
+      minDay,
+      maxDay
+    };
   };
   
   const stats = calculateStats();
+
+  const handleMetricChange = (value: ReadingType) => {
+    setSelectedDataType(value);
+  };
   
   // For empty state or loading
   if (loading) {
@@ -210,7 +243,7 @@ const WeeklyTrendChart = ({
           <h4 className="font-medium text-nestor-gray-900">{getChartTitle()}</h4>
           {!compact && (
             <div className="text-xs flex items-center text-nestor-gray-600 cursor-pointer">
-              <span>Last {days} days</span>
+              <span>Last {timeRange} days</span>
               <ChevronDown className="ml-1" size={12} />
             </div>
           )}
@@ -227,75 +260,138 @@ const WeeklyTrendChart = ({
   return (
     <div className={`p-4 bg-white border border-gray-200 rounded-xl ${className}`}>
       <div className="flex items-center justify-between mb-3">
-        <h4 className="font-medium text-lg text-nestor-gray-900">{getChartTitle()}</h4>
-        <div 
-          className="text-sm flex items-center text-nestor-gray-600 cursor-pointer"
-          onClick={onViewAllClick}
-        >
-          <span>Last {days} days</span>
-          <ChevronDown className="ml-1" size={14} />
-        </div>
+        {allowMetricChange ? (
+          <div className="flex items-center">
+            <Select value={selectedDataType} onValueChange={(value) => handleMetricChange(value as ReadingType)}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder={getChartTitle()} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="heartRate">Heart Rate</SelectItem>
+                <SelectItem value="spo2">Blood Oxygen</SelectItem>
+                <SelectItem value="temperature">Temperature</SelectItem>
+                <SelectItem value="readiness">Readiness</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        ) : (
+          <h4 className="font-medium text-lg text-nestor-gray-900">{getChartTitle()}</h4>
+        )}
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              Last {timeRange} days
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setTimeRange(7)}>Last 7 days</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTimeRange(14)}>Last 14 days</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTimeRange(30)}>Last 30 days</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       
-      <div className="h-32 mb-3">
+      <div className="h-44 mb-3">
         <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={chartData}
-              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+              margin={{ top: 15, right: 10, left: 5, bottom: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
               <XAxis 
                 dataKey="day" 
                 axisLine={false} 
                 tickLine={false}
-                tick={{ fontSize: 12, fill: '#374151', fontWeight: 500 }}
+                tick={{ fontSize: 14, fill: '#374151', fontWeight: 600 }}
                 dy={8}
               />
               <YAxis 
                 hide={compact} 
-                domain={dataType === 'readiness' ? [0, 100] : ['auto', 'auto']} 
-                tick={{ fontSize: 12, fill: '#374151' }}
-                width={30}
+                domain={selectedDataType === 'readiness' ? [0, 100] : ['auto', 'auto']} 
+                tick={{ fontSize: 14, fill: '#374151' }}
+                width={40}
+                label={{ 
+                  value: getYAxisLabel(), 
+                  angle: -90, 
+                  position: 'insideLeft',
+                  style: { fontSize: '14px', fill: '#374151', textAnchor: 'middle' },
+                  offset: -5
+                }}
               />
               <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-white p-2 shadow-lg rounded border border-gray-100">
+                      <div className="bg-white p-3 shadow-lg rounded border border-gray-100">
                         <p className="text-sm font-medium text-nestor-gray-800">{payload[0].payload.day}</p>
-                        <p className="text-sm font-medium text-nestor-gray-900">{`${payload[0].value} ${getYAxisLabel()}`}</p>
+                        <p className="text-base font-medium text-nestor-gray-900">{`${payload[0].value} ${getYAxisLabel()}`}</p>
                       </div>
                     );
                   }
                   return null;
                 }}
               />
+              
+              {/* Reference lines for min and max values */}
+              <ReferenceLine 
+                y={stats.max} 
+                stroke="#ef4444" 
+                strokeDasharray="3 3"
+                ifOverflow="extendDomain"
+              >
+                <Label 
+                  value={`${stats.max} ${getYAxisLabel()}`} 
+                  position="top" 
+                  fill="#ef4444"
+                  fontSize={12}
+                  fontWeight={600}
+                />
+              </ReferenceLine>
+              
+              <ReferenceLine 
+                y={stats.min} 
+                stroke="#3b82f6" 
+                strokeDasharray="3 3"
+                ifOverflow="extendDomain"
+              >
+                <Label 
+                  value={`${stats.min} ${getYAxisLabel()}`} 
+                  position="bottom" 
+                  fill="#3b82f6"
+                  fontSize={12}
+                  fontWeight={600}
+                />
+              </ReferenceLine>
+              
               <Line 
                 type="monotone" 
                 dataKey="value" 
                 stroke={getLineColor()} 
                 strokeWidth={2.5}
-                activeDot={{ r: 6, strokeWidth: 1 }}
-                dot={{ r: 4, strokeWidth: 2 }}
+                activeDot={{ r: 6, strokeWidth: 1, fill: "#fff", stroke: getLineColor() }}
+                dot={{ r: 4, strokeWidth: 2, fill: "#fff", stroke: getLineColor() }}
+                animationDuration={1000}
               />
             </LineChart>
           </ResponsiveContainer>
         </ChartContainer>
       </div>
       
-      <div className="grid grid-cols-3 gap-2 mt-3">
-        <div className="text-center py-1 bg-gray-50 rounded-lg">
-          <p className="text-xs text-nestor-gray-500 mb-1">Avg</p>
+      <div className="grid grid-cols-3 gap-3 mt-4">
+        <div className="text-center py-2 bg-gray-50 rounded-lg">
+          <p className="text-xs text-nestor-gray-500 mb-1">Average</p>
           <p className="text-sm font-semibold text-nestor-gray-900">{stats.avg} {getYAxisLabel()}</p>
         </div>
-        <div className="text-center py-1 bg-gray-50 rounded-lg">
-          <p className="text-xs text-nestor-gray-500 mb-1">Max</p>
-          <p className="text-sm font-semibold text-nestor-gray-900">{stats.max} {getYAxisLabel()}</p>
+        <div className="text-center py-2 bg-red-50 rounded-lg">
+          <p className="text-xs text-red-500 mb-1">Peak ({stats.maxDay})</p>
+          <p className="text-sm font-semibold text-red-600">{stats.max} {getYAxisLabel()}</p>
         </div>
-        <div className="text-center py-1 bg-gray-50 rounded-lg">
-          <p className="text-xs text-nestor-gray-500 mb-1">Min</p>
-          <p className="text-sm font-semibold text-nestor-gray-900">{stats.min} {getYAxisLabel()}</p>
+        <div className="text-center py-2 bg-blue-50 rounded-lg">
+          <p className="text-xs text-blue-500 mb-1">Low ({stats.minDay})</p>
+          <p className="text-sm font-semibold text-blue-600">{stats.min} {getYAxisLabel()}</p>
         </div>
       </div>
     </div>
