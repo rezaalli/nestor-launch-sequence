@@ -323,13 +323,13 @@ const Dashboard = () => {
           />
         </div>
         
-        {/* Daily Wellness Survey Button */}
+        {/* Daily Wellness Survey Button - Updated text to Assessment */}
         <button 
           className="mx-6 mt-6 py-3.5 bg-blue-900 text-white font-medium rounded-lg flex items-center justify-center"
           onClick={handleLifestyleCheckIn}
         >
           <ClipboardList className="mr-2" size={18} />
-          Daily Wellness Survey
+          Daily Wellness Assessment
         </button>
         
         {/* Trends Preview */}
