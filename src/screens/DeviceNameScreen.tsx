@@ -1,9 +1,16 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Camera, Tag } from 'lucide-react';
+import { ArrowLeft, Camera, Tag, Image, File } from 'lucide-react';
 import OnboardingLayout from '../components/OnboardingLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface DeviceNameScreenProps {
   onNext: () => void;
@@ -12,9 +19,18 @@ interface DeviceNameScreenProps {
 const DeviceNameScreen = ({ onNext }: DeviceNameScreenProps) => {
   const [deviceName, setDeviceName] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('Luxury');
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   // Available watch tags
   const watchTags = ['Luxury', 'Sport', 'Smart', 'Dress'];
+  
+  // Handle image source selection
+  const handleImageSourceSelection = (source: string) => {
+    console.log(`Selected image source: ${source}`);
+    // Here you would implement the actual image picking functionality
+    // based on the selected source (camera, gallery, or file)
+    setDialogOpen(false);
+  };
   
   return (
     <OnboardingLayout>
@@ -49,9 +65,42 @@ const DeviceNameScreen = ({ onNext }: DeviceNameScreenProps) => {
               <path d="M17.7 8.3A6 6 0 0 0 6.21 9.7l-.047.095L6 10" />
             </svg>
           </div>
-          <button className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-nestor-blue flex items-center justify-center shadow-lg">
-            <Camera size={18} className="text-white" />
-          </button>
+          
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <button className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-nestor-blue flex items-center justify-center shadow-lg">
+                <Camera size={18} className="text-white" />
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Choose Image Source</DialogTitle>
+              </DialogHeader>
+              <div className="grid grid-cols-3 gap-4 py-4">
+                <button
+                  className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg hover:bg-gray-50"
+                  onClick={() => handleImageSourceSelection('camera')}
+                >
+                  <Camera className="h-8 w-8 text-nestor-blue" />
+                  <span className="text-sm">Take Photo</span>
+                </button>
+                <button
+                  className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg hover:bg-gray-50"
+                  onClick={() => handleImageSourceSelection('gallery')}
+                >
+                  <Image className="h-8 w-8 text-nestor-blue" />
+                  <span className="text-sm">Photo Library</span>
+                </button>
+                <button
+                  className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg hover:bg-gray-50"
+                  onClick={() => handleImageSourceSelection('file')}
+                >
+                  <File className="h-8 w-8 text-nestor-blue" />
+                  <span className="text-sm">Choose File</span>
+                </button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       
