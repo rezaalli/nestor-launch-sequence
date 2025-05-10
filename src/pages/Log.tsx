@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   ArrowLeft, Plus, Calendar, Activity, Dumbbell, 
-  Utensils, Check, X, Edit, PersonRunning, Bike, Route,
+  Utensils, Check, X, Edit, RunningIcon, Bike, Route,
   Clock, Hourglass, Flame, Radar
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -338,7 +338,7 @@ const Log = () => {
                 className={`p-3 ${activityType === 'Run' ? 'bg-blue-900' : 'border border-gray-200'} rounded-xl flex flex-col items-center`}
                 onClick={() => handleSelectActivityType('Run')}
               >
-                <PersonRunning className={`${activityType === 'Run' ? 'text-white' : 'text-gray-600'} mb-1`} size={21} />
+                <RunningIcon className={`${activityType === 'Run' ? 'text-white' : 'text-gray-600'} mb-1`} size={21} />
                 <span className={`text-xs ${activityType === 'Run' ? 'text-white' : 'text-gray-600'}`}>Run</span>
               </button>
               
