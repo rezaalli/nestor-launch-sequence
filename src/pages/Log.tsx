@@ -7,7 +7,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import StatusBar from "@/components/StatusBar";
 import BottomNavbar from "@/components/BottomNavbar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContentWithoutCloseButton, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 const Log = () => {
@@ -311,7 +311,7 @@ const Log = () => {
 
       {/* New Activity Dialog */}
       <Dialog open={showActivityModal} onOpenChange={setShowActivityModal}>
-        <DialogContent className="max-w-md p-0 gap-0 rounded-xl">
+        <DialogContentWithoutCloseButton className="max-w-md p-0 gap-0 rounded-xl">
           <DialogHeader>
             <DialogTitle className="sr-only">Add Activity</DialogTitle>
           </DialogHeader>
@@ -489,7 +489,7 @@ const Log = () => {
               </label>
             </div>
           </div>
-        </DialogContent>
+        </DialogContentWithoutCloseButton>
       </Dialog>
 
       {/* Add BottomNavbar component */}
