@@ -1,31 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import FlashLogUpload from './FlashLogUpload';
 
 const FlashLogManager = () => {
-  const [showFlashLogPrompt, setShowFlashLogPrompt] = useState(false);
-
-  useEffect(() => {
-    // Listen for flash log data availability
-    const handleFlashDataAvailable = () => {
-      setShowFlashLogPrompt(true);
-    };
-    
-    // Add event listener
-    window.addEventListener('nestor-flash-data-available', handleFlashDataAvailable);
-    
-    // Clean up on unmount
-    return () => {
-      window.removeEventListener('nestor-flash-data-available', handleFlashDataAvailable);
-    };
-  }, []);
-
-  return (
-    <FlashLogUpload
-      open={showFlashLogPrompt}
-      onOpenChange={setShowFlashLogPrompt}
-    />
-  );
+  // This component used to handle flash log uploads related to BLE connectivity
+  // Since we've removed BLE functionality, this is now a placeholder
+  
+  return null; // Return null as we no longer need this component's functionality
 };
 
 export default FlashLogManager;
