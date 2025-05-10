@@ -61,13 +61,6 @@ const Log = () => {
     setActivityType(type);
     setShowActivityPicker(false);
   };
-  const handleSaveMeal = (mealData: any) => {
-    console.log("Meal saved:", mealData);
-    toast({
-      title: "Meal Added",
-      description: `${mealData.mealType} has been added to your log.`
-    });
-  };
   
   // Check if assessment is completed for the current date
   const isAssessmentCompleted = isAssessmentCompletedForDate(currentDate);
@@ -91,6 +84,7 @@ const Log = () => {
       });
     }
   };
+  
   return <div className="min-h-screen bg-white">
       <StatusBar />
       

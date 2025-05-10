@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { MealFormData } from "@/hooks/use-meal-tracking";
 
 interface Food {
   id: number;
@@ -31,18 +32,34 @@ interface Food {
 interface AddMealModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (data: any) => void;
+  onSave: (data: MealFormData) => Promise<boolean>;
+  isSubmitting: boolean;
 }
 
-const AddMealModal: React.FC<AddMealModalProps> = ({ open, onOpenChange, onSave }) => {
+const AddMealModal: React.FC<AddMealModalProps> = ({ 
+  open, 
+  onOpenChange, 
+  onSave,
+  isSubmitting 
+}) => {
   // State for various modals
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   
   // State for form inputs
   const [searchQuery, setSearchQuery] = useState("");
-  const [mealType, setMealType] = useState("Breakfast");
+  const [mealType, setMealType] = useState<"Breakfast" | "Lunch" | "Dinner" | "Snack">("Breakfast");
   const [activeFilter, setActiveFilter] = useState("Recent");
+  
+  // Sample meal data for testing
+  const [mealData, setMealData] = useState<MealFormData>({
+    mealType: "Breakfast",
+    mealName: "Quick Breakfast",
+    calories: 350,
+    protein: 15,
+    carbs: 45,
+    fat: 12
+  });
   
   // Nutrition targets
   const [nutritionTargets, setNutritionTargets] = useState({
@@ -97,14 +114,18 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ open, onOpenChange, onSave 
     }
   ];
   
-  const handleSaveMeal = () => {
-    // Here you would collect all selected foods and process them
-    onSave({
-      mealType,
-      foods: [], // Selected foods would go here
-      timestamp: new Date()
-    });
-    onOpenChange(false);
+  const handleSaveMeal = async () => {
+    // Update meal type from the select
+    const updatedMealData = {
+      ...mealData,
+      mealType
+    };
+    
+    // Call the onSave function provided by the parent
+    const success = await onSave(updatedMealData);
+    if (success) {
+      onOpenChange(false);
+    }
   };
   
   const handleSaveSettings = () => {

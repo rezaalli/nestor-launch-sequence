@@ -9,13 +9,14 @@ interface MacroNutrientMetricProps {
   className?: string;
   showDragHandle?: boolean;
   onDragHandleClick?: () => void;
-  // The id prop isn't needed since we're not using it
+  id?: string; // Add the id prop
 }
 
 const MacroNutrientMetric = ({ 
   className,
   showDragHandle = false,
-  onDragHandleClick
+  onDragHandleClick,
+  id
 }: MacroNutrientMetricProps) => {
   const { nutritionData, getRemaining, getPercentage } = useNutrition();
   
@@ -34,7 +35,7 @@ const MacroNutrientMetric = ({
   const remainingFat = getRemaining('fat');
   
   return (
-    <div className={cn("p-4 bg-white border border-gray-200 rounded-xl relative", className)}>
+    <div id={id} className={cn("p-4 bg-white border border-gray-200 rounded-xl relative", className)}>
       {showDragHandle && (
         <button 
           className="absolute top-2 right-2 text-gray-400 cursor-move"
