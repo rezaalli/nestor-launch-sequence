@@ -19,7 +19,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { format, subDays } from 'date-fns';
+import { format, subDays, isSameDay, parseISO, isWithinInterval } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRange } from 'react-day-picker';
 
@@ -53,7 +53,7 @@ const WeeklyTrendChart = ({
     from: subDays(new Date(), days),
     to: new Date()
   });
-  const [isRangePickerOpen, setIsRangePickerOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
   // Chart config settings
   const chartConfig = {
@@ -136,21 +136,31 @@ const WeeklyTrendChart = ({
     
     filteredReadings.forEach(reading => {
       const date = new Date(reading.timestamp);
-      // Use short weekday name for display
-      const day = date.toLocaleDateString('en-US', { 
-        weekday: 'short' 
-      });
       
-      if (!groupedByDay[day]) {
-        groupedByDay[day] = [];
+      // Format the day label based on the time range
+      let dayLabel = '';
+      
+      if (typeof timeRange === 'number' && timeRange <= 7) {
+        // For shorter ranges, use short weekday name
+        dayLabel = date.toLocaleDateString('en-US', { weekday: 'short' });
+      } else {
+        // For longer ranges, use the date format MM/DD
+        dayLabel = date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
       }
       
-      groupedByDay[day].push(reading);
+      // Create the key for grouping
+      const groupKey = dayLabel;
+      
+      if (!groupedByDay[groupKey]) {
+        groupedByDay[groupKey] = [];
+      }
+      
+      groupedByDay[groupKey].push(reading);
     });
     
     // Calculate averages for each day
-    const chartData = Object.keys(groupedByDay).map(day => {
-      const dayReadings = groupedByDay[day];
+    const chartData = Object.keys(groupedByDay).map(dayLabel => {
+      const dayReadings = groupedByDay[dayLabel];
       let value = 0;
       
       switch (selectedDataType) {
@@ -174,31 +184,43 @@ const WeeklyTrendChart = ({
           break;
       }
       
+      // Get the full date (for sorting and display)
+      const firstReadingDate = new Date(dayReadings[0].timestamp);
+      
       return {
-        day,
+        day: dayLabel,
         value: Math.round(value * 10) / 10, // Round to 1 decimal place
-        date: new Date(dayReadings[0].timestamp).toLocaleDateString()
+        date: firstReadingDate.toLocaleDateString(),
+        timestamp: firstReadingDate.getTime(),
+        min: Math.min(...dayReadings.map(r => {
+          switch (selectedDataType) {
+            case 'readiness': return r.readiness || 0;
+            case 'heartRate': return r.hr;
+            case 'temperature': 
+              const tempC = r.temp / 10;
+              return unitPreference === 'imperial' ? (tempC * 9/5) + 32 : tempC;
+            case 'spo2': return r.spo2;
+            case 'steps': return r.steps || 0;
+            default: return 0;
+          }
+        })),
+        max: Math.max(...dayReadings.map(r => {
+          switch (selectedDataType) {
+            case 'readiness': return r.readiness || 0;
+            case 'heartRate': return r.hr;
+            case 'temperature': 
+              const tempC = r.temp / 10;
+              return unitPreference === 'imperial' ? (tempC * 9/5) + 32 : tempC;
+            case 'spo2': return r.spo2;
+            case 'steps': return r.steps || 0;
+            default: return 0;
+          }
+        }))
       };
     });
     
-    // Sort days in order (Today, Yesterday, and then the rest)
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'short' });
-    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-US', { weekday: 'short' });
-    
-    return chartData.sort((a, b) => {
-      // If a is today, it comes first
-      if (a.day === today) return -1;
-      // If b is today, it comes first
-      if (b.day === today) return 1;
-      // If a is yesterday, it comes second
-      if (a.day === yesterday) return -1;
-      // If b is yesterday, it comes second
-      if (b.day === yesterday) return 1;
-      
-      // Otherwise, use the standard day order
-      const daysOrder = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      return daysOrder.indexOf(a.day) - daysOrder.indexOf(b.day);
-    });
+    // Sort by timestamp (newest to oldest)
+    return chartData.sort((a, b) => b.timestamp - a.timestamp);
   }
   
   // Get chart title and y-axis label based on data type
@@ -258,18 +280,34 @@ const WeeklyTrendChart = ({
   const calculateStats = () => {
     if (chartData.length === 0) return { avg: 0, min: 0, max: 0, minDay: '', maxDay: '' };
     
+    // For a single day view (today or a custom single day)
+    if (chartData.length === 1) {
+      const day = chartData[0];
+      return { 
+        avg: day.value, 
+        min: day.min, 
+        max: day.max,
+        minDay: day.day,
+        maxDay: day.day
+      };
+    }
+    
+    // For multi-day view
     const values = chartData.map(d => d.value);
     const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const min = Math.min(...values);
-    const max = Math.max(...values);
     
-    const minDay = chartData.find(d => d.value === min)?.day || '';
-    const maxDay = chartData.find(d => d.value === max)?.day || '';
+    // Find day with lowest average
+    const minValue = Math.min(...values);
+    const minDay = chartData.find(d => d.value === minValue)?.day || '';
+    
+    // Find day with highest average
+    const maxValue = Math.max(...values);
+    const maxDay = chartData.find(d => d.value === maxValue)?.day || '';
     
     return { 
       avg: Math.round(avg * 10) / 10, 
-      min, 
-      max,
+      min: minValue, 
+      max: maxValue,
       minDay,
       maxDay
     };
@@ -285,8 +323,8 @@ const WeeklyTrendChart = ({
     setTimeRange(value);
     
     if (value === 'custom') {
-      // When switching to custom, open the date picker
-      setIsRangePickerOpen(true);
+      // When switching to custom, open the calendar
+      setIsCalendarOpen(true);
     } else {
       // For predefined ranges, update the date range automatically
       const endDate = new Date();
@@ -296,8 +334,6 @@ const WeeklyTrendChart = ({
         from: startDate,
         to: endDate
       });
-      
-      setIsRangePickerOpen(false);
     }
   };
   
@@ -307,13 +343,33 @@ const WeeklyTrendChart = ({
     }
     
     if (dateRange?.from && dateRange?.to) {
-      if (dateRange.from.toDateString() === dateRange.to.toDateString()) {
+      if (isSameDay(dateRange.from, dateRange.to)) {
         return format(dateRange.from, 'MMM d, yyyy');
       }
       return `${format(dateRange.from, 'MMM d')} - ${format(dateRange.to, 'MMM d')}`;
     }
     
     return 'Custom Range';
+  };
+  
+  const handleCalendarSelect = (range: DateRange | undefined) => {
+    if (!range) return;
+    
+    // If only from date is selected, set it for both from and to
+    if (range.from && !range.to) {
+      setDateRange({
+        from: range.from,
+        to: range.from
+      });
+    } else {
+      setDateRange(range);
+    }
+  };
+  
+  const applyDateRange = () => {
+    if (dateRange?.from && dateRange?.to) {
+      setIsCalendarOpen(false);
+    }
   };
   
   // For empty state or loading
@@ -386,49 +442,33 @@ const WeeklyTrendChart = ({
         </DropdownMenu>
       </div>
       
-      {/* Calendar popover for custom date range selection */}
-      {timeRange === 'custom' && (
-        <Popover open={isRangePickerOpen} onOpenChange={setIsRangePickerOpen}>
-          <PopoverTrigger asChild>
-            <div className="sr-only">Open date picker</div>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 z-50" align="end">
-            <CalendarComponent
-              initialFocus
-              mode="range"
-              defaultMonth={dateRange?.from}
-              selected={dateRange}
-              onSelect={(range) => {
-                if (range?.from && range?.to) {
-                  setDateRange(range);
-                  // Don't automatically close the popover to allow refining the selection
-                } else if (range?.from) {
-                  setDateRange({
-                    from: range.from,
-                    to: range.from // Default to same day if only start is selected
-                  });
-                }
-              }}
-              numberOfMonths={1}
-              className="p-3 pointer-events-auto"
-            />
-            <div className="p-3 border-t">
-              <Button 
-                variant="default" 
-                className="w-full" 
-                onClick={() => {
-                  // Only close if we have a complete range
-                  if (dateRange?.from && dateRange?.to) {
-                    setIsRangePickerOpen(false);
-                  }
-                }}
-              >
-                Apply Range
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
-      )}
+      {/* Calendar popover for custom date range selection - improved implementation */}
+      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+        <PopoverTrigger asChild>
+          <div className="hidden">Open calendar</div> {/* Hidden trigger, controlled programmatically */}
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0 z-50 bg-white" align="end">
+          <CalendarComponent
+            initialFocus
+            mode="range"
+            defaultMonth={dateRange?.from}
+            selected={dateRange}
+            onSelect={handleCalendarSelect}
+            numberOfMonths={1}
+            className="p-3 pointer-events-auto"
+          />
+          <div className="p-3 border-t">
+            <Button 
+              variant="default" 
+              className="w-full"
+              onClick={applyDateRange}
+              disabled={!dateRange?.from || !dateRange?.to}
+            >
+              Apply Range
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
       
       <div className="h-44 mb-3">
         <ChartContainer config={chartConfig}>
