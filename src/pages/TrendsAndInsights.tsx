@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, MoreVertical, Heart, Moon, ArrowDown, ChartLine, HeartPulse, ChevronRight, Thermometer } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Heart, Moon, ArrowDown, ChartLine, HeartPulse, ChevronRight, Thermometer, FileText } from 'lucide-react';
 import StatusBar from '@/components/StatusBar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -77,6 +77,18 @@ const TrendsAndInsights = () => {
               </CardContent>
             </Card>
           </div>
+        </section>
+
+        {/* Reports Button */}
+        <section className="mb-6">
+          <Button 
+            variant="outline" 
+            className="w-full flex items-center justify-center gap-2 py-5 bg-white border-gray-200 hover:bg-gray-50"
+            onClick={() => navigate('/reports')}
+          >
+            <FileText className="text-blue-600" size={18} />
+            <span className="font-medium">View Detailed Reports</span>
+          </Button>
         </section>
 
         {/* Enhanced Chart with Metric Selection */}
