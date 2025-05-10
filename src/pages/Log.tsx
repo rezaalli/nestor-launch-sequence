@@ -1,13 +1,19 @@
+
 import React, { useState } from "react";
 import { 
-  ArrowLeft, Plus, Calendar, Bike, Dumbbell, Utensils, 
-  Check, X, Activity, Edit
+  ArrowLeft, Plus, Calendar, Activity, Dumbbell, Utensils, 
+  Check, X, Edit
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StatusBar from "@/components/StatusBar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 
 const Log = () => {
   const navigate = useNavigate();
@@ -294,23 +300,49 @@ const Log = () => {
             <DialogTitle className="text-2xl font-medium">Add Activity</DialogTitle>
           </DialogHeader>
           
-          <ScrollArea className="h-[400px] px-6">
-            <div className="grid grid-cols-3 gap-3 pb-6">
-              {activities.map((activity) => (
-                <button 
-                  key={activity}
-                  onClick={() => handleSelectActivity(activity)} 
-                  className={`p-4 border rounded-2xl flex items-center justify-center text-center h-24
-                    ${selectedActivity === activity 
-                      ? 'border-blue-900 bg-blue-50' 
-                      : 'border-gray-200'
-                    }`}
+          <div className="px-6 py-4">
+            <div className="flex flex-col items-center">
+              <div className="relative w-full h-64 overflow-hidden">
+                {/* Overlay gradients for wheel effect */}
+                <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-white to-transparent z-10"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-white to-transparent z-10"></div>
+                
+                {/* Center selection indicator */}
+                <div className="absolute top-1/2 left-0 right-0 h-16 -mt-8 border-t border-b border-gray-200 z-0"></div>
+                
+                <Carousel
+                  opts={{
+                    align: "center",
+                    loop: true,
+                  }}
+                  className="w-full h-full"
+                  orientation="vertical"
                 >
-                  <span className="text-base text-gray-900">{activity}</span>
-                </button>
-              ))}
+                  <CarouselContent className="h-full py-28">
+                    {activities.map((activity, index) => (
+                      <CarouselItem 
+                        key={index} 
+                        onClick={() => handleSelectActivity(activity)}
+                        className={`h-16 flex items-center justify-center cursor-pointer transition-all duration-200
+                          ${selectedActivity === activity 
+                            ? 'text-blue-900 font-semibold text-xl' 
+                            : 'text-gray-500 text-lg'
+                          }`}
+                      >
+                        {activity}
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
+              </div>
+              
+              <div className="text-center mt-6">
+                <p className="font-medium text-gray-900 text-lg">
+                  {selectedActivity || "Select an activity"}
+                </p>
+              </div>
             </div>
-          </ScrollArea>
+          </div>
           
           <div className="p-6 border-t border-gray-200">
             <Button 
