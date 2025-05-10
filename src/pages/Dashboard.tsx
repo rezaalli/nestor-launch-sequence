@@ -93,157 +93,6 @@ const Dashboard = () => {
     };
   }, [toast]);
   
-  // Effect for setting up drag-and-drop functionality
-  useEffect(() => {
-    if (loading || !metricsGridRef.current || !customizeMode) return;
-
-    let dragSrcEl: HTMLElement | null = null;
-    
-    const handleDragStart = (e: DragEvent) => {
-      if (!(e.target instanceof HTMLElement)) return;
-      
-      dragSrcEl = e.target.closest('.metric-card');
-      if (!dragSrcEl) return;
-      
-      e.dataTransfer?.setData('text/plain', ''); // Required for Firefox
-      
-      setTimeout(() => {
-        if (dragSrcEl) dragSrcEl.classList.add('opacity-50');
-      }, 0);
-    };
-    
-    const handleDragOver = (e: DragEvent) => {
-      e.preventDefault();
-      return false;
-    };
-    
-    const handleDragEnter = (e: DragEvent) => {
-      if (!(e.target instanceof HTMLElement)) return;
-      
-      const targetCard = e.target.closest('.metric-card');
-      if (targetCard) {
-        targetCard.classList.add('bg-gray-100');
-      }
-    };
-    
-    const handleDragLeave = (e: DragEvent) => {
-      if (!(e.target instanceof HTMLElement)) return;
-      
-      const targetCard = e.target.closest('.metric-card');
-      if (targetCard) {
-        targetCard.classList.remove('bg-gray-100');
-      }
-    };
-    
-    const handleDrop = (e: DragEvent) => {
-      e.stopPropagation();
-      
-      if (!(e.target instanceof HTMLElement) || !dragSrcEl) return;
-      
-      const targetCard = e.target.closest('.metric-card');
-      
-      if (targetCard && dragSrcEl !== targetCard) {
-        // Get the container and all cards
-        const container = metricsGridRef.current;
-        if (!container) return;
-        
-        // Determine if we're inserting before or after the target
-        const rect = targetCard.getBoundingClientRect();
-        const midX = rect.left + rect.width / 2;
-        const midY = rect.top + rect.height / 2;
-        
-        // If pointer is before the middle of the card, insert before, otherwise insert after
-        if (e.clientX < midX && e.clientY < midY) {
-          container.insertBefore(dragSrcEl, targetCard);
-        } else {
-          container.insertBefore(dragSrcEl, targetCard.nextSibling);
-        }
-        
-        // Store the new order in localStorage
-        saveCardOrder();
-      }
-      
-      // Clean up
-      if (targetCard) targetCard.classList.remove('bg-gray-100');
-      dragSrcEl.classList.remove('opacity-50');
-      
-      return false;
-    };
-    
-    const handleDragEnd = (e: DragEvent) => {
-      if (!(e.target instanceof HTMLElement)) return;
-      
-      const cards = metricsGridRef.current?.querySelectorAll('.metric-card');
-      if (cards) {
-        cards.forEach(card => {
-          (card as HTMLElement).classList.remove('bg-gray-100', 'opacity-50');
-        });
-      }
-    };
-    
-    // Save the card order to localStorage
-    const saveCardOrder = () => {
-      const cards = metricsGridRef.current?.querySelectorAll('.metric-card');
-      if (!cards) return;
-      
-      const order = Array.from(cards).map(card => card.id);
-      localStorage.setItem('metricsOrder', JSON.stringify(order));
-    };
-    
-    // Load saved order
-    const loadCardOrder = () => {
-      const container = metricsGridRef.current;
-      if (!container) return;
-      
-      const savedOrder = localStorage.getItem('metricsOrder');
-      if (!savedOrder) return;
-      
-      try {
-        const order = JSON.parse(savedOrder);
-        // Get all current cards
-        const cards = Array.from(container.querySelectorAll('.metric-card'));
-        
-        // Reorder cards according to saved order
-        order.forEach((id: string) => {
-          const card = cards.find(card => card.id === id);
-          if (card) container.appendChild(card);
-        });
-      } catch (e) {
-        console.error('Error loading card order:', e);
-      }
-    };
-    
-    // Add event listeners to all cards
-    const cards = metricsGridRef.current.querySelectorAll('.metric-card');
-    cards.forEach(card => {
-      card.setAttribute('draggable', customizeMode ? 'true' : 'false');
-      card.addEventListener('dragstart', handleDragStart);
-      card.addEventListener('dragover', handleDragOver);
-      card.addEventListener('dragenter', handleDragEnter);
-      card.addEventListener('dragleave', handleDragLeave);
-      card.addEventListener('drop', handleDrop);
-      card.addEventListener('dragend', handleDragEnd);
-    });
-    
-    // Load saved card order on mount
-    loadCardOrder();
-    
-    // Cleanup event listeners on component unmount or when customizeMode changes
-    return () => {
-      if (!metricsGridRef.current) return;
-      
-      const cards = metricsGridRef.current.querySelectorAll('.metric-card');
-      cards.forEach(card => {
-        card.removeEventListener('dragstart', handleDragStart);
-        card.removeEventListener('dragover', handleDragOver);
-        card.removeEventListener('dragenter', handleDragEnter);
-        card.removeEventListener('dragleave', handleDragLeave);
-        card.removeEventListener('drop', handleDrop);
-        card.removeEventListener('dragend', handleDragEnd);
-      });
-    };
-  }, [loading, customizeMode]);
-  
   // Toggle customize mode instead of grid layout
   const toggleCustomizeMode = () => {
     const newMode = !customizeMode;
@@ -258,14 +107,6 @@ const Dashboard = () => {
       toast({
         title: "Changes Saved",
         description: "Your metrics layout has been updated",
-      });
-    }
-    
-    // Update draggable state of cards when mode changes
-    if (metricsGridRef.current) {
-      const cards = metricsGridRef.current.querySelectorAll('.metric-card');
-      cards.forEach(card => {
-        card.setAttribute('draggable', newMode ? 'true' : 'false');
       });
     }
   };
@@ -474,13 +315,11 @@ const Dashboard = () => {
             </button>
           </div>
           
-          {/* Health Metrics component with ref for drag-and-drop */}
-          <div ref={metricsGridRef}>
-            <HealthMetrics 
-              customizeMode={customizeMode} 
-              availableMetrics={availableMetrics}
-            />
-          </div>
+          {/* Updated Health Metrics component with direct drag-and-drop handling */}
+          <HealthMetrics 
+            customizeMode={customizeMode} 
+            availableMetrics={availableMetrics}
+          />
         </div>
         
         {/* Lifestyle Check-In Button */}

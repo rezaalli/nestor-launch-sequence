@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HeartPulse, Droplet, Activity, Thermometer, Move, Activity as HrvIcon, Wind, Footprints } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { getLastReading, isDeviceWorn, formatTemperature } from '@/utils/bleUtils';
@@ -36,6 +36,7 @@ const HealthMetrics = ({
   
   const [lastReading, setLastReading] = useState(getLastReading());
   const [deviceWorn, setDeviceWorn] = useState(isDeviceWorn());
+  const gridRef = useRef<HTMLDivElement>(null);
   
   // Subscribe to vital updates
   useEffect(() => {
@@ -57,6 +58,153 @@ const HealthMetrics = ({
       window.removeEventListener('nestor-wear-state', handleWearStateChange);
     };
   }, []);
+  
+  // Effect for setting up drag-and-drop functionality
+  useEffect(() => {
+    if (!customizeMode || !gridRef.current) return;
+
+    let dragSrcEl: HTMLElement | null = null;
+    
+    const handleDragStart = (e: DragEvent) => {
+      if (!(e.target instanceof HTMLElement)) return;
+      
+      dragSrcEl = e.target.closest('.metric-card');
+      if (!dragSrcEl) return;
+      
+      e.dataTransfer?.setData('text/plain', ''); // Required for Firefox
+      
+      setTimeout(() => {
+        if (dragSrcEl) dragSrcEl.classList.add('opacity-50');
+      }, 0);
+    };
+    
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      return false;
+    };
+    
+    const handleDragEnter = (e: DragEvent) => {
+      if (!(e.target instanceof HTMLElement)) return;
+      
+      const targetCard = e.target.closest('.metric-card');
+      if (targetCard) {
+        targetCard.classList.add('bg-gray-100');
+      }
+    };
+    
+    const handleDragLeave = (e: DragEvent) => {
+      if (!(e.target instanceof HTMLElement)) return;
+      
+      const targetCard = e.target.closest('.metric-card');
+      if (targetCard) {
+        targetCard.classList.remove('bg-gray-100');
+      }
+    };
+    
+    const handleDrop = (e: DragEvent) => {
+      e.stopPropagation();
+      
+      if (!(e.target instanceof HTMLElement) || !dragSrcEl) return;
+      
+      const targetCard = e.target.closest('.metric-card');
+      
+      if (targetCard && dragSrcEl !== targetCard && gridRef.current) {
+        // Determine if we're inserting before or after the target
+        const rect = targetCard.getBoundingClientRect();
+        const midX = rect.left + rect.width / 2;
+        const midY = rect.top + rect.height / 2;
+        
+        // If pointer is before the middle of the card, insert before, otherwise insert after
+        if (e.clientX < midX && e.clientY < midY) {
+          gridRef.current.insertBefore(dragSrcEl, targetCard);
+        } else {
+          gridRef.current.insertBefore(dragSrcEl, targetCard.nextSibling);
+        }
+        
+        // Store the new order in localStorage
+        saveCardOrder();
+      }
+      
+      // Clean up
+      if (targetCard) targetCard.classList.remove('bg-gray-100');
+      if (dragSrcEl) dragSrcEl.classList.remove('opacity-50');
+      
+      return false;
+    };
+    
+    const handleDragEnd = (e: DragEvent) => {
+      if (!(e.target instanceof HTMLElement)) return;
+      
+      const cards = gridRef.current?.querySelectorAll('.metric-card');
+      if (cards) {
+        cards.forEach(card => {
+          (card as HTMLElement).classList.remove('bg-gray-100', 'opacity-50');
+        });
+      }
+    };
+    
+    // Save the card order to localStorage
+    const saveCardOrder = () => {
+      const cards = gridRef.current?.querySelectorAll('.metric-card');
+      if (!cards) return;
+      
+      const order = Array.from(cards).map(card => card.id);
+      localStorage.setItem('metricsOrder', JSON.stringify(order));
+    };
+    
+    // Load saved order
+    const loadCardOrder = () => {
+      const container = gridRef.current;
+      if (!container) return;
+      
+      const savedOrder = localStorage.getItem('metricsOrder');
+      if (!savedOrder) return;
+      
+      try {
+        const order = JSON.parse(savedOrder);
+        // Get all current cards
+        const cards = Array.from(container.querySelectorAll('.metric-card'));
+        
+        // Reorder cards according to saved order
+        order.forEach((id: string) => {
+          const card = cards.find(card => card.id === id);
+          if (card) container.appendChild(card);
+        });
+      } catch (e) {
+        console.error('Error loading card order:', e);
+      }
+    };
+    
+    // Add event listeners to all cards
+    const cards = gridRef.current.querySelectorAll('.metric-card');
+    cards.forEach(card => {
+      card.setAttribute('draggable', customizeMode ? 'true' : 'false');
+      card.addEventListener('dragstart', handleDragStart);
+      card.addEventListener('dragover', handleDragOver);
+      card.addEventListener('dragenter', handleDragEnter);
+      card.addEventListener('dragleave', handleDragLeave);
+      card.addEventListener('drop', handleDrop);
+      card.addEventListener('dragend', handleDragEnd);
+    });
+    
+    // Load saved card order on mount
+    loadCardOrder();
+    
+    // Cleanup event listeners on component unmount or when customizeMode changes
+    return () => {
+      if (!gridRef.current) return;
+      
+      const cards = gridRef.current.querySelectorAll('.metric-card');
+      cards.forEach(card => {
+        card.removeEventListener('dragstart', handleDragStart);
+        card.removeEventListener('dragover', handleDragOver);
+        card.removeEventListener('dragenter', handleDragEnter);
+        card.removeEventListener('dragleave', handleDragLeave);
+        card.removeEventListener('drop', handleDrop);
+        card.removeEventListener('dragend', handleDragEnd);
+      });
+    };
+  }, [customizeMode]);
   
   // If device is not worn, show a message
   if (!deviceWorn) {
@@ -85,7 +233,7 @@ const HealthMetrics = ({
     if (!customizeMode) return null;
     
     return (
-      <div className="absolute top-2 right-2 text-gray-400">
+      <div className="absolute top-2 right-2 text-gray-400 cursor-move">
         <Move size={14} />
       </div>
     );
@@ -96,7 +244,7 @@ const HealthMetrics = ({
   const gridCols = visibleMetricsCount <= 1 ? "grid-cols-1" : "grid-cols-2";
 
   return (
-    <div className={`grid ${gridCols} gap-3`}>
+    <div ref={gridRef} className={`grid ${gridCols} gap-3`}>
       {availableMetrics.heartRate && (
         <div className="p-4 bg-white border border-gray-200 rounded-xl metric-card relative" id="heartRate">
           {renderDragHandle()}
