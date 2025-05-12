@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Wind } from "lucide-react";
 import { useNotifications } from '@/contexts/NotificationsContext';
+import { useUser } from '@/contexts/UserContext';
 
 interface SpO2AlertDialogProps {
   open: boolean;
@@ -23,6 +24,8 @@ const SpO2AlertDialog = ({
   onDismiss,
   onTakeReading,
 }: SpO2AlertDialogProps) => {
+  const { user } = useUser();
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-white rounded-xl w-[90%] max-w-sm overflow-hidden shadow-xl p-0">

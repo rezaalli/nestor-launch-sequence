@@ -10,6 +10,7 @@ import { useNotifications } from '@/contexts/NotificationsContext';
 import { useUser } from '@/contexts/UserContext';
 import { Thermometer } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { formatTemperature } from '@/utils/formatUtils';
 
 interface TemperatureAlertDialogProps {
   open: boolean;
@@ -36,20 +37,16 @@ const TemperatureAlertDialog = ({
     // No notification is added when dismissed, following the same pattern as HeartRateAlertDialog
   };
 
-  // Get unit preference from user context, default to imperial (Fahrenheit)
+  // Get unit preference from user context
   const unitPreference = user.unitPreference || 'imperial';
   
-  // Convert Celsius to Fahrenheit
-  const temperatureF = (temperature * 9/5) + 32;
+  // Use the new formatting utility
+  const tempDisplay = formatTemperature(temperature, unitPreference, true);
   
-  // Display temperature based on unit preference
-  const displayTemp = unitPreference === 'metric' 
-    ? `${temperature}°C` 
-    : `${temperatureF.toFixed(1)}°F`;
-  
+  // Get secondary temperature display (the alternative unit)
   const secondaryTemp = unitPreference === 'metric'
-    ? `(${temperatureF.toFixed(1)}°F)`
-    : `(${temperature}°C)`;
+    ? formatTemperature(temperature, 'imperial', true)
+    : formatTemperature(temperature, 'metric', true);
   
   // Set up variables based on temperature type
   const iconBgColor = temperatureType === 'high' ? 'bg-red-100' : 'bg-blue-100';
@@ -58,24 +55,26 @@ const TemperatureAlertDialog = ({
   
   // More detailed description based on temperature type
   const description = temperatureType === 'high' 
-    ? `Your body temperature is ${displayTemp}, which is above normal range. This could indicate a fever.`
-    : `Your body temperature is ${displayTemp}, which is below normal range. This could indicate hypothermia.`;
+    ? `Your body temperature is ${tempDisplay.value}${tempDisplay.unit}, which is above normal range. This could indicate a fever.`
+    : `Your body temperature is ${tempDisplay.value}${tempDisplay.unit}, which is below normal range. This could indicate hypothermia.`;
     
   // Additional guidance based on temperature severity
   let guidance = '';
   if (temperatureType === 'high') {
     if (temperature >= 39) {
-      guidance = unitPreference === 'metric'
-        ? 'Seek medical attention if temperature persists above 39°C (102.2°F).'
-        : 'Seek medical attention if temperature persists above 102.2°F (39°C).';
+      const criticalTemp = unitPreference === 'metric'
+        ? '39°C (102.2°F)'
+        : '102.2°F (39°C)';
+      guidance = `Seek medical attention if temperature persists above ${criticalTemp}.`;
     } else {
       guidance = 'Monitor your temperature and stay hydrated.';
     }
   } else {
     if (temperature <= 35) {
-      guidance = unitPreference === 'metric'
-        ? 'Seek immediate medical attention if temperature remains below 35°C (95°F).'
-        : 'Seek immediate medical attention if temperature remains below 95°F (35°C).';
+      const criticalTemp = unitPreference === 'metric'
+        ? '35°C (95°F)'
+        : '95°F (35°C)';
+      guidance = `Seek immediate medical attention if temperature remains below ${criticalTemp}.`;
     } else {
       guidance = 'Warm up gradually and monitor your temperature.';
     }
@@ -93,9 +92,9 @@ const TemperatureAlertDialog = ({
           <h3 className="text-lg font-semibold text-center text-gray-900 mb-2">{title}</h3>
           <div className="flex items-center justify-center gap-3 mb-4">
             <span className={`text-3xl font-bold ${temperatureType === 'high' ? 'text-red-600' : 'text-blue-600'}`}>
-              {displayTemp}
+              {tempDisplay.value}{tempDisplay.unit}
             </span>
-            <span className="text-lg text-gray-500">{secondaryTemp}</span>
+            <span className="text-lg text-gray-500">({secondaryTemp.value}{secondaryTemp.unit})</span>
           </div>
           
           <p className="text-center text-gray-600 mb-3">

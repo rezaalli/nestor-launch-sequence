@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Define the shape of the user data
 interface User {
@@ -7,12 +7,15 @@ interface User {
   email: string;
   avatar: string;
   unitPreference: 'metric' | 'imperial';
+  password?: string; // Added for password management
 }
 
 // Define the shape of the context
 interface UserContextType {
   user: User;
   updateUser: (user: Partial<User>) => void;
+  updateAvatar: (file: File) => Promise<string>;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 }
 
 // Create the context with default values
@@ -27,14 +30,57 @@ const defaultUser: User = {
 };
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User>(defaultUser);
+  // Load user data from localStorage or use default
+  const [user, setUser] = useState<User>(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : defaultUser;
+  });
+
+  // Save to localStorage whenever user changes
+  useEffect(() => {
+    localStorage.setItem('user', JSON.stringify(user));
+  }, [user]);
 
   const updateUser = (newData: Partial<User>) => {
-    setUser(prev => ({ ...prev, ...newData }));
+    setUser(prev => {
+      const updatedUser = { ...prev, ...newData };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  };
+
+  // Handle avatar upload and return URL
+  const updateAvatar = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const reader = new FileReader();
+        
+        reader.onloadend = () => {
+          const base64String = reader.result as string;
+          updateUser({ avatar: base64String });
+          resolve(base64String);
+        };
+        
+        reader.onerror = () => {
+          reject(new Error('Failed to read file'));
+        };
+        
+        reader.readAsDataURL(file);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  // Password update function (simplified for demo)
+  const updatePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    // In a real app, this would validate against stored password and/or API
+    // For this demo, we'll simulate a successful password change
+    return Promise.resolve(true);
   };
 
   return (
-    <UserContext.Provider value={{ user, updateUser }}>
+    <UserContext.Provider value={{ user, updateUser, updateAvatar, updatePassword }}>
       {children}
     </UserContext.Provider>
   );

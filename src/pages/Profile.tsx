@@ -1,69 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '@/components/StatusBar';
 import BottomNavbar from '@/components/BottomNavbar';
 import { Button } from '@/components/ui/button';
-import Toggle from '@/components/Toggle';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { 
-  ScrollArea,
-  ScrollBar
-} from '@/components/ui/scroll-area';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from '@/components/ui/tabs';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUser } from '@/contexts/UserContext';
-import { 
-  ChevronRight, 
-  Settings, 
-  Bell, 
-  Shield, 
-  Info, 
-  Bluetooth, 
-  FlaskConical, 
-  User, 
-  Palette,
-  Calendar,
-  Download,
-  ExternalLink,
-  X,
-  Check
-} from 'lucide-react';
+import { ChevronRight, Shield, Info, Bluetooth, FlaskConical, User, Palette, X, Check } from 'lucide-react';
 import DeviceStatus from '@/components/DeviceStatus';
 import HapticAlertSettings from '@/components/HapticAlertSettings';
-import { formatTemperature } from '@/utils/bleUtils';
 import FirmwareUpdatePage from '@/components/FirmwareUpdatePage';
 import { useToast } from '@/hooks/use-toast';
+import AccountInfoForm from '@/components/AccountInfoForm';
+import PasswordChangeForm from '@/components/PasswordChangeForm';
 
 const Profile = () => {
   const [activeScreen, setActiveScreen] = useState<'overview' | 'account' | 'privacy' | 'appearance' | 'firmware'>('overview');
   const [hapticSettingsOpen, setHapticSettingsOpen] = useState(false);
-  const { user, updateUser } = useUser();
+  const { user } = useUser();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  // Set user preference to imperial units when component mounts
-  useEffect(() => {
-    if (user.unitPreference !== 'imperial') {
-      updateUser({
-        unitPreference: 'imperial'
-      });
-    }
-  }, []);
-  
-  const toggleTempUnit = () => {
-    // Keep it locked to imperial
-    if (user.unitPreference !== 'imperial') {
-      updateUser({
-        unitPreference: 'imperial'
-      });
-    }
-  };
   
   const goBack = () => {
     if (activeScreen !== 'overview') {
@@ -141,7 +98,7 @@ const Profile = () => {
         >
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
-              <Bell className="h-5 w-5 text-nestor-blue" />
+              <Check className="h-5 w-5 text-nestor-blue" />
             </div>
             <span className="font-medium text-gray-800">Notifications</span>
           </div>
@@ -206,81 +163,27 @@ const Profile = () => {
 
   const renderAccountSettings = () => (
     <div className="flex-1 px-6 py-6">
-      <div className="space-y-6">
-        {/* Email Field */}
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm text-gray-600 font-medium">Email Address</Label>
-          <Input 
-            type="email" 
-            id="email" 
-            className="w-full p-4 border border-gray-300 rounded-lg" 
-            value={user.email} 
-            disabled
-          />
-        </div>
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="password" id="password-section">Password</TabsTrigger>
+        </TabsList>
         
-        {/* Name Field */}
-        <div className="space-y-2">
-          <Label htmlFor="name" className="text-sm text-gray-600 font-medium">Full Name</Label>
-          <Input 
-            type="text" 
-            id="name" 
-            className="w-full p-4 border border-gray-300 rounded-lg" 
-            value={user.name} 
-          />
-        </div>
+        <TabsContent value="profile" className="mt-6">
+          <AccountInfoForm />
+        </TabsContent>
         
-        {/* Unit Preference */}
-        <div className="space-y-2">
-          <Label className="text-sm text-gray-600 font-medium">Unit Preference</Label>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="relative">
-              <input 
-                type="radio" 
-                id="imperial" 
-                name="unit" 
-                className="peer hidden" 
-                checked={user.unitPreference === 'imperial'} 
-                onChange={() => updateUser({ unitPreference: 'imperial' })}
-              />
-              <label 
-                htmlFor="imperial" 
-                className="block w-full p-4 text-center border border-gray-300 rounded-lg cursor-pointer peer-checked:bg-nestor-blue peer-checked:text-white peer-checked:border-nestor-blue"
-              >
-                Imperial
-              </label>
+        <TabsContent value="password" className="mt-6">
+          <div className="space-y-6">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold">Change Password</h3>
+              <p className="text-sm text-gray-500">Update your password to keep your account secure</p>
             </div>
-            <div className="relative">
-              <input 
-                type="radio" 
-                id="metric" 
-                name="unit" 
-                className="peer hidden"
-                checked={user.unitPreference === 'metric'}
-                onChange={() => updateUser({ unitPreference: 'metric' })}
-                disabled
-              />
-              <label 
-                htmlFor="metric" 
-                className="block w-full p-4 text-center border border-gray-300 rounded-lg cursor-not-allowed opacity-50"
-              >
-                Metric
-              </label>
-            </div>
+            
+            <PasswordChangeForm />
           </div>
-          <p className="text-sm text-gray-500 mt-1">Imperial units are required for this device</p>
-        </div>
-      </div>
-      
-      {/* Save Button */}
-      <div className="mt-8">
-        <Button 
-          className="w-full py-4 bg-nestor-blue text-white font-medium rounded-lg shadow-sm"
-          onClick={goBack}
-        >
-          Save Changes
-        </Button>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 
