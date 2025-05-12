@@ -7,13 +7,14 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUser } from '@/contexts/UserContext';
-import { ChevronRight, Shield, Info, Bluetooth, FlaskConical, User, Palette, X, Check } from 'lucide-react';
+import { ChevronRight, Shield, Info, Bluetooth, FlaskConical, User, Palette, X, Check, Download, ExternalLink } from 'lucide-react';
 import DeviceStatus from '@/components/DeviceStatus';
 import HapticAlertSettings from '@/components/HapticAlertSettings';
 import FirmwareUpdatePage from '@/components/FirmwareUpdatePage';
 import { useToast } from '@/hooks/use-toast';
 import AccountInfoForm from '@/components/AccountInfoForm';
 import PasswordChangeForm from '@/components/PasswordChangeForm';
+import Toggle from '@/components/Toggle';
 
 const Profile = () => {
   const [activeScreen, setActiveScreen] = useState<'overview' | 'account' | 'privacy' | 'appearance' | 'firmware'>('overview');
