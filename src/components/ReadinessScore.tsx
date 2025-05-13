@@ -249,10 +249,10 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
         </div>
       </div>
 
-      {/* Enhanced Weekly Wellness Summary - now with more detailed insights */}
+      {/* Enhanced Weekly Wellness Insights */}
       <div className="bg-white rounded-lg p-4 mb-3">
         <div className="flex items-start space-x-3">
-          <Lightbulb className="text-yellow-500 mt-1 flex-shrink-0" size={18} />
+          <Lightbulb className="text-yellow-500 mt-1 flex-shrink-0" size={20} />
           <div className="space-y-2">
             <h4 className="font-medium text-sm text-gray-800">Weekly Wellness Insights</h4>
             <p className="text-sm text-gray-700 leading-relaxed">
