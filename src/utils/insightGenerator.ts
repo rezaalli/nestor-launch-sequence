@@ -1,5 +1,4 @@
-
-import { format, subDays } from "date-fns";
+import { format, subDays, parseISO } from "date-fns";
 import { AssessmentData } from "./readinessScoring";
 
 type AssessmentHistory = {
@@ -276,6 +275,286 @@ export function getTopContributingCategories(assessmentData: AssessmentData): {
   
   // Sort by absolute impact (most impactful first)
   return categories.sort((a, b) => Math.abs(a.score - 70) > Math.abs(b.score - 70) ? -1 : 1);
+}
+
+/**
+ * Generate a holistic wellness summary based on a week of assessment data
+ * Produces 2-3 sentences about general health trends without specific metrics
+ */
+export function generateWeeklyWellnessSummary(
+  weeklyAssessments: AssessmentHistory[]
+): string {
+  // If no assessments, return a default message
+  if (!weeklyAssessments || weeklyAssessments.length === 0) {
+    return "Complete your daily assessments to receive personalized weekly wellness insights. Regular logging helps identify patterns and trends that can support your health journey.";
+  }
+
+  // Analyze trends across various health domains
+  const trends = analyzeWeeklyTrends(weeklyAssessments);
+  
+  // Generate main wellness statement
+  let summary = generateWellnessStatement(trends, weeklyAssessments.length);
+  
+  // Add issue-specific insight
+  summary += " " + generateFocusAreaInsight(trends);
+  
+  // Add encouragement or recommendation
+  summary += " " + generateRecommendation(trends);
+  
+  return summary;
+}
+
+/**
+ * Analyze weekly trends across multiple health domains
+ */
+function analyzeWeeklyTrends(assessments: AssessmentHistory[]): {
+  overall: 'improving' | 'declining' | 'stable' | 'mixed';
+  stressLevel: 'high' | 'moderate' | 'low' | 'unknown';
+  activityConsistency: 'high' | 'moderate' | 'low' | 'unknown';
+  sleepQuality: 'good' | 'moderate' | 'poor' | 'unknown';
+  hydration: 'good' | 'moderate' | 'poor' | 'unknown';
+  nutrition: 'good' | 'moderate' | 'poor' | 'unknown';
+  substanceUse: 'concerning' | 'moderate' | 'minimal' | 'unknown';
+  symptomsPresent: boolean;
+  readinessScoreTrend: number; // Average change between days
+} {
+  // Default values
+  let result = {
+    overall: 'stable' as const,
+    stressLevel: 'unknown' as const,
+    activityConsistency: 'unknown' as const,
+    sleepQuality: 'unknown' as const, 
+    hydration: 'unknown' as const,
+    nutrition: 'unknown' as const,
+    substanceUse: 'unknown' as const,
+    symptomsPresent: false,
+    readinessScoreTrend: 0
+  };
+  
+  if (assessments.length < 2) {
+    return result;
+  }
+  
+  // Sort assessments by date (oldest first)
+  const sortedAssessments = [...assessments].sort((a, b) => 
+    parseISO(a.date).getTime() - parseISO(b.date).getTime()
+  );
+  
+  // Track readiness score changes
+  const readinessScores = sortedAssessments
+    .map(a => a.readinessScore)
+    .filter(score => score !== undefined) as number[];
+  
+  let scoreDiffs = 0;
+  let diffCount = 0;
+  
+  if (readinessScores.length >= 2) {
+    for (let i = 1; i < readinessScores.length; i++) {
+      scoreDiffs += readinessScores[i] - readinessScores[i-1];
+      diffCount++;
+    }
+    
+    result.readinessScoreTrend = diffCount > 0 ? scoreDiffs / diffCount : 0;
+    
+    if (result.readinessScoreTrend > 2) {
+      result.overall = 'improving';
+    } else if (result.readinessScoreTrend < -2) {
+      result.overall = 'declining';
+    } else {
+      result.overall = 'stable';
+    }
+  }
+  
+  // Analyze stress levels across assessments
+  const stressedCount = assessments.filter(a => 
+    a.data.selectedOptions[12]?.includes("stressed")
+  ).length;
+  
+  if (stressedCount / assessments.length > 0.5) {
+    result.stressLevel = 'high';
+  } else if (stressedCount / assessments.length > 0.25) {
+    result.stressLevel = 'moderate';
+  } else {
+    result.stressLevel = 'low';
+  }
+  
+  // Analyze activity consistency
+  const exerciseDays = assessments.filter(a => 
+    a.data.selectedOptions[4]?.includes("yes")
+  ).length;
+  
+  if (exerciseDays / assessments.length > 0.65) {
+    result.activityConsistency = 'high';
+  } else if (exerciseDays / assessments.length > 0.3) {
+    result.activityConsistency = 'moderate';
+  } else {
+    result.activityConsistency = 'low';
+  }
+  
+  // Analyze sleep quality
+  const poorSleepDays = assessments.filter(a => 
+    a.data.selectedOptions[2]?.includes("poorly_rested")
+  ).length;
+  
+  if (poorSleepDays / assessments.length > 0.5) {
+    result.sleepQuality = 'poor';
+  } else if (poorSleepDays / assessments.length > 0.25) {
+    result.sleepQuality = 'moderate';
+  } else {
+    result.sleepQuality = 'good';
+  }
+  
+  // Analyze hydration (based on urination)
+  const dehydrationDays = assessments.filter(a => 
+    a.data.selectedOptions[5]?.includes("decreased")
+  ).length;
+  
+  if (dehydrationDays / assessments.length > 0.4) {
+    result.hydration = 'poor';
+  } else if (dehydrationDays / assessments.length > 0.2) {
+    result.hydration = 'moderate';
+  } else {
+    result.hydration = 'good';
+  }
+  
+  // Analyze nutrition quality
+  const poorNutritionDays = assessments.filter(a => 
+    a.data.selectedOptions[11]?.includes("poor") || a.data.selectedOptions[11]?.includes("skipped")
+  ).length;
+  
+  if (poorNutritionDays / assessments.length > 0.5) {
+    result.nutrition = 'poor';
+  } else if (poorNutritionDays / assessments.length > 0.25) {
+    result.nutrition = 'moderate';
+  } else {
+    result.nutrition = 'good';
+  }
+  
+  // Analyze substance use (alcohol, caffeine)
+  const highSubstanceDays = assessments.filter(a => 
+    (a.data.selectedOptions[9]?.includes("yes") && 
+      (a.data.selectedOptions[9.2]?.includes("more_than_three") || 
+       a.data.selectedOptions[9.2]?.includes("binge"))) ||
+    (a.data.selectedOptions[3]?.includes("yes") && 
+      a.data.selectedOptions[3.1]?.includes("3_plus_cups") && 
+      a.data.selectedOptions[3.2]?.includes("evening")) ||
+    a.data.selectedOptions[10]?.includes("yes")
+  ).length;
+  
+  if (highSubstanceDays / assessments.length > 0.4) {
+    result.substanceUse = 'concerning';
+  } else if (highSubstanceDays / assessments.length > 0.2) {
+    result.substanceUse = 'moderate';
+  } else {
+    result.substanceUse = 'minimal';
+  }
+  
+  // Check if symptoms were present
+  result.symptomsPresent = assessments.some(a => 
+    a.data.selectedOptions[1]?.includes("not_good") ||
+    a.data.selectedOptions[7]?.includes("yes")
+  );
+  
+  return result;
+}
+
+/**
+ * Generate the main wellness statement based on trends
+ */
+function generateWellnessStatement(
+  trends: ReturnType<typeof analyzeWeeklyTrends>,
+  assessmentCount: number
+): string {
+  const consistencyPhrase = assessmentCount >= 5 
+    ? "consistent tracking reveals" 
+    : "partial week tracking suggests";
+    
+  // General wellness statements
+  if (trends.overall === 'improving') {
+    return `Your ${consistencyPhrase} a positive trend in overall wellness this week, with improvements in your readiness scores.`;
+  } else if (trends.overall === 'declining') {
+    if (trends.stressLevel === 'high') {
+      return `Your ${consistencyPhrase} elevated stress levels may be impacting your wellness this week, with declining readiness scores.`;
+    } else {
+      return `Your ${consistencyPhrase} some challenges in your wellness patterns this week, with declining readiness scores.`;
+    }
+  } else {
+    // Stable trend
+    if (trends.readinessScoreTrend > 0) {
+      return `Your ${consistencyPhrase} a relatively stable wellness pattern this week, with slightly improving readiness.`;
+    } else {
+      return `Your ${consistencyPhrase} a relatively stable wellness pattern this week, with consistent readiness levels.`;
+    }
+  }
+}
+
+/**
+ * Generate insights about specific health areas
+ */
+function generateFocusAreaInsight(
+  trends: ReturnType<typeof analyzeWeeklyTrends>
+): string {
+  // Identify areas of concern
+  const concerns = [];
+  
+  if (trends.sleepQuality === 'poor') concerns.push("sleep quality");
+  if (trends.stressLevel === 'high') concerns.push("stress levels");
+  if (trends.activityConsistency === 'low') concerns.push("physical activity");
+  if (trends.hydration === 'poor') concerns.push("hydration");
+  if (trends.nutrition === 'poor') concerns.push("nutrition");
+  if (trends.substanceUse === 'concerning') concerns.push("substance intake");
+  
+  // Identify strengths
+  const strengths = [];
+  
+  if (trends.sleepQuality === 'good') strengths.push("sleep quality");
+  if (trends.stressLevel === 'low') strengths.push("stress management");
+  if (trends.activityConsistency === 'high') strengths.push("physical activity");
+  if (trends.hydration === 'good') strengths.push("hydration");
+  if (trends.nutrition === 'good') strengths.push("nutrition");
+  if (trends.substanceUse === 'minimal') strengths.push("lifestyle balance");
+  
+  if (concerns.length >= 2) {
+    return `Paying closer attention to your ${concerns[0]} and ${concerns[1]} may help improve your wellness outcomes.`;
+  } else if (concerns.length === 1) {
+    if (strengths.length >= 1) {
+      return `Your good ${strengths[0]} is supporting your wellness, though focusing on ${concerns[0]} could further enhance your readiness.`;
+    } else {
+      return `Focusing on your ${concerns[0]} could help improve your overall wellness and recovery.`;
+    }
+  } else if (strengths.length >= 2) {
+    return `Your consistent ${strengths[0]} and ${strengths[1]} are positively contributing to your wellness this week.`;
+  } else if (strengths.length === 1) {
+    return `Your ${strengths[0]} stands out as a positive factor in your wellness this week.`;
+  } else {
+    return `Multiple factors are influencing your wellness this week, with no single dominant pattern emerging.`;
+  }
+}
+
+/**
+ * Generate a recommendation based on trends
+ */
+function generateRecommendation(
+  trends: ReturnType<typeof analyzeWeeklyTrends>
+): string {
+  // Choose recommendation based on primary concern
+  if (trends.sleepQuality === 'poor') {
+    return "Consider implementing a consistent sleep routine to support recovery and overall wellness.";
+  } else if (trends.stressLevel === 'high') {
+    return "Adding brief stress-reduction practices to your daily routine may help improve your wellness outcomes.";
+  } else if (trends.activityConsistency === 'low') {
+    return "Introducing even short periods of movement throughout your day could positively impact your wellness measures.";
+  } else if (trends.hydration === 'poor') {
+    return "Increasing your daily water intake could help support your body's recovery processes.";
+  } else if (trends.nutrition === 'poor') {
+    return "Focusing on balanced nutrition may help improve your overall energy and recovery patterns.";
+  } else if (trends.substanceUse === 'concerning') {
+    return "Moderating your substance intake could potentially enhance your recovery and daily wellness.";
+  } else if (trends.symptomsPresent) {
+    return "Continue monitoring your symptoms as you maintain your wellness tracking routine.";
+  } else {
+    return "Keep maintaining your current healthy routines, as they appear to be supporting your wellness effectively.";
+  }
 }
 
 // Helper functions to calculate category scores

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Heart, ChevronDown, ChevronUp, Star, ArrowUp, Lightbulb } from 'lucide-react';
+import { ChevronDown, ChevronUp, Star, ArrowUp, Lightbulb } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useAssessment } from '@/contexts/AssessmentContext';
 import { getContributingFactors, getReadinessGrade } from '@/utils/readinessScoring';
@@ -8,7 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
-import { generateReadinessInsights, getTopContributingCategories } from '@/utils/insightGenerator';
+import { generateReadinessInsights, getTopContributingCategories, generateWeeklyWellnessSummary } from '@/utils/insightGenerator';
 import { getLastReading } from '@/utils/bleUtils';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -56,6 +56,9 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
     factors: [] as any[],
     recommendedActions: ["Maintain your current healthy routines to support recovery"]
   });
+  
+  // State for weekly wellness summary
+  const [weeklySummary, setWeeklySummary] = useState("");
   
   // State for top supporters and limiters
   const [topSupporters, setTopSupporters] = useState<string[]>([]);
@@ -128,6 +131,11 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
           setTopSupporters(supporters);
           setTopLimiters(limiters);
         }
+        
+        // Generate weekly wellness summary using the last 7 assessments
+        const pastWeekAssessments = sortedAssessments.slice(0, Math.min(7, sortedAssessments.length));
+        const summary = generateWeeklyWellnessSummary(pastWeekAssessments);
+        setWeeklySummary(summary);
       }
     }
     
@@ -241,12 +249,12 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
         </div>
       </div>
 
-      {/* Insight Summary */}
+      {/* Weekly Wellness Summary */}
       <div className="bg-white rounded-lg p-3 mb-3">
         <div className="flex items-start">
           <Lightbulb className="text-yellow-500 mt-0.5 mr-2" size={16} />
           <p className="text-sm text-gray-700">
-            {insights.summary}
+            {weeklySummary || "This week, your wellness appears moderately stable, with signs of elevated stress and inconsistent activity patterns. Paying closer attention to hydration and daily routines may support improved recovery and energy balance."}
           </p>
         </div>
       </div>
