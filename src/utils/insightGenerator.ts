@@ -1348,3 +1348,52 @@ function analyzeWeeklyTrends(assessments: AssessmentHistory[]): {
   
   return result;
 }
+
+/**
+ * Generates a condensed wellness summary for the dashboard view
+ * @param assessments Array of user assessments from the past week
+ * @returns A 1-2 sentence condensed summary of the user's weekly wellness
+ */
+export const generateCondensedWellnessSummary = (assessments: any[]): string => {
+  if (!assessments || assessments.length === 0) {
+    return "";
+  }
+
+  // Get the most significant patterns from the data
+  const patterns = analyzeWeeklyTrends(assessments);
+  
+  // Choose the top pattern to highlight
+  const topPattern = patterns[0];
+  
+  // Generate condensed insights (1-2 sentences max)
+  let summary = "";
+  
+  if (topPattern && topPattern.strength > 0.6) {
+    // Strong correlation found
+    summary = `This week, ${topPattern.description.toLowerCase()}`;
+    
+    // If we have a second pattern that's complementary, add it
+    if (patterns.length > 1 && patterns[1].strength > 0.5 && 
+        patterns[1].category !== topPattern.category) {
+      summary += ` while ${patterns[1].description.toLowerCase()}`;
+    }
+    
+    // Add period if needed
+    if (!summary.endsWith('.')) {
+      summary += '.';
+    }
+  } else {
+    // No strong patterns - use generic summary
+    const hasGoodMetrics = assessments.some(a => 
+      a.readinessScore > 80 || (a.data && a.data.sleepQuality > 7)
+    );
+    
+    if (hasGoodMetrics) {
+      summary = "Your wellness metrics show positive trends with good recovery on consistent days.";
+    } else {
+      summary = "This week shows moderate wellness stability with room for improvement in your daily routines.";
+    }
+  }
+  
+  return summary;
+};

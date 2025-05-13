@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Star, ArrowUp, Lightbulb } from 'lucide-react';
+import { ChevronDown, ChevronUp, Star, ArrowUp, Lightbulb, ArrowRight } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useAssessment } from '@/contexts/AssessmentContext';
 import { getContributingFactors, getReadinessGrade } from '@/utils/readinessScoring';
@@ -8,10 +8,11 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
-import { generateReadinessInsights, getTopContributingCategories, generateWeeklyWellnessSummary } from '@/utils/insightGenerator';
+import { generateReadinessInsights, getTopContributingCategories, generateWeeklyWellnessSummary, generateCondensedWellnessSummary } from '@/utils/insightGenerator';
 import { getLastReading } from '@/utils/bleUtils';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 interface ReadinessScoreProps {
   className?: string;
@@ -21,6 +22,7 @@ interface ReadinessScoreProps {
 const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScoreProps) => {
+  const navigate = useNavigate();
   const { completedAssessments, getReadinessHistory } = useAssessment();
   
   // State to store the latest readiness score
@@ -60,9 +62,17 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
   // State for weekly wellness summary
   const [weeklySummary, setWeeklySummary] = useState("");
   
+  // State for condensed wellness summary (for dashboard)
+  const [condensedSummary, setCondensedSummary] = useState("");
+  
   // State for top supporters and limiters
   const [topSupporters, setTopSupporters] = useState<string[]>([]);
   const [topLimiters, setTopLimiters] = useState<string[]>([]);
+  
+  // Handle navigation to trends page
+  const navigateToTrends = () => {
+    navigate('/trends');
+  };
   
   // Update readiness data when new assessments come in
   useEffect(() => {
@@ -136,6 +146,10 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
         const pastWeekAssessments = sortedAssessments.slice(0, Math.min(7, sortedAssessments.length));
         const summary = generateWeeklyWellnessSummary(pastWeekAssessments);
         setWeeklySummary(summary);
+        
+        // Generate condensed wellness summary for dashboard
+        const condensed = generateCondensedWellnessSummary(pastWeekAssessments);
+        setCondensedSummary(condensed);
       }
     }
     
@@ -249,15 +263,32 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
         </div>
       </div>
 
-      {/* Enhanced Weekly Wellness Insights */}
+      {/* Enhanced Weekly Wellness Insights - Conditional rendering based on showDetailed prop */}
       <div className="bg-white rounded-lg p-4 mb-3">
         <div className="flex items-start space-x-3">
           <Lightbulb className="text-yellow-500 mt-1 flex-shrink-0" size={20} />
-          <div className="space-y-2">
+          <div className="space-y-2 flex-1">
             <h4 className="font-medium text-sm text-gray-800">Weekly Wellness Insights</h4>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              {weeklySummary || "This week, your wellness appears moderately stable, with signs of elevated stress and inconsistent activity patterns. Days with better hydration coincided with improved energy levels and fewer reported symptoms. Consistent sleep patterns seem to support your recovery processes, even on days with higher stress. Looking ahead, incorporating brief movement breaks throughout your day could help optimize your energy balance and recovery."}
-            </p>
+            
+            {/* Show condensed version for dashboard, full version for trends page */}
+            {!showDetailed ? (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {condensedSummary || "This week, your wellness metrics show moderate stability with improved recovery on consistent routine days."}
+                </p>
+                <button 
+                  onClick={navigateToTrends} 
+                  className="ml-2 p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full flex-shrink-0 transition-colors"
+                  aria-label="View detailed insights"
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {weeklySummary || "This week, your wellness appears moderately stable, with signs of elevated stress and inconsistent activity patterns. Days with better hydration coincided with improved energy levels and fewer reported symptoms. Consistent sleep patterns seem to support your recovery processes, even on days with higher stress. Looking ahead, incorporating brief movement breaks throughout your day could help optimize your energy balance and recovery."}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -302,7 +333,7 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
               <div className="mt-4">
                 <button 
                   className="w-full py-2.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium"
-                  onClick={() => window.location.href = '/trends'}
+                  onClick={navigateToTrends}
                 >
                   View Detailed History
                 </button>

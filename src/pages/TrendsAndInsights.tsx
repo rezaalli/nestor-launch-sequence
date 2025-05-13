@@ -79,7 +79,7 @@ const TrendsAndInsights = () => {
       <main>
         {activeTab === 'metrics' ? (
           <div className="px-4 py-6">
-            {/* Readiness Score */}
+            {/* Readiness Score - passing showDetailed prop as true for the full version */}
             <section className="mb-8">
               <ReadinessScore className="mb-8" showDetailed={true} />
             </section>
