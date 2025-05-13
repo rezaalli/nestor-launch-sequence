@@ -284,7 +284,7 @@ const Dashboard = () => {
           </button>
         </div>
         
-        {/* Sync Button - New addition */}
+        {/* Sync Button */}
         <div className="px-6 mt-2">
           <Button 
             variant="outline" 
@@ -297,7 +297,7 @@ const Dashboard = () => {
           </Button>
         </div>
         
-        {/* Readiness Score Card (replaced Wellness Score) */}
+        {/* Enhanced Readiness Score Card */}
         <div className="mx-6 mt-4">
           <ReadinessScore />
         </div>
@@ -318,14 +318,14 @@ const Dashboard = () => {
             </button>
           </div>
           
-          {/* Updated Health Metrics component with direct drag-and-drop handling */}
+          {/* Health Metrics component */}
           <HealthMetrics 
             customizeMode={customizeMode} 
             availableMetrics={availableMetrics}
           />
         </div>
         
-        {/* Daily Wellness Survey Button - Updated text to Assessment */}
+        {/* Daily Wellness Survey Button */}
         <button 
           className="mx-6 mt-6 py-3.5 bg-blue-900 text-white font-medium rounded-lg flex items-center justify-center"
           onClick={handleLifestyleCheckIn}
