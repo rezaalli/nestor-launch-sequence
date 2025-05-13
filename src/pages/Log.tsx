@@ -139,7 +139,7 @@ const Log = () => {
       </div>
 
       {/* Log Categories */}
-      <div className="px-6 mt-6">
+      <div className="px-6 mt-6 pb-20">
         {/* Activity Log */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
