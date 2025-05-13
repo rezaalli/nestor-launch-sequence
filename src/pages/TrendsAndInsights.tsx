@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, Calendar, MoreVertical } from 'lucide-react';
 import StatusBar from '@/components/StatusBar';

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3, RefreshCw, Move, Cog } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -298,9 +297,7 @@ const Dashboard = () => {
         </div>
         
         {/* Enhanced Readiness Score Card */}
-        <div className="mx-6 mt-4">
-          <ReadinessScore />
-        </div>
+        <ReadinessScore className="mx-6 mt-4" />
         
         {/* Real-time Metrics */}
         <div className="px-6 mt-5">

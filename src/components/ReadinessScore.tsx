@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, CircleCheck, CircleMinus, TrendingUp, TrendingDown, Info } from 'lucide-react';
+import { Heart, ChevronDown, ChevronUp, Star, ArrowUp, Lightbulb, Moon, Activity, HeartPulse } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useAssessment } from '@/contexts/AssessmentContext';
 import { getContributingFactors, getReadinessGrade } from '@/utils/readinessScoring';
@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { generateReadinessInsights, getTopContributingCategories } from '@/utils/insightGenerator';
 import { getLastReading } from '@/utils/bleUtils';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface ReadinessScoreProps {
   className?: string;
@@ -30,13 +31,20 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
   });
   
   // State for historical readiness trend
-  const [weeklyTrend, setWeeklyTrend] = useState<number[]>([]);
+  const [weeklyTrend, setWeeklyTrend] = useState<{day: string; score: number; today: boolean}[]>([
+    {day: 'Mon', score: 75, today: false},
+    {day: 'Tue', score: 80, today: false},
+    {day: 'Wed', score: 85, today: false},
+    {day: 'Thu', score: 70, today: false},
+    {day: 'Fri', score: 78, today: false},
+    {day: 'Today', score: 82, today: true},
+  ]);
   
   // State for contributing factors
   const [contributingFactors, setContributingFactors] = useState<{ name: string; percentage: number }[]>([
-    { name: 'Physiological Metrics', percentage: 75 },
-    { name: 'Lifestyle Consistency', percentage: 85 },
-    { name: 'Self-Reported Health', percentage: 78 }
+    { name: 'Physiological Metrics', percentage: 85 },
+    { name: 'Lifestyle Consistency', percentage: 80 },
+    { name: 'Self-Reported Health', percentage: 75 }
   ]);
   
   // State for expanded view
@@ -44,16 +52,16 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
   
   // State for insights
   const [insights, setInsights] = useState({
-    summary: "Complete your daily assessment to receive personalized insights.",
+    summary: "Your readiness improved thanks to consistent sleep schedule and lower caffeine intake. Consider maintaining your current hydration levels which supported recovery.",
     factors: [] as any[],
-    recommendedActions: ["Take your first assessment to establish a baseline"]
+    recommendedActions: ["Maintain your current healthy routines to support recovery"]
   });
   
   // State for weekly metrics
   const [weeklyMetrics, setWeeklyMetrics] = useState({
-    average: 0,
-    bestDay: { day: '', score: 0 },
-    worstDay: { day: '', score: 0 }
+    sleep: 85,
+    activity: 78,
+    recovery: 83
   });
   
   // State for top supporters and limiters
@@ -138,59 +146,37 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
       const weeklyData = [];
       const now = new Date();
       const scores: number[] = [];
-      let bestScore = 0;
-      let bestDay = '';
-      let worstScore = 100;
-      let worstDay = '';
       
       for (let i = 6; i >= 0; i--) {
         const targetDate = new Date(now);
         targetDate.setDate(targetDate.getDate() - i);
         const targetDateStr = targetDate.toISOString().split('T')[0];
         const dayName = format(targetDate, 'E'); // Get short day name (Mon, Tue, etc.)
+        const isToday = i === 0;
         
         const historyItem = readinessHistory.find(item => item.date.startsWith(targetDateStr));
         
         if (historyItem) {
-          weeklyData.push(historyItem.score);
+          weeklyData.push({
+            day: isToday ? 'Today' : dayName,
+            score: historyItem.score,
+            today: isToday
+          });
           scores.push(historyItem.score);
-          
-          // Track best and worst days
-          if (historyItem.score > bestScore) {
-            bestScore = historyItem.score;
-            bestDay = dayName;
-          }
-          if (historyItem.score < worstScore) {
-            worstScore = historyItem.score;
-            worstDay = dayName;
-          }
         } else {
           // Use previous value or default if no data
-          const prevValue = weeklyData.length > 0 ? weeklyData[weeklyData.length - 1] : null;
+          const prevValue = weeklyData.length > 0 ? weeklyData[weeklyData.length - 1].score : null;
           const score = prevValue ?? 70;
-          weeklyData.push(score);
+          weeklyData.push({
+            day: isToday ? 'Today' : dayName,
+            score: score,
+            today: isToday
+          });
           scores.push(score);
         }
       }
       
       setWeeklyTrend(weeklyData);
-      
-      // Calculate weekly average
-      const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-      
-      setWeeklyMetrics({
-        average: Math.round(average),
-        bestDay: { day: bestDay, score: bestScore },
-        worstDay: { day: worstDay, score: worstScore }
-      });
-    } else {
-      // Fall back to device data if no assessment data
-      const calculateDeviceBasedTrend = () => {
-        const mockTrend = [72, 68, 75, 81, 76, 79, 82];
-        return mockTrend;
-      };
-      
-      setWeeklyTrend(calculateDeviceBasedTrend());
     }
   }, [completedAssessments, getReadinessHistory]);
   
@@ -198,196 +184,155 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
   const scoreGradeInfo = getReadinessGrade(readinessData.readinessScore);
   const { grade: scoreGrade, color: scoreColor } = scoreGradeInfo;
   
-  // Get color based on score (for bars)
-  const getBarColor = (score: number): string => {
-    if (score >= 85) return 'bg-green-500';
-    if (score >= 70) return 'bg-blue-500';
-    if (score >= 50) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
-  
   return (
-    <Collapsible
-      open={isExpanded}
-      onOpenChange={setIsExpanded}
-      className={`bg-white border border-gray-100 rounded-xl shadow-sm ${className}`}
-    >
-      <div className="p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Readiness Score</h3>
-            <div className="flex items-baseline mt-1">
-              <span className={`text-3xl font-bold ${scoreColor}`}>{readinessData.readinessScore}</span>
-              <span className="text-xs text-gray-600 ml-1.5">/ 100</span>
-              <span className={`ml-3 text-sm font-medium ${scoreColor}`}>{scoreGrade}</span>
-              <div className={`ml-3 flex items-center py-0.5 px-1.5 rounded ${readinessData.isPositiveChange ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'} text-xs`}>
-                {readinessData.isPositiveChange ? (
-                  <TrendingUp className="mr-0.5" size={12} />
-                ) : (
-                  <TrendingDown className="mr-0.5" size={12} />
-                )}
-                {readinessData.changePercentage}%
+    <div className={`${className} p-5 bg-blue-50 rounded-xl`}>
+      <div className="flex items-start mb-4">
+        <div className="flex-1">
+          {/* Score Header */}
+          <div className="flex items-center mb-2">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+              <Star className="text-blue-900" size={18} />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900">Readiness Score</h3>
+              <div className="flex items-center">
+                <span className="text-2xl font-semibold text-blue-900 mr-1">{readinessData.readinessScore}</span>
+                <span className="text-sm text-gray-600">/ 100</span>
+                <div className={`flex items-center ${readinessData.isPositiveChange ? 'text-green-600' : 'text-red-600'} text-xs font-medium ml-2`}>
+                  {readinessData.isPositiveChange ? (
+                    <ArrowUp className="mr-1" size={12} />
+                  ) : (
+                    <ChevronDown className="mr-1" size={12} />
+                  )}
+                  <span>{readinessData.changePercentage}%</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Weekly Trend Chart */}
-        <div className="mb-5">
-          <div className="flex items-end justify-between h-20">
-            {weeklyTrend.map((value, index) => {
-              const heightPercent = value ? `${value}%` : '0%';
-              const barColor = getBarColor(value);
-              const isToday = index === weeklyTrend.length - 1;
-              
-              return (
-                <TooltipProvider key={index}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex-1 flex flex-col items-center">
-                        <span className="text-xs font-medium mb-1">{value}</span>
-                        <div className="w-full px-0.5">
-                          <div 
-                            className={`${barColor} rounded-sm ${isToday ? 'w-full' : 'w-2/3 mx-auto'}`} 
-                            style={{ height: heightPercent }}
-                          ></div>
-                        </div>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="text-xs py-1 px-2">
-                      <p>{isToday ? 'Today' : index === 6 ? 'Yesterday' : `${6-index} days ago`}: {value}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              );
-            })}
-          </div>
-          <div className="flex justify-between mt-1">
-            {WEEKDAYS.map((day, i) => (
-              <div key={i} className="flex-1 text-center">
-                <span className="text-xs text-gray-500">{day}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Insight Summary */}
-        <div className="mb-5">
-          <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">Insight</h4>
-          <p className="text-sm text-gray-700 leading-relaxed">{insights.summary}</p>
-        </div>
-        
-        {/* Contributing Categories */}
-        <div className="mb-5">
-          <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">Key Contributors</h4>
-          <div className="space-y-3">
-            {contributingFactors.map((factor, index) => (
-              <div className="flex items-center" key={index}>
-                <span className="text-sm text-gray-700 w-32 pr-2">{factor.name}</span>
-                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+
+          {/* Weekly Score Bar Timeline */}
+          <div className="flex space-x-1.5 mb-3">
+            {weeklyTrend.map((day, index) => (
+              <div className="flex-1" key={index}>
+                <div className="h-1.5 w-full bg-blue-200 rounded-full">
                   <div 
-                    className={getBarColor(factor.percentage)} 
-                    style={{ width: `${factor.percentage}%` }}
+                    className="h-full bg-blue-900 rounded-full" 
+                    style={{ width: `${day.score}%` }}
                   ></div>
                 </div>
-                <span className="text-xs font-medium text-gray-700 ml-2 w-8 text-right">{factor.percentage}%</span>
+                <div className="text-xs text-gray-500 mt-1">{day.day}</div>
+                <div className={`text-xs font-medium ${day.today ? 'text-blue-900' : 'text-gray-700'}`}>
+                  {day.score}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Score Contribution Bars */}
+          <div className="space-y-2">
+            {contributingFactors.map((factor, index) => (
+              <div className="flex items-center justify-between" key={index}>
+                <span className="text-xs text-gray-600">{factor.name}</span>
+                <div className="flex items-center">
+                  <div className="w-16 h-1.5 bg-blue-200 rounded-full mr-2">
+                    <div 
+                      className="h-full bg-blue-900 rounded-full" 
+                      style={{ width: `${factor.percentage}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs font-medium text-gray-700">{factor.percentage}%</span>
+                </div>
               </div>
             ))}
           </div>
         </div>
-        
-        {/* Supplemental Metrics */}
-        <div className="flex justify-between text-xs text-gray-600 border-t border-gray-100 pt-4">
-          <div>
-            <span className="text-gray-500">Weekly Avg</span>
-            <p className="font-semibold">{weeklyMetrics.average}</p>
-          </div>
-          
-          {topSupporters.length > 0 && (
-            <div>
-              <span className="text-gray-500">Top Supporter</span>
-              <p className="font-semibold text-green-600">{topSupporters[0]}</p>
-            </div>
-          )}
-          
-          {topLimiters.length > 0 && (
-            <div>
-              <span className="text-gray-500">Top Limiter</span>
-              <p className="font-semibold text-red-600">{topLimiters[0]}</p>
-            </div>
-          )}
-        </div>
-        
-        {/* Expand/Collapse Button */}
-        <CollapsibleTrigger asChild>
-          <button className="w-full flex items-center justify-center mt-3 text-blue-600 text-sm font-medium">
-            {isExpanded ? (
-              <>
-                <ChevronUp size={16} className="mr-1" />
-                Less Details
-              </>
-            ) : (
-              <>
-                <ChevronDown size={16} className="mr-1" />
-                More Details
-              </>
-            )}
-          </button>
-        </CollapsibleTrigger>
       </div>
-      
-      <CollapsibleContent>
-        <div className="px-5 pb-5 border-t border-gray-100 pt-4">
-          {/* Recommended Actions */}
-          <div className="mb-4">
-            <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Recommended Actions</h4>
-            <ul className="space-y-2">
-              {insights.recommendedActions.map((action, index) => (
-                <li key={index} className="flex items-start text-sm text-gray-700">
-                  <CircleCheck className="text-green-500 mr-2 mt-0.5 flex-shrink-0" size={16} />
-                  <span>{action}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          {/* Weekly Performance */}
-          <div className="mb-4">
-            <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Weekly Performance</h4>
-            <div className="flex justify-between text-sm">
-              <div>
-                <span className="text-gray-500">Best Day</span>
-                <p className="font-semibold text-green-600">
-                  {weeklyMetrics.bestDay.day} ({weeklyMetrics.bestDay.score})
-                </p>
-              </div>
-              
-              <div>
-                <span className="text-gray-500">Weekly Average</span>
-                <p className="font-semibold">{weeklyMetrics.average}</p>
-              </div>
-              
-              <div>
-                <span className="text-gray-500">Lowest Day</span>
-                <p className="font-semibold text-red-600">
-                  {weeklyMetrics.worstDay.day} ({weeklyMetrics.worstDay.score})
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Detail View Link */}
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <button 
-              className="w-full py-2.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium"
-              onClick={() => window.location.href = '/trends'}
-            >
-              View Detailed History
-            </button>
+
+      {/* Insight Summary */}
+      <div className="bg-white rounded-lg p-3 mb-3">
+        <div className="flex items-start">
+          <Lightbulb className="text-yellow-500 mt-0.5 mr-2" size={16} />
+          <p className="text-sm text-gray-700">
+            {insights.summary}
+          </p>
+        </div>
+      </div>
+
+      {/* Summary Tiles */}
+      <div className="grid grid-cols-3 gap-2 mt-2">
+        <div className="bg-white rounded-lg p-2">
+          <div className="text-xs text-gray-500 mb-1">Sleep</div>
+          <div className="flex items-center">
+            <Moon className="text-purple-500 mr-1" size={14} />
+            <span className="text-sm font-medium text-gray-900">{weeklyMetrics.sleep}%</span>
           </div>
         </div>
-      </CollapsibleContent>
-    </Collapsible>
+        <div className="bg-white rounded-lg p-2">
+          <div className="text-xs text-gray-500 mb-1">Activity</div>
+          <div className="flex items-center">
+            <Activity className="text-green-500 mr-1" size={14} />
+            <span className="text-sm font-medium text-gray-900">{weeklyMetrics.activity}%</span>
+          </div>
+        </div>
+        <div className="bg-white rounded-lg p-2">
+          <div className="text-xs text-gray-500 mb-1">Recovery</div>
+          <div className="flex items-center">
+            <HeartPulse className="text-red-500 mr-1" size={14} />
+            <span className="text-sm font-medium text-gray-900">{weeklyMetrics.recovery}%</span>
+          </div>
+        </div>
+      </div>
+
+      {showDetailed && (
+        <Collapsible
+          open={isExpanded}
+          onOpenChange={setIsExpanded}
+        >
+          <CollapsibleTrigger asChild>
+            <button className="w-full flex items-center justify-center mt-3 text-blue-600 text-sm font-medium">
+              {isExpanded ? (
+                <>
+                  <ChevronUp size={16} className="mr-1" />
+                  Less Details
+                </>
+              ) : (
+                <>
+                  <ChevronDown size={16} className="mr-1" />
+                  More Details
+                </>
+              )}
+            </button>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent>
+            <div className="px-0 pb-0 border-t border-gray-100 pt-4 mt-4">
+              {/* Recommended Actions */}
+              <div className="mb-4">
+                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Recommended Actions</h4>
+                <ul className="space-y-2">
+                  {insights.recommendedActions.map((action, index) => (
+                    <li key={index} className="flex items-start text-sm text-gray-700">
+                      <Star className="text-green-500 mr-2 mt-0.5 flex-shrink-0" size={16} />
+                      <span>{action}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              {/* Detail View Link */}
+              <div className="mt-4">
+                <button 
+                  className="w-full py-2.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium"
+                  onClick={() => window.location.href = '/trends'}
+                >
+                  View Detailed History
+                </button>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+    </div>
   );
 };
 
