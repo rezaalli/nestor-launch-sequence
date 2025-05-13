@@ -1,7 +1,7 @@
-
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
-import './index.css'
+import './index.css';
+import './components/trends/fonts.css';
 
 // Add Inter font link to document head
 const interFontLink = document.createElement('link');
