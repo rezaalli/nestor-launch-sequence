@@ -85,7 +85,7 @@ const Log = () => {
     }
   };
   
-  return <div className="min-h-screen bg-white">
+  return <div className="min-h-screen pb-20 bg-white">
       <StatusBar />
       
       {/* Header */}
@@ -195,6 +195,35 @@ const Log = () => {
                 </div>
               </div>
             </div>
+            
+            {/* Additional activity item */}
+            <div className="p-4 bg-white border border-gray-200 rounded-xl">
+              <div className="flex items-start">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                  <Bike className="text-blue-600" size={20} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900">Evening Ride</h4>
+                    <span className="text-sm text-gray-500">6:45 PM</span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-3 gap-4">
+                    <div className="text-sm">
+                      <span className="text-gray-500">Distance</span>
+                      <p className="font-medium text-gray-900">12.8 km</p>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-gray-500">Duration</span>
+                      <p className="font-medium text-gray-900">52 min</p>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-gray-500">Avg. Speed</span>
+                      <p className="font-medium text-gray-900">14.7 km/h</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -238,6 +267,41 @@ const Log = () => {
                     <span className="text-sm text-gray-500">12:45 PM</span>
                   </div>
                   <p className="text-sm text-gray-600">Grilled chicken salad with avocado</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Additional meal item */}
+            <div className="p-4 bg-white border border-gray-200 rounded-xl">
+              <div className="flex items-start">
+                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mr-3">
+                  <Utensils className="text-orange-600" size={20} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-gray-900">Dinner</h4>
+                    <span className="text-sm text-gray-500">7:15 PM</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">Salmon with roasted vegetables and quinoa</p>
+                  <div className="relative h-32 w-full rounded-lg overflow-hidden">
+                    <img className="w-full h-full object-cover" src="/lovable-uploads/987f368f-d87f-420a-94e9-c096b6fb0cf9.png" alt="Daily wellness assessment" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Snack item */}
+            <div className="p-4 bg-white border border-gray-200 rounded-xl">
+              <div className="flex items-start">
+                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mr-3">
+                  <Utensils className="text-orange-600" size={20} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900">Afternoon Snack</h4>
+                    <span className="text-sm text-gray-500">3:30 PM</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Greek yogurt with berries and honey</p>
                 </div>
               </div>
             </div>
@@ -370,6 +434,170 @@ const Log = () => {
                     </>
                   )}
                 </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Health Metrics Section - New section to increase scroll length */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-500">HEALTH METRICS</h3>
+          </div>
+          
+          <div className="space-y-3">
+            {/* Heart Rate Card */}
+            <div className="p-4 bg-white border border-gray-200 rounded-xl">
+              <div className="flex items-start">
+                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
+                  <Heart className="text-red-500" size={20} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900">Heart Rate</h4>
+                    <span className="text-sm text-gray-500">Last updated: 30m ago</span>
+                  </div>
+                  
+                  <div className="mt-3">
+                    <div className="flex items-end">
+                      <span className="text-2xl font-semibold">68</span>
+                      <span className="ml-1 text-gray-500 text-sm mb-1">bpm</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Resting: 62 bpm • Max today: 142 bpm</p>
+                    
+                    {/* Simple line chart visualization */}
+                    <div className="mt-3 h-16 flex items-end space-x-1">
+                      {[20, 35, 25, 40, 30, 45, 55, 65, 60, 50, 58, 62].map((value, i) => (
+                        <div 
+                          key={i} 
+                          className="flex-1 bg-red-100 rounded-t"
+                          style={{ height: `${value}%` }}
+                        ></div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>6 AM</span>
+                      <span>12 PM</span>
+                      <span>6 PM</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Sleep Card */}
+            <div className="p-4 bg-white border border-gray-200 rounded-xl">
+              <div className="flex items-start">
+                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                  <Moon className="text-indigo-600" size={20} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900">Sleep</h4>
+                  </div>
+                  
+                  <div className="mt-3">
+                    <div className="flex items-end">
+                      <span className="text-2xl font-semibold">7h 45m</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">11:15 PM - 7:00 AM</p>
+                    
+                    {/* Sleep phases visualization */}
+                    <div className="mt-3 h-8 flex rounded-lg overflow-hidden">
+                      <div className="bg-indigo-800 w-[15%]" title="Deep sleep"></div>
+                      <div className="bg-indigo-600 w-[30%]" title="REM sleep"></div>
+                      <div className="bg-indigo-400 w-[40%]" title="Light sleep"></div>
+                      <div className="bg-indigo-200 w-[15%]" title="Awake"></div>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500 mt-2">
+                      <div>
+                        <span className="inline-block w-3 h-3 bg-indigo-800 rounded-sm mr-1"></span>
+                        <span>Deep: 1h 10m</span>
+                      </div>
+                      <div>
+                        <span className="inline-block w-3 h-3 bg-indigo-600 rounded-sm mr-1"></span>
+                        <span>REM: 2h 20m</span>
+                      </div>
+                      <div>
+                        <span className="inline-block w-3 h-3 bg-indigo-400 rounded-sm mr-1"></span>
+                        <span>Light: 3h 10m</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Goals Section - New section to increase scroll length */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-500">TODAY'S GOALS</h3>
+            <button className="text-sm text-blue-900 font-medium flex items-center">
+              <Plus className="mr-1" size={16} />
+              Add Goal
+            </button>
+          </div>
+          
+          <div className="space-y-3">
+            {/* Steps Goal */}
+            <div className="p-4 bg-white border border-gray-200 rounded-xl">
+              <div className="flex items-center">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                  <span className="text-green-600 text-sm">👣</span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900">Steps</h4>
+                    <span className="text-sm text-green-600 font-medium">8,547 / 10,000</span>
+                  </div>
+                  
+                  {/* Progress bar */}
+                  <div className="mt-2 h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-green-500 rounded-full" style={{ width: '85%' }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Water Goal */}
+            <div className="p-4 bg-white border border-gray-200 rounded-xl">
+              <div className="flex items-center">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                  <span className="text-blue-600 text-sm">💧</span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900">Water Intake</h4>
+                    <span className="text-sm text-blue-600 font-medium">1.2L / 2.5L</span>
+                  </div>
+                  
+                  {/* Progress bar */}
+                  <div className="mt-2 h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full" style={{ width: '48%' }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Active Minutes Goal */}
+            <div className="p-4 bg-white border border-gray-200 rounded-xl">
+              <div className="flex items-center">
+                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mr-3">
+                  <Activity className="text-orange-600" size={20} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900">Active Minutes</h4>
+                    <span className="text-sm text-orange-600 font-medium">45 / 60 min</span>
+                  </div>
+                  
+                  {/* Progress bar */}
+                  <div className="mt-2 h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-orange-500 rounded-full" style={{ width: '75%' }}></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
