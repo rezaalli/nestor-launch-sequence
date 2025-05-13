@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Heart, ChevronDown, ChevronUp, Star, ArrowUp, Lightbulb, Moon, Activity, HeartPulse } from 'lucide-react';
+import { Heart, ChevronDown, ChevronUp, Star, ArrowUp, Lightbulb, Activity, HeartPulse } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useAssessment } from '@/contexts/AssessmentContext';
 import { getContributingFactors, getReadinessGrade } from '@/utils/readinessScoring';
@@ -59,7 +59,6 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
   
   // State for weekly metrics
   const [weeklyMetrics, setWeeklyMetrics] = useState({
-    sleep: 85,
     activity: 78,
     recovery: 83
   });
@@ -258,15 +257,8 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
         </div>
       </div>
 
-      {/* Summary Tiles */}
-      <div className="grid grid-cols-3 gap-2 mt-2">
-        <div className="bg-white rounded-lg p-2">
-          <div className="text-xs text-gray-500 mb-1">Sleep</div>
-          <div className="flex items-center">
-            <Moon className="text-purple-500 mr-1" size={14} />
-            <span className="text-sm font-medium text-gray-900">{weeklyMetrics.sleep}%</span>
-          </div>
-        </div>
+      {/* Summary Tiles - REMOVED SLEEP, KEPT ACTIVITY AND RECOVERY */}
+      <div className="grid grid-cols-2 gap-2 mt-2">
         <div className="bg-white rounded-lg p-2">
           <div className="text-xs text-gray-500 mb-1">Activity</div>
           <div className="flex items-center">
