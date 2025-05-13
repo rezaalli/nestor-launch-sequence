@@ -220,3 +220,74 @@ export function getRecentPatterns(
     return detectedDate >= cutoffDate;
   });
 }
+
+/**
+ * Find the most frequent assessment values for a given question ID
+ */
+export function findMostFrequentValues(
+  assessments: AssessmentHistory[],
+  questionId: number
+): { value: string; count: number }[] {
+  const valueFrequency: Record<string, number> = {};
+  
+  for (const assessment of assessments) {
+    const values = assessment.data.selectedOptions[questionId] || [];
+    
+    for (const value of values) {
+      valueFrequency[value] = (valueFrequency[value] || 0) + 1;
+    }
+  }
+  
+  return Object.entries(valueFrequency)
+    .map(([value, count]) => ({ value, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+/**
+ * Check if a pattern appears to be cyclical over time
+ */
+export function detectCyclicalPattern(
+  assessments: AssessmentHistory[],
+  questionId: number,
+  value: string,
+  daysToCheck: number = 28
+): { isCyclical: boolean; intervalDays?: number } {
+  if (assessments.length < 4) return { isCyclical: false };
+  
+  // Sort assessments by date
+  const sortedAssessments = [...assessments]
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+  // Find days where the value appears
+  const occurrenceDates: number[] = [];
+  
+  for (let i = 0; i < sortedAssessments.length; i++) {
+    const assessment = sortedAssessments[i];
+    const values = assessment.data.selectedOptions[questionId] || [];
+    
+    if (values.includes(value)) {
+      occurrenceDates.push(new Date(assessment.date).getTime());
+    }
+  }
+  
+  // Need at least 3 occurrences to detect a pattern
+  if (occurrenceDates.length < 3) return { isCyclical: false };
+  
+  // Calculate intervals between occurrences
+  const intervals: number[] = [];
+  for (let i = 1; i < occurrenceDates.length; i++) {
+    const daysDiff = (occurrenceDates[i] - occurrenceDates[i-1]) / (1000 * 60 * 60 * 24);
+    intervals.push(Math.round(daysDiff));
+  }
+  
+  // Check if intervals are consistent
+  const avgInterval = intervals.reduce((sum, val) => sum + val, 0) / intervals.length;
+  const deviation = intervals.reduce((sum, val) => sum + Math.abs(val - avgInterval), 0) / intervals.length;
+  
+  // If deviation is less than 20% of the average interval, consider it cyclical
+  if (deviation < 0.2 * avgInterval && avgInterval <= daysToCheck) {
+    return { isCyclical: true, intervalDays: Math.round(avgInterval) };
+  }
+  
+  return { isCyclical: false };
+}

@@ -249,13 +249,16 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
         </div>
       </div>
 
-      {/* Weekly Wellness Summary */}
-      <div className="bg-white rounded-lg p-3 mb-3">
-        <div className="flex items-start">
-          <Lightbulb className="text-yellow-500 mt-0.5 mr-2" size={16} />
-          <p className="text-sm text-gray-700">
-            {weeklySummary || "This week, your wellness appears moderately stable, with signs of elevated stress and inconsistent activity patterns. Paying closer attention to hydration and daily routines may support improved recovery and energy balance."}
-          </p>
+      {/* Enhanced Weekly Wellness Summary - now with more detailed insights */}
+      <div className="bg-white rounded-lg p-4 mb-3">
+        <div className="flex items-start space-x-3">
+          <Lightbulb className="text-yellow-500 mt-1 flex-shrink-0" size={18} />
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm text-gray-800">Weekly Wellness Insights</h4>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {weeklySummary || "This week, your wellness appears moderately stable, with signs of elevated stress and inconsistent activity patterns. Days with better hydration coincided with improved energy levels and fewer reported symptoms. Consistent sleep patterns seem to support your recovery processes, even on days with higher stress. Looking ahead, incorporating brief movement breaks throughout your day could help optimize your energy balance and recovery."}
+            </p>
+          </div>
         </div>
       </div>
 
