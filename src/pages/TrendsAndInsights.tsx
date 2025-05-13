@@ -9,6 +9,7 @@ import { useAssessment } from '@/contexts/AssessmentContext';
 import WeeklyBarChart from '@/components/WeeklyBarChart';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DailyAssessmentTab from '@/components/trends/DailyAssessmentTab';
+import ReadinessScore from '@/components/ReadinessScore';
 
 const TrendsAndInsights = () => {
   const navigate = useNavigate();
@@ -78,6 +79,11 @@ const TrendsAndInsights = () => {
       <main>
         {activeTab === 'metrics' ? (
           <div className="px-4 py-6">
+            {/* Readiness Score */}
+            <section className="mb-8">
+              <ReadinessScore className="mb-8" showDetailed={true} />
+            </section>
+            
             {/* Quick Stats */}
             <section className="mb-8">
               <div className="grid grid-cols-2 gap-4">

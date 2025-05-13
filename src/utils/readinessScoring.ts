@@ -217,8 +217,8 @@ export function getContributingFactors(assessmentData: AssessmentData): {
   const selfReportedPercentage = 100 - (selfReportedScore / maxSelfReported * 100);
   
   return [
-    { name: 'Sleep Quality', percentage: Math.round(physiologicalPercentage) },
-    { name: 'Lifestyle', percentage: Math.round(lifestylePercentage) },
-    { name: 'Wellness', percentage: Math.round(selfReportedPercentage) }
+    { name: 'Physiological Metrics', percentage: Math.round(physiologicalPercentage) },
+    { name: 'Lifestyle Consistency', percentage: Math.round(lifestylePercentage) },
+    { name: 'Self-Reported Health', percentage: Math.round(selfReportedPercentage) }
   ];
 }

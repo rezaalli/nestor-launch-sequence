@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { Star, ArrowUp, ArrowDown, Info, ChevronDown, ChevronUp, Badge, Activity, Coffee, Sun } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ChevronDown, ChevronUp, CircleCheck, CircleMinus, TrendingUp, TrendingDown, Info } from 'lucide-react';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useAssessment } from '@/contexts/AssessmentContext';
 import { getContributingFactors, getReadinessGrade } from '@/utils/readinessScoring';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
 import { generateReadinessInsights, getTopContributingCategories } from '@/utils/insightGenerator';
@@ -17,14 +17,7 @@ interface ReadinessScoreProps {
   showDetailed?: boolean;
 }
 
-const CATEGORY_ICONS: Record<string, any> = {
-  "Sleep Quality": Sun,
-  "Mental Health": Coffee,
-  "Physical Activity": Activity,
-  "Nutrition": Coffee,
-  "Substance Use": Coffee,
-  "Symptoms": Info
-};
+const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScoreProps) => {
   const { completedAssessments, getReadinessHistory } = useAssessment();
@@ -41,9 +34,9 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
   
   // State for contributing factors
   const [contributingFactors, setContributingFactors] = useState<{ name: string; percentage: number }[]>([
-    { name: 'Sleep Quality', percentage: 75 },
-    { name: 'Lifestyle', percentage: 85 },
-    { name: 'Wellness', percentage: 78 }
+    { name: 'Physiological Metrics', percentage: 75 },
+    { name: 'Lifestyle Consistency', percentage: 85 },
+    { name: 'Self-Reported Health', percentage: 78 }
   ]);
   
   // State for expanded view
@@ -63,12 +56,9 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
     worstDay: { day: '', score: 0 }
   });
   
-  // State for category breakdown
-  const [categoryBreakdown, setcategoryBreakdown] = useState<{
-    category: string;
-    score: number;
-    impact: 'positive' | 'negative' | 'neutral';
-  }[]>([]);
+  // State for top supporters and limiters
+  const [topSupporters, setTopSupporters] = useState<string[]>([]);
+  const [topLimiters, setTopLimiters] = useState<string[]>([]);
   
   // Update readiness data when new assessments come in
   useEffect(() => {
@@ -105,16 +95,37 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
         // Calculate contributing factors if assessment data available
         if (latestAssessment.data) {
           const factors = getContributingFactors(latestAssessment.data);
-          setContributingFactors(factors);
+          
+          // Rename the factors to match the new naming convention
+          const renamedFactors = factors.map(factor => {
+            if (factor.name === 'Sleep Quality') return { ...factor, name: 'Physiological Metrics' };
+            if (factor.name === 'Lifestyle') return { ...factor, name: 'Lifestyle Consistency' };
+            if (factor.name === 'Wellness') return { ...factor, name: 'Self-Reported Health' };
+            return factor;
+          });
+          
+          setContributingFactors(renamedFactors);
           
           // Generate insights
           const previousScore = previousAssessment?.readinessScore;
           const insights = generateReadinessInsights(sortedAssessments, latestAssessment.readinessScore, previousScore);
           setInsights(insights);
           
-          // Get category breakdown
+          // Extract top supporters and limiters
           const categories = getTopContributingCategories(latestAssessment.data);
-          setcategoryBreakdown(categories);
+          
+          const supporters = categories
+            .filter(cat => cat.impact === 'positive')
+            .slice(0, 3)
+            .map(cat => cat.category);
+            
+          const limiters = categories
+            .filter(cat => cat.impact === 'negative')
+            .slice(0, 3)
+            .map(cat => cat.category);
+            
+          setTopSupporters(supporters);
+          setTopLimiters(limiters);
         }
       }
     }
@@ -175,58 +186,25 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
     } else {
       // Fall back to device data if no assessment data
       const calculateDeviceBasedTrend = () => {
-        // This function uses the existing device-based logic from the original component
-        const recentReadings = getReadings(7);
-        const now = new Date();
-        const weeklyData = [];
-        
-        for (let i = 6; i >= 0; i--) {
-          const date = new Date(now);
-          date.setDate(date.getDate() - i);
-          const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-          const dayEnd = dayStart + 24 * 60 * 60 * 1000;
-          
-          const dayReadings = recentReadings.filter(r => r.timestamp >= dayStart && r.timestamp < dayEnd);
-          
-          if (dayReadings.length > 0) {
-            const dayAvg = dayReadings.reduce((sum, r) => sum + r.readiness, 0) / dayReadings.length;
-            weeklyData.push(Math.round(dayAvg));
-          } else {
-            const prevValue = weeklyData.length > 0 ? weeklyData[weeklyData.length - 1] : null;
-            weeklyData.push(prevValue ?? 70);
-          }
-        }
-        
-        return weeklyData;
+        const mockTrend = [72, 68, 75, 81, 76, 79, 82];
+        return mockTrend;
       };
       
       setWeeklyTrend(calculateDeviceBasedTrend());
     }
   }, [completedAssessments, getReadinessHistory]);
   
-  // Helper function for compatibility with original code
-  const getReadings = (days: number) => {
-    // Mock function to maintain compatibility
-    const lastReading = getLastReading();
-    if (!lastReading) return [];
-    
-    // Create mock readings for the past days
-    const readings = [];
-    const now = Date.now();
-    
-    for (let i = 0; i < days; i++) {
-      readings.push({
-        ...lastReading,
-        timestamp: now - (i * 24 * 60 * 60 * 1000)
-      });
-    }
-    
-    return readings;
-  };
-  
   // Determine score grade and color
   const scoreGradeInfo = getReadinessGrade(readinessData.readinessScore);
   const { grade: scoreGrade, color: scoreColor } = scoreGradeInfo;
+  
+  // Get color based on score (for bars)
+  const getBarColor = (score: number): string => {
+    if (score >= 85) return 'bg-green-500';
+    if (score >= 70) return 'bg-blue-500';
+    if (score >= 50) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
   
   return (
     <Collapsible
@@ -235,142 +213,112 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
       className={`bg-white border border-gray-100 rounded-xl shadow-sm ${className}`}
     >
       <div className="p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center">
-            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mr-3">
-              <Star className="text-blue-600" size={20} />
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900 text-lg">Readiness Score</h3>
-              <div className="flex items-center">
-                <span className={`text-2xl font-bold ${scoreColor} mr-1`}>{readinessData.readinessScore}</span>
-                <span className="text-xs text-gray-600 mt-1">/ 100</span>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Readiness Score</h3>
+            <div className="flex items-baseline mt-1">
+              <span className={`text-3xl font-bold ${scoreColor}`}>{readinessData.readinessScore}</span>
+              <span className="text-xs text-gray-600 ml-1.5">/ 100</span>
+              <span className={`ml-3 text-sm font-medium ${scoreColor}`}>{scoreGrade}</span>
+              <div className={`ml-3 flex items-center py-0.5 px-1.5 rounded ${readinessData.isPositiveChange ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'} text-xs`}>
+                {readinessData.isPositiveChange ? (
+                  <TrendingUp className="mr-0.5" size={12} />
+                ) : (
+                  <TrendingDown className="mr-0.5" size={12} />
+                )}
+                {readinessData.changePercentage}%
               </div>
             </div>
           </div>
-          
-          <div className="flex flex-col items-end">
-            <div className={`flex items-center py-1 px-2 rounded-full ${readinessData.isPositiveChange ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'} text-xs font-medium mb-1`}>
-              {readinessData.isPositiveChange ? (
-                <ArrowUp className="mr-1" size={12} />
-              ) : (
-                <ArrowDown className="mr-1" size={12} />
-              )}
-              <span>{readinessData.changePercentage}%</span>
-            </div>
-            
-            <span className={`text-sm font-medium ${scoreColor}`}>{scoreGrade}</span>
-          </div>
         </div>
         
-        {/* Weekly Mini Chart */}
-        <div className="mb-4 h-20">
-          <div className="flex items-end justify-between h-full">
+        {/* Weekly Trend Chart */}
+        <div className="mb-5">
+          <div className="flex items-end justify-between h-20">
             {weeklyTrend.map((value, index) => {
               const heightPercent = value ? `${value}%` : '0%';
-              let barColor = 'bg-blue-200';
-              
-              if (value >= 85) barColor = 'bg-green-500';
-              else if (value >= 70) barColor = 'bg-blue-500';
-              else if (value >= 50) barColor = 'bg-yellow-500';
-              else barColor = 'bg-red-500';
+              const barColor = getBarColor(value);
+              const isToday = index === weeklyTrend.length - 1;
               
               return (
                 <TooltipProvider key={index}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="flex-1 flex items-end justify-center px-0.5">
-                        <div 
-                          className={`w-full ${barColor} rounded-t`} 
-                          style={{ height: heightPercent }}
-                        ></div>
+                      <div className="flex-1 flex flex-col items-center">
+                        <span className="text-xs font-medium mb-1">{value}</span>
+                        <div className="w-full px-0.5">
+                          <div 
+                            className={`${barColor} rounded-sm ${isToday ? 'w-full' : 'w-2/3 mx-auto'}`} 
+                            style={{ height: heightPercent }}
+                          ></div>
+                        </div>
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{value} - {index === 6 ? 'Today' : index === 5 ? 'Yesterday' : `${6-index} days ago`}</p>
+                    <TooltipContent className="text-xs py-1 px-2">
+                      <p>{isToday ? 'Today' : index === 6 ? 'Yesterday' : `${6-index} days ago`}: {value}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               );
             })}
           </div>
-          <div className="flex justify-between mt-1 text-xs text-gray-500">
-            <span>M</span>
-            <span>T</span>
-            <span>W</span>
-            <span>T</span>
-            <span>F</span>
-            <span>S</span>
-            <span>Today</span>
-          </div>
-        </div>
-        
-        {/* Weekly Average and Best/Worst Days */}
-        <div className="flex justify-between mb-4 text-xs">
-          <div className="text-center">
-            <span className="text-gray-500">Weekly Avg</span>
-            <p className="font-bold text-sm">{weeklyMetrics.average}</p>
-          </div>
-          
-          <div className="text-center">
-            <span className="text-gray-500">Best Day</span>
-            <p className="font-bold text-sm text-green-600">
-              {weeklyMetrics.bestDay.day} ({weeklyMetrics.bestDay.score})
-            </p>
-          </div>
-          
-          <div className="text-center">
-            <span className="text-gray-500">Lowest Day</span>
-            <p className="font-bold text-sm text-red-600">
-              {weeklyMetrics.worstDay.day} ({weeklyMetrics.worstDay.score})
-            </p>
-          </div>
-        </div>
-        
-        {/* Insight Summary */}
-        <div className="bg-gray-50 rounded-lg p-3 mb-4">
-          <h4 className="text-sm font-medium text-gray-800 mb-2">Insight Summary</h4>
-          <p className="text-sm text-gray-600">{insights.summary}</p>
-        </div>
-        
-        {/* Main Contributing Categories */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-800 mb-2 flex items-center">
-            Contributing Categories
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info size={14} className="ml-1 text-blue-400" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">These factors influence your readiness score</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </h4>
-          
-          <div className="space-y-2">
-            {contributingFactors.slice(0, 3).map((factor, index) => (
-              <div className="flex items-center" key={index}>
-                <span className="text-xs text-gray-600 w-24">{factor.name}</span>
-                <div className="flex-1 mx-2">
-                  <div className="h-1.5 bg-gray-200 rounded-full">
-                    <div 
-                      className={`h-full rounded-full ${
-                        factor.percentage >= 85 ? 'bg-green-500' : 
-                        factor.percentage >= 70 ? 'bg-blue-500' : 
-                        factor.percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
-                      }`}
-                      style={{ width: `${factor.percentage}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <span className="text-xs font-medium min-w-8 text-right">{factor.percentage}%</span>
+          <div className="flex justify-between mt-1">
+            {WEEKDAYS.map((day, i) => (
+              <div key={i} className="flex-1 text-center">
+                <span className="text-xs text-gray-500">{day}</span>
               </div>
             ))}
           </div>
         </div>
         
+        {/* Insight Summary */}
+        <div className="mb-5">
+          <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">Insight</h4>
+          <p className="text-sm text-gray-700 leading-relaxed">{insights.summary}</p>
+        </div>
+        
+        {/* Contributing Categories */}
+        <div className="mb-5">
+          <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">Key Contributors</h4>
+          <div className="space-y-3">
+            {contributingFactors.map((factor, index) => (
+              <div className="flex items-center" key={index}>
+                <span className="text-sm text-gray-700 w-32 pr-2">{factor.name}</span>
+                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div 
+                    className={getBarColor(factor.percentage)} 
+                    style={{ width: `${factor.percentage}%` }}
+                  ></div>
+                </div>
+                <span className="text-xs font-medium text-gray-700 ml-2 w-8 text-right">{factor.percentage}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Supplemental Metrics */}
+        <div className="flex justify-between text-xs text-gray-600 border-t border-gray-100 pt-4">
+          <div>
+            <span className="text-gray-500">Weekly Avg</span>
+            <p className="font-semibold">{weeklyMetrics.average}</p>
+          </div>
+          
+          {topSupporters.length > 0 && (
+            <div>
+              <span className="text-gray-500">Top Supporter</span>
+              <p className="font-semibold text-green-600">{topSupporters[0]}</p>
+            </div>
+          )}
+          
+          {topLimiters.length > 0 && (
+            <div>
+              <span className="text-gray-500">Top Limiter</span>
+              <p className="font-semibold text-red-600">{topLimiters[0]}</p>
+            </div>
+          )}
+        </div>
+        
+        {/* Expand/Collapse Button */}
         <CollapsibleTrigger asChild>
           <button className="w-full flex items-center justify-center mt-3 text-blue-600 text-sm font-medium">
             {isExpanded ? (
@@ -392,53 +340,49 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
         <div className="px-5 pb-5 border-t border-gray-100 pt-4">
           {/* Recommended Actions */}
           <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-800 mb-2">Recommended Actions</h4>
-            <ul className="list-disc pl-5 text-sm text-gray-600">
+            <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Recommended Actions</h4>
+            <ul className="space-y-2">
               {insights.recommendedActions.map((action, index) => (
-                <li key={index}>{action}</li>
+                <li key={index} className="flex items-start text-sm text-gray-700">
+                  <CircleCheck className="text-green-500 mr-2 mt-0.5 flex-shrink-0" size={16} />
+                  <span>{action}</span>
+                </li>
               ))}
             </ul>
           </div>
           
-          {/* All Categories Breakdown */}
-          <div>
-            <h4 className="text-sm font-medium text-gray-800 mb-2">All Categories</h4>
-            <div className="space-y-3">
-              {categoryBreakdown.map((category, index) => {
-                const Icon = CATEGORY_ICONS[category.category] || Info;
-                return (
-                  <div className="flex items-center" key={index}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${
-                      category.impact === 'positive' ? 'bg-green-100 text-green-600' : 
-                      category.impact === 'negative' ? 'bg-red-100 text-red-600' : 
-                      'bg-gray-100 text-gray-600'
-                    }`}>
-                      <Icon size={16} />
-                    </div>
-                    <span className="text-sm">{category.category}</span>
-                    <div className="flex-1 mx-2">
-                      <div className="h-1.5 bg-gray-200 rounded-full">
-                        <div 
-                          className={`h-full rounded-full ${
-                            category.score >= 85 ? 'bg-green-500' : 
-                            category.score >= 70 ? 'bg-blue-500' : 
-                            category.score >= 50 ? 'bg-yellow-500' : 'bg-red-500'
-                          }`}
-                          style={{ width: `${category.score}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    <span className="text-xs font-medium min-w-8 text-right">{category.score}%</span>
-                  </div>
-                );
-              })}
+          {/* Weekly Performance */}
+          <div className="mb-4">
+            <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Weekly Performance</h4>
+            <div className="flex justify-between text-sm">
+              <div>
+                <span className="text-gray-500">Best Day</span>
+                <p className="font-semibold text-green-600">
+                  {weeklyMetrics.bestDay.day} ({weeklyMetrics.bestDay.score})
+                </p>
+              </div>
+              
+              <div>
+                <span className="text-gray-500">Weekly Average</span>
+                <p className="font-semibold">{weeklyMetrics.average}</p>
+              </div>
+              
+              <div>
+                <span className="text-gray-500">Lowest Day</span>
+                <p className="font-semibold text-red-600">
+                  {weeklyMetrics.worstDay.day} ({weeklyMetrics.worstDay.score})
+                </p>
+              </div>
             </div>
           </div>
           
-          {/* View Detailed History Link */}
+          {/* Detail View Link */}
           <div className="mt-4 pt-4 border-t border-gray-100">
-            <button className="w-full py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium">
-              View Detailed Readiness History
+            <button 
+              className="w-full py-2.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium"
+              onClick={() => window.location.href = '/trends'}
+            >
+              View Detailed History
             </button>
           </div>
         </div>

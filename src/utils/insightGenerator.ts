@@ -46,7 +46,7 @@ export function generateReadinessInsights(
       impact: 'negative',
       description: 'Poor sleep quality'
     });
-    recommendedActions.push('Consider going to bed 30 minutes earlier tonight');
+    recommendedActions.push('Try going to bed 30 minutes earlier tonight');
   } else if (latestAssessment.data.selectedOptions[2]?.includes("well_rested")) {
     factors.push({
       category: 'Sleep',
@@ -62,7 +62,7 @@ export function generateReadinessInsights(
       impact: 'negative',
       description: 'Elevated stress levels'
     });
-    recommendedActions.push('Try a 5-minute breathing exercise to reduce stress');
+    recommendedActions.push('Practice a 5-minute breathing exercise to reduce stress');
   }
   
   // Analyze caffeine intake
@@ -73,7 +73,7 @@ export function generateReadinessInsights(
         impact: 'negative',
         description: 'High caffeine intake'
       });
-      recommendedActions.push('Consider reducing caffeine consumption');
+      recommendedActions.push('Try reducing caffeine consumption by one cup tomorrow');
     }
     if (latestAssessment.data.selectedOptions[3.2]?.includes("evening")) {
       factors.push({
@@ -81,8 +81,14 @@ export function generateReadinessInsights(
         impact: 'negative',
         description: 'Evening caffeine consumption'
       });
-      recommendedActions.push('Avoid caffeine after 2pm for better sleep');
+      recommendedActions.push('Avoid caffeine after 2pm for better sleep quality');
     }
+  } else {
+    factors.push({
+      category: 'Caffeine',
+      impact: 'positive',
+      description: 'Moderate caffeine intake'
+    });
   }
 
   // Analyze exercise
@@ -98,7 +104,7 @@ export function generateReadinessInsights(
       impact: 'negative',
       description: 'Limited physical activity'
     });
-    recommendedActions.push('Try to include a short walk in your day');
+    recommendedActions.push('Try to include at least a 10-minute walk in your day');
   }
   
   // Analyze alcohol consumption
@@ -112,6 +118,28 @@ export function generateReadinessInsights(
       });
       recommendedActions.push('Consider reducing alcohol intake to improve recovery');
     }
+  } else {
+    factors.push({
+      category: 'Alcohol',
+      impact: 'positive',
+      description: 'Limited alcohol consumption'
+    });
+  }
+  
+  // Analyze hydration based on urination frequency
+  if (latestAssessment.data.selectedOptions[5]?.includes("normal")) {
+    factors.push({
+      category: 'Hydration',
+      impact: 'positive',
+      description: 'Good hydration levels'
+    });
+  } else if (latestAssessment.data.selectedOptions[5]?.includes("decreased")) {
+    factors.push({
+      category: 'Hydration',
+      impact: 'negative',
+      description: 'Signs of dehydration'
+    });
+    recommendedActions.push('Increase your water intake throughout the day');
   }
   
   // Analyze meal quality
@@ -121,7 +149,7 @@ export function generateReadinessInsights(
       impact: 'negative',
       description: 'Poor nutrition quality'
     });
-    recommendedActions.push('Try to include more whole foods in your meals');
+    recommendedActions.push('Try to include more whole foods in your next meals');
   } else if (latestAssessment.data.selectedOptions[11]?.includes("balanced")) {
     factors.push({
       category: 'Nutrition',
@@ -137,26 +165,41 @@ export function generateReadinessInsights(
   let summary = "";
   
   if (currentScore >= 85) {
-    summary = "Your readiness is excellent! ";
-    if (positiveFactors.length > 0) {
-      summary += `Contributing factors include ${positiveFactors.map(f => f.description.toLowerCase()).join(' and ')}.`;
+    if (positiveFactors.length >= 2) {
+      const factor1 = positiveFactors[0].category.toLowerCase();
+      const factor2 = positiveFactors[1].category.toLowerCase();
+      summary = `Your excellent readiness is supported by good ${factor1} and ${factor2}.`;
+    } else if (positiveFactors.length === 1) {
+      summary = `Your excellent readiness is highlighted by good ${positiveFactors[0].category.toLowerCase()}.`;
+    } else {
+      summary = "Your readiness score is excellent today.";
     }
   } else if (currentScore >= 70) {
-    summary = "Your readiness is good. ";
     if (positiveFactors.length > 0 && negativeFactors.length > 0) {
-      summary += `${positiveFactors[0].description} is supporting your recovery, but ${negativeFactors[0].description.toLowerCase()} may be limiting your potential.`;
+      summary = `Good ${positiveFactors[0].category.toLowerCase()} is supporting your recovery, but ${negativeFactors[0].category.toLowerCase()} may be limiting your potential.`;
     } else if (positiveFactors.length > 0) {
-      summary += `${positiveFactors.map(f => f.description).join(' and ')} are supporting your recovery.`;
+      summary = `Your good readiness is supported by ${positiveFactors[0].category.toLowerCase()}.`;
+    } else if (negativeFactors.length > 0) {
+      summary = `Consider improving your ${negativeFactors[0].category.toLowerCase()} to increase your readiness further.`;
+    } else {
+      summary = "Your readiness score is good today.";
     }
   } else if (currentScore >= 50) {
-    summary = "Your readiness is moderate. ";
-    if (negativeFactors.length > 0) {
-      summary += `Consider addressing ${negativeFactors.map(f => f.description.toLowerCase()).join(' and ')} to improve recovery.`;
+    if (negativeFactors.length >= 2) {
+      const factor1 = negativeFactors[0].category.toLowerCase();
+      const factor2 = negativeFactors[1].category.toLowerCase();
+      summary = `Your ${factor1} and ${factor2} are negatively affecting your recovery today.`;
+    } else if (negativeFactors.length === 1) {
+      summary = `Your ${negativeFactors[0].category.toLowerCase()} is limiting your overall readiness.`;
+    } else {
+      summary = "Your readiness score is moderate today.";
     }
   } else {
-    summary = "Your readiness needs attention. ";
     if (negativeFactors.length > 0) {
-      summary += `Focus on improving ${negativeFactors.map(f => f.description.toLowerCase()).join(' and ')} to enhance recovery.`;
+      const mainFactor = negativeFactors[0].category.toLowerCase();
+      summary = `Your readiness needs attention, primarily due to your ${mainFactor}.`;
+    } else {
+      summary = "Your readiness is low today and requires attention.";
     }
   }
   
@@ -167,15 +210,18 @@ export function generateReadinessInsights(
       summary += ` Your readiness has improved ${Math.abs(scoreDiff).toFixed(0)}% from yesterday.`;
     } else if (scoreDiff < -5) {
       summary += ` Your readiness has decreased ${Math.abs(scoreDiff).toFixed(0)}% from yesterday.`;
-    } else {
-      summary += " Your readiness has remained stable compared to yesterday.";
     }
   }
+  
+  // Limit actions to 3 max
+  const limitedActions = recommendedActions.slice(0, 3);
   
   return {
     summary,
     factors,
-    recommendedActions: recommendedActions.length > 0 ? recommendedActions : ["Keep up your current routine to maintain readiness"]
+    recommendedActions: limitedActions.length > 0 
+      ? limitedActions 
+      : ["Maintain your current healthy routines to support recovery"]
   };
 }
 
@@ -210,6 +256,11 @@ export function getTopContributingCategories(assessmentData: AssessmentData): {
       category: "Nutrition",
       score: calculateNutritionScore(selectedOptions),
       impact: calculateNutritionScore(selectedOptions) > 70 ? 'positive' : 'negative' as 'positive' | 'negative'
+    },
+    {
+      category: "Hydration",
+      score: calculateHydrationScore(selectedOptions),
+      impact: calculateHydrationScore(selectedOptions) > 70 ? 'positive' : 'negative' as 'positive' | 'negative'
     },
     {
       category: "Substance Use",
@@ -291,6 +342,19 @@ function calculateNutritionScore(selectedOptions: Record<number, string[]>): num
     score -= 30;
   } else if (selectedOptions[11]?.includes("skipped")) {
     score -= 20;
+  }
+  
+  return Math.max(0, Math.min(100, score));
+}
+
+function calculateHydrationScore(selectedOptions: Record<number, string[]>): number {
+  let score = 80; // Baseline - assume decent hydration
+  
+  // Use urination as a proxy for hydration (Question 5)
+  if (selectedOptions[5]?.includes("decreased")) {
+    score -= 30; // Likely dehydrated
+  } else if (selectedOptions[5]?.includes("increased")) {
+    score += 10; // Likely well hydrated
   }
   
   return Math.max(0, Math.min(100, score));
