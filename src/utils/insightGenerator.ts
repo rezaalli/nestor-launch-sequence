@@ -1,3 +1,4 @@
+
 import { format, subDays, parseISO } from "date-fns";
 import { AssessmentData } from "./readinessScoring";
 
@@ -320,13 +321,13 @@ function analyzeWeeklyTrends(assessments: AssessmentHistory[]): {
 } {
   // Default values
   let result = {
-    overall: 'stable' as const,
-    stressLevel: 'unknown' as const,
-    activityConsistency: 'unknown' as const,
-    sleepQuality: 'unknown' as const, 
-    hydration: 'unknown' as const,
-    nutrition: 'unknown' as const,
-    substanceUse: 'unknown' as const,
+    overall: 'stable' as 'improving' | 'declining' | 'stable' | 'mixed',
+    stressLevel: 'unknown' as 'high' | 'moderate' | 'low' | 'unknown',
+    activityConsistency: 'unknown' as 'high' | 'moderate' | 'low' | 'unknown',
+    sleepQuality: 'unknown' as 'good' | 'moderate' | 'poor' | 'unknown', 
+    hydration: 'unknown' as 'good' | 'moderate' | 'poor' | 'unknown',
+    nutrition: 'unknown' as 'good' | 'moderate' | 'poor' | 'unknown',
+    substanceUse: 'unknown' as 'concerning' | 'moderate' | 'minimal' | 'unknown',
     symptomsPresent: false,
     readinessScoreTrend: 0
   };
