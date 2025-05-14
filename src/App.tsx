@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
@@ -42,126 +41,126 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const { user } = useAuth();
+
+  // If user is logged in and navigates to auth page, redirect to dashboard
+  const handleAuthRedirect = () => {
+    if (user) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return <AuthScreen />;
+  };
 
   return (
     <Router>
-      <AuthProvider>
-        <UserProvider>
-          <NotificationsProvider>
-            <AssessmentProvider>
-              <NutritionProvider>
-                <div className="app-container">
-                  {showOnboarding ? (
-                    <Onboarding onComplete={() => setShowOnboarding(false)} />
-                  ) : (
-                    <>
-                      <Routes>
-                        <Route path="/auth" element={<AuthScreen />} />
-                        
-                        {/* Protected routes */}
-                        <Route 
-                          path="/" 
-                          element={
-                            <PrivateRoute>
-                              <StatusBar />
-                              <Index />
-                              <BottomNavbar />
-                            </PrivateRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/dashboard" 
-                          element={
-                            <PrivateRoute>
-                              <StatusBar />
-                              <Dashboard />
-                              <BottomNavbar />
-                            </PrivateRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/profile" 
-                          element={
-                            <PrivateRoute>
-                              <StatusBar />
-                              <Profile 
-                                onShowOnboarding={() => setShowOnboarding(true)} 
-                              />
-                              <BottomNavbar />
-                            </PrivateRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/log" 
-                          element={
-                            <PrivateRoute>
-                              <StatusBar />
-                              <Log />
-                              <BottomNavbar />
-                            </PrivateRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/trends" 
-                          element={
-                            <PrivateRoute>
-                              <StatusBar />
-                              <TrendsAndInsights />
-                              <BottomNavbar />
-                            </PrivateRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/daily-assessment" 
-                          element={
-                            <PrivateRoute>
-                              <StatusBar />
-                              <DailyAssessment />
-                              <BottomNavbar />
-                            </PrivateRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/lifestyle-check-in" 
-                          element={
-                            <PrivateRoute>
-                              <StatusBar />
-                              <LifestyleCheckIn />
-                              <BottomNavbar />
-                            </PrivateRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/reports" 
-                          element={
-                            <PrivateRoute>
-                              <StatusBar />
-                              <Reports />
-                              <BottomNavbar />
-                            </PrivateRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/notifications" 
-                          element={
-                            <PrivateRoute>
-                              <StatusBar />
-                              <Notifications />
-                              <BottomNavbar />
-                            </PrivateRoute>
-                          } 
-                        />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </>
-                  )}
-                </div>
-                <Toaster />
-              </NutritionProvider>
-            </AssessmentProvider>
-          </NotificationsProvider>
-        </UserProvider>
-      </AuthProvider>
+      <div className="app-container">
+        {showOnboarding ? (
+          <Onboarding onComplete={() => setShowOnboarding(false)} />
+        ) : (
+          <>
+            <Routes>
+              <Route path="/auth" element={handleAuthRedirect()} />
+              
+              {/* Protected routes */}
+              <Route 
+                path="/" 
+                element={
+                  <PrivateRoute>
+                    <StatusBar />
+                    <Index />
+                    <BottomNavbar />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/dashboard" 
+                element={
+                  <PrivateRoute>
+                    <StatusBar />
+                    <Dashboard />
+                    <BottomNavbar />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <PrivateRoute>
+                    <StatusBar />
+                    <Profile 
+                      onShowOnboarding={() => setShowOnboarding(true)} 
+                    />
+                    <BottomNavbar />
+                  </PrivateRoute>
+                } 
+              />
+              
+              <Route 
+                path="/log" 
+                element={
+                  <PrivateRoute>
+                    <StatusBar />
+                    <Log />
+                    <BottomNavbar />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/trends" 
+                element={
+                  <PrivateRoute>
+                    <StatusBar />
+                    <TrendsAndInsights />
+                    <BottomNavbar />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/daily-assessment" 
+                element={
+                  <PrivateRoute>
+                    <StatusBar />
+                    <DailyAssessment />
+                    <BottomNavbar />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/lifestyle-check-in" 
+                element={
+                  <PrivateRoute>
+                    <StatusBar />
+                    <LifestyleCheckIn />
+                    <BottomNavbar />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/reports" 
+                element={
+                  <PrivateRoute>
+                    <StatusBar />
+                    <Reports />
+                    <BottomNavbar />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/notifications" 
+                element={
+                  <PrivateRoute>
+                    <StatusBar />
+                    <Notifications />
+                    <BottomNavbar />
+                  </PrivateRoute>
+                } 
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </>
+        )}
+      </div>
+      <Toaster />
     </Router>
   );
 }

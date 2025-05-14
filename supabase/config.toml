@@ -1,5 +1,13 @@
 
 project_id = "jqhmfhseywzlsugdanjf"
 
+[auth]
+# Site URL where users will be redirected after email confirmation
+site_url = "https://jqhmfhseywzlsugdanjf.lovable.dev" 
+# Additional redirect URLs that are valid after authentication
+additional_redirect_urls = ["https://jqhmfhseywzlsugdanjf.lovable.dev"]
+# Disable email confirmations for testing purposes
+enable_email_confirmation = false
+
 [storage.profiles]
 public = true
