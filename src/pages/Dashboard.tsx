@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3, RefreshCw, Move, Cog } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,7 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -243,6 +245,20 @@ const Dashboard = () => {
   // Get formatted temperature for display
   const tempDisplay = formatTemperature(36.7);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <div className="w-24 h-24 mb-8">
+          <img 
+            className="w-full h-full" 
+            src="https://storage.googleapis.com/uxpilot-auth.appspot.com/58cdf9e9fa-b129f3f632a0845a007d.png" 
+            alt="Nestor logo" 
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="min-h-screen flex flex-col bg-white">
@@ -251,13 +267,25 @@ const Dashboard = () => {
         {/* Header */}
         <div className="px-6 pt-4 pb-2 flex items-center justify-between">
           <div className="flex items-center">
-            <img 
-              src={user.avatar} 
-              alt="Profile" 
-              className="w-10 h-10 rounded-full mr-3" 
-            />
+            {user ? (
+              <Avatar className="w-10 h-10 mr-3">
+                {user.avatar ? (
+                  <AvatarImage src={user.avatar} alt={user.name || 'User'} />
+                ) : (
+                  <AvatarFallback>
+                    {user.name ? user.name.substring(0, 2).toUpperCase() : 'U'}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+            ) : (
+              <Avatar className="w-10 h-10 mr-3">
+                <AvatarFallback>?</AvatarFallback>
+              </Avatar>
+            )}
             <div>
-              <h2 className="text-lg font-medium text-nestor-gray-900">Hi, {user.name}</h2>
+              <h2 className="text-lg font-medium text-nestor-gray-900">
+                {user ? `Hi, ${user.name || 'User'}` : 'Welcome'}
+              </h2>
               <DeviceStatus compact={true} />
             </div>
           </div>
