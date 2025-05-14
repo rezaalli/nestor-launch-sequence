@@ -1,7 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import OnboardingLayout from '../components/OnboardingLayout';
 import { Apple } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AccountCreationScreenProps {
   onNext: () => void;
@@ -11,6 +13,37 @@ const AccountCreationScreen = ({ onNext }: AccountCreationScreenProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const { signUp, user } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (user) {
+      onNext();
+    }
+  }, [user, onNext]);
+
+  const handleCreateAccount = async () => {
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const { error, success } = await signUp(email, password);
+      
+      if (success) {
+        onNext();
+      } else if (error) {
+        setError(error.message);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <OnboardingLayout>
@@ -82,6 +115,12 @@ const AccountCreationScreen = ({ onNext }: AccountCreationScreenProps) => {
           </div>
           <p className="text-xs text-nestor-gray-500">Must be at least 8 characters</p>
         </div>
+
+        {error && (
+          <div className="p-3 bg-red-50 text-red-600 rounded-md text-sm">
+            {error}
+          </div>
+        )}
       </div>
       
       <div className="relative flex items-center justify-center mb-8">
@@ -108,13 +147,14 @@ const AccountCreationScreen = ({ onNext }: AccountCreationScreenProps) => {
       
       <button 
         className="nestor-btn mb-6"
-        onClick={onNext}
+        onClick={handleCreateAccount}
+        disabled={isSubmitting}
       >
-        Create Account
+        {isSubmitting ? 'Creating Account...' : 'Create Account'}
       </button>
       
       <p className="text-center text-nestor-gray-600 mb-8">
-        Already have an account? <span className="text-nestor-blue font-medium cursor-pointer">Log In</span>
+        Already have an account? <span className="text-nestor-blue font-medium cursor-pointer" onClick={() => navigate('/auth')}>Log In</span>
       </p>
       
       <p className="text-xs text-center text-nestor-gray-500">

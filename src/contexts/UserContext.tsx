@@ -1,5 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 // Define the shape of the user data
 interface User {
@@ -7,13 +10,13 @@ interface User {
   email: string;
   avatar: string;
   unitPreference: 'metric' | 'imperial';
-  password?: string; // Added for password management
 }
 
 // Define the shape of the context
 interface UserContextType {
-  user: User;
-  updateUser: (user: Partial<User>) => void;
+  user: User | null;
+  isLoading: boolean;
+  updateUser: (user: Partial<User>) => Promise<void>;
   updateAvatar: (file: File) => Promise<string>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 }
@@ -21,66 +24,201 @@ interface UserContextType {
 // Create the context with default values
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-// Initial user data
-const defaultUser: User = {
-  name: 'Emma',
-  email: 'alex.morgan@example.com',
-  avatar: 'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg',
-  unitPreference: 'imperial'  // Set default to imperial
-};
-
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Load user data from localStorage or use default
-  const [user, setUser] = useState<User>(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : defaultUser;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user: authUser } = useAuth();
+  const { toast } = useToast();
 
-  // Save to localStorage whenever user changes
+  // Load user data from Supabase when authUser changes
   useEffect(() => {
-    localStorage.setItem('user', JSON.stringify(user));
-  }, [user]);
-
-  const updateUser = (newData: Partial<User>) => {
-    setUser(prev => {
-      const updatedUser = { ...prev, ...newData };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      return updatedUser;
-    });
-  };
-
-  // Handle avatar upload and return URL
-  const updateAvatar = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      try {
-        const reader = new FileReader();
-        
-        reader.onloadend = () => {
-          const base64String = reader.result as string;
-          updateUser({ avatar: base64String });
-          resolve(base64String);
-        };
-        
-        reader.onerror = () => {
-          reject(new Error('Failed to read file'));
-        };
-        
-        reader.readAsDataURL(file);
-      } catch (error) {
-        reject(error);
+    const fetchUserProfile = async () => {
+      if (!authUser) {
+        setUser(null);
+        setIsLoading(false);
+        return;
       }
-    });
+
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching user profile:', error);
+          throw error;
+        }
+
+        // Transform from DB schema to component schema
+        setUser({
+          name: data.name || '',
+          email: data.email || '',
+          avatar: data.avatar_url || '',
+          unitPreference: data.unit_preference as 'metric' | 'imperial'
+        });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load user profile',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (authUser) {
+      fetchUserProfile();
+    } else {
+      setIsLoading(false);
+    }
+  }, [authUser, toast]);
+
+  // Update user profile in Supabase
+  const updateUser = async (userData: Partial<User>) => {
+    if (!authUser || !user) return;
+
+    try {
+      // Transform from component schema to DB schema
+      const updateData: Record<string, any> = {};
+      if (userData.name !== undefined) updateData.name = userData.name;
+      if (userData.email !== undefined) updateData.email = userData.email;
+      if (userData.unitPreference !== undefined) updateData.unit_preference = userData.unitPreference;
+
+      const { error } = await supabase
+        .from('user_profiles')
+        .update(updateData)
+        .eq('id', authUser.id);
+
+      if (error) throw error;
+
+      // Update local state if Supabase update succeeds
+      setUser(prev => prev ? { ...prev, ...userData } : null);
+      
+      toast({
+        title: 'Success',
+        description: 'Profile updated successfully',
+      });
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update profile',
+        variant: 'destructive',
+      });
+    }
   };
 
-  // Password update function (simplified for demo)
+  // Handle avatar upload to Supabase Storage
+  const updateAvatar = async (file: File): Promise<string> => {
+    if (!authUser || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      // Generate a unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${authUser.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('profiles')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('profiles')
+        .getPublicUrl(filePath);
+
+      // Update the user profile with the new avatar URL
+      const { error: updateError } = await supabase
+        .from('user_profiles')
+        .update({ avatar_url: urlData.publicUrl })
+        .eq('id', authUser.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setUser(prev => prev ? { ...prev, avatar: urlData.publicUrl } : null);
+      
+      toast({
+        title: 'Success',
+        description: 'Avatar updated successfully',
+      });
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update avatar',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  // Update password through Supabase Auth
   const updatePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
-    // In a real app, this would validate against stored password and/or API
-    // For this demo, we'll simulate a successful password change
-    return Promise.resolve(true);
+    if (!authUser) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      // First verify the current password by signing in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: authUser.email!,
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        toast({
+          title: 'Error',
+          description: 'Current password is incorrect',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      // Update the password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: 'Success',
+        description: 'Password updated successfully',
+      });
+      return true;
+    } catch (error) {
+      console.error('Error updating password:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update password',
+        variant: 'destructive',
+      });
+      return false;
+    }
   };
 
   return (
-    <UserContext.Provider value={{ user, updateUser, updateAvatar, updatePassword }}>
+    <UserContext.Provider 
+      value={{ 
+        user, 
+        isLoading, 
+        updateUser, 
+        updateAvatar, 
+        updatePassword 
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
