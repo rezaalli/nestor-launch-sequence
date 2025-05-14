@@ -9,7 +9,11 @@ import PermissionsScreen from '../screens/PermissionsScreen';
 import SetupCompleteScreen from '../screens/SetupCompleteScreen';
 import { useNavigate } from 'react-router-dom';
 
-const Onboarding = () => {
+interface OnboardingProps {
+  onComplete: () => void;
+}
+
+const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const navigate = useNavigate();
 
@@ -28,6 +32,8 @@ const Onboarding = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
+      // Complete onboarding
+      onComplete();
       // Navigate to dashboard when onboarding is complete
       navigate('/dashboard');
     }
