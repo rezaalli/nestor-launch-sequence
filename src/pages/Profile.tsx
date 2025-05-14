@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ interface ProfileProps {
 const Profile: React.FC<ProfileProps> = ({ onShowOnboarding }) => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const [dataExportOpen, setDataExportOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -66,7 +67,13 @@ const Profile: React.FC<ProfileProps> = ({ onShowOnboarding }) => {
               <div className="space-y-2">
                 <h3 className="text-lg font-medium">Export Data</h3>
                 <p className="text-sm text-gray-500">Download all your health data as a CSV file</p>
-                <DataExport />
+                <Button variant="outline" onClick={() => setDataExportOpen(true)}>
+                  Export Data
+                </Button>
+                <DataExport 
+                  open={dataExportOpen} 
+                  onOpenChange={setDataExportOpen} 
+                />
               </div>
               
               <div className="space-y-2">
