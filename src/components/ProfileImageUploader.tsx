@@ -31,6 +31,14 @@ const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You must be logged in to update your profile picture",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const file = files[0];
     
@@ -84,14 +92,23 @@ const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
     }
   };
 
+  // Get initials for avatar fallback
+  const getInitials = () => {
+    if (!user || !user.name) return "?";
+    return user.name.substring(0, 2).toUpperCase();
+  };
+
   return (
     <div className="flex flex-col items-center">
       <div className="relative">
         <Avatar className={`${avatarSize} border-2 border-white shadow-md`}>
-          <AvatarImage src={user.avatar} alt={user.name} />
-          <AvatarFallback>
-            {user.name.substring(0, 2).toUpperCase()}
-          </AvatarFallback>
+          {user?.avatar ? (
+            <AvatarImage src={user.avatar} alt={user?.name || 'User'} />
+          ) : (
+            <AvatarFallback>
+              {getInitials()}
+            </AvatarFallback>
+          )}
         </Avatar>
         
         <button

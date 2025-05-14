@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,21 +24,47 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 const AccountInfoForm: React.FC = () => {
-  const { user, updateUser } = useUser();
+  const { user, updateUser, isLoading } = useUser();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [defaultValues, setDefaultValues] = useState<FormData>({
+    name: '',
+    email: '',
+    unitPreference: 'imperial',
+  });
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: user.name,
-      email: user.email,
-      unitPreference: user.unitPreference,
-    },
+    defaultValues,
   });
 
+  // Update form when user data is loaded
+  useEffect(() => {
+    if (user) {
+      setDefaultValues({
+        name: user.name || '',
+        email: user.email || '',
+        unitPreference: user.unitPreference || 'imperial',
+      });
+      
+      form.reset({
+        name: user.name || '',
+        email: user.email || '',
+        unitPreference: user.unitPreference || 'imperial',
+      });
+    }
+  }, [user, form]);
+
   const onSubmit = async (data: FormData) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to update your profile",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -63,6 +89,10 @@ const AccountInfoForm: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return <div className="flex justify-center p-8">Loading user data...</div>;
+  }
 
   return (
     <div className="space-y-6">
