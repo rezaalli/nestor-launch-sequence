@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,7 +57,7 @@ function appToDbNotification(notification: Omit<Notification, 'id'>): Omit<Datab
     icon_color: notification.iconColor,
     time: notification.time,
     date: notification.date,
-    read: false,
+    read: notification.read, // Make sure we include the read property
     user_id: notification.user_id || '',
     actions: notification.actions as Json
   };
@@ -159,9 +158,10 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
       const { data: { session } } = await supabase.auth.getSession();
       const user_id = session?.user?.id;
       
-      // Convert to database model
+      // Convert to database model - add the read property which was missing
       const dbNotification = appToDbNotification({
         ...notification,
+        read: false, // Add the missing read property with default value false
         user_id: user_id || undefined,
       });
       
