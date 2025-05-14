@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from "sonner";
 
 export type NotificationType = 'health' | 'device' | 'lifestyle';
@@ -363,14 +364,7 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     });
   };
 
-  // Simulate an ECG anomaly after the component mounts (only for demo purposes)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      showEcgAlert();
-    }, 10000); // Show ECG alert after 10 seconds
-
-    return () => clearTimeout(timer);
-  }, []);
+  // Removed the automatic ECG alert timer that was here previously
 
   const value = {
     notifications,

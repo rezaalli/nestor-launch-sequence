@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Settings, ArrowLeft, ChevronDown } from 'lucide-react';
@@ -12,7 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 
 const Notifications = () => {
-  const { notifications, markAsRead, clearAll, showEcgAlert, deleteNotification } = useNotifications();
+  const { notifications, markAsRead, clearAll, deleteNotification } = useNotifications();
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<'all' | NotificationType>('all');
   const [showSettings, setShowSettings] = useState(false);
@@ -23,10 +24,6 @@ const Notifications = () => {
 
   const handleNavigateBack = () => {
     navigate('/dashboard');
-  };
-
-  const handleGenerateEcgAlert = () => {
-    showEcgAlert();
   };
 
   const handleDismiss = (id: string, e: React.MouseEvent) => {
@@ -314,16 +311,7 @@ const Notifications = () => {
           </ScrollArea>
           
           <div className="flex-1 overflow-y-auto pb-24">
-            {/* Test ECG Alert Button - For demo purposes */}
-            <div className="px-6 py-2">
-              <Button 
-                variant="destructive" 
-                className="w-full mb-2"
-                onClick={handleGenerateEcgAlert}
-              >
-                Simulate ECG Anomaly
-              </Button>
-            </div>
+            {/* Removed the "Simulate ECG Anomaly" button */}
             
             {Object.entries(groupedNotifications).length === 0 ? (
               <div className="flex flex-col items-center justify-center h-40 p-6 text-center">

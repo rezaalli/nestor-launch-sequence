@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3, RefreshCw, Move, Cog } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -87,12 +88,13 @@ const Dashboard = () => {
     }
   };
   
-  // Function to manually trigger health alerts for testing purposes
-  const triggerHealthAlert = (type: 'ecg' | 'heartRate' | 'spo2' | 'temperature') => {
+  // Function to handle health alerts - only to be triggered by actual data events
+  // NOT manually triggered for testing purposes anymore
+  const handleHealthAlert = (type: 'ecg' | 'heartRate' | 'spo2' | 'temperature', data?: any) => {
     if (type === 'ecg') {
       setShowEcgDialog(true);
     } else if (type === 'heartRate') {
-      setCurrentHeartRate(Math.floor(Math.random() * 30) + 100);
+      setCurrentHeartRate(data?.heartRate || Math.floor(Math.random() * 30) + 100);
       setShowHeartRateDialog(true);
     }
     // For other types, we'd dispatch custom events that would be caught by HealthAlertsManager
@@ -403,26 +405,6 @@ const Dashboard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      {/* Debug buttons to manually trigger alerts (for testing only) */}
-      <div className="fixed bottom-24 right-4 flex flex-col gap-2 z-50">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="text-xs bg-white border border-gray-300"
-          onClick={() => triggerHealthAlert('ecg')}
-        >
-          Test ECG Alert
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="text-xs bg-white border border-gray-300"
-          onClick={() => triggerHealthAlert('heartRate')}
-        >
-          Test Heart Rate Alert
-        </Button>
-      </div>
       
       {/* Alert Dialogs */}
       <EcgAlertDialog
