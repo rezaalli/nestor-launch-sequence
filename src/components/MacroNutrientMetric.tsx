@@ -56,7 +56,7 @@ const MacroNutrientMetric = ({
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-gray-600">Remaining Calories</span>
-          <Badge variant="calories" size="sm">
+          <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-200">
             {formatNumber(remainingCalories)} kcal
           </Badge>
         </div>
@@ -74,7 +74,7 @@ const MacroNutrientMetric = ({
         <div>
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-gray-600">Protein</span>
-            <Badge variant="protein" size="sm">
+            <Badge variant="info" className="bg-blue-100 text-blue-800 hover:bg-blue-200">
               {remainingProtein}g left
             </Badge>
           </div>
@@ -90,7 +90,7 @@ const MacroNutrientMetric = ({
         <div>
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-gray-600">Carbs</span>
-            <Badge variant="carbs" size="sm">
+            <Badge variant="warning" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
               {remainingCarbs}g left
             </Badge>
           </div>
@@ -106,7 +106,7 @@ const MacroNutrientMetric = ({
         <div>
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-gray-600">Fat</span>
-            <Badge variant="fat" size="sm">
+            <Badge variant="secondary" className="bg-purple-100 text-purple-800 hover:bg-purple-200">
               {remainingFat}g left
             </Badge>
           </div>
