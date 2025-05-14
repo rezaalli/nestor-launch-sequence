@@ -617,7 +617,7 @@ function detectCaffeineSleepCorrelation(
       primaryFactor: 'Caffeine',
       secondaryFactor: 'Sleep',
       relationship: 'negative',
-      strength: difference > 0.5 ? 'strong' : (difference > 0.3 ? 'moderate' : 'weak'),
+      strength: difference > 0.5 ? 'strong' : 'moderate',
       description: 'Higher caffeine intake appears to be associated with poorer sleep quality'
     };
   }
@@ -1359,40 +1359,41 @@ export const generateCondensedWellnessSummary = (assessments: any[]): string => 
     return "";
   }
 
-  // Get the most significant patterns from the data
-  const patterns = analyzeWeeklyTrends(assessments);
-  
-  // Choose the top pattern to highlight
-  const topPattern = patterns[0];
+  // Get the trends from the data
+  const trends = analyzeWeeklyTrends(assessments);
   
   // Generate condensed insights (1-2 sentences max)
   let summary = "";
   
-  if (topPattern && topPattern.strength > 0.6) {
-    // Strong correlation found
-    summary = `This week, ${topPattern.description.toLowerCase()}`;
-    
-    // If we have a second pattern that's complementary, add it
-    if (patterns.length > 1 && patterns[1].strength > 0.5 && 
-        patterns[1].category !== topPattern.category) {
-      summary += ` while ${patterns[1].description.toLowerCase()}`;
-    }
-    
-    // Add period if needed
-    if (!summary.endsWith('.')) {
-      summary += '.';
-    }
+  // Check for significant patterns
+  const hasStressPattern = trends.stressLevel === 'high';
+  const hasSleepPattern = trends.sleepQuality === 'poor' || trends.sleepQuality === 'good';
+  const hasActivityPattern = trends.activityConsistency === 'high' || trends.activityConsistency === 'low';
+  const hasHydrationPattern = trends.hydration === 'poor' || trends.hydration === 'good';
+  
+  // Choose the most significant pattern to highlight
+  if (hasStressPattern) {
+    summary = trends.stressLevel === 'high' 
+      ? "This week shows elevated stress patterns affecting your recovery capacity."
+      : "Your stress levels appear well-managed this week, supporting recovery.";
+  } else if (hasSleepPattern) {
+    summary = trends.sleepQuality === 'poor'
+      ? "Sleep inconsistencies appear to be affecting your recovery patterns this week."
+      : "Your consistent sleep schedule is supporting your recovery processes.";
+  } else if (hasActivityPattern) {
+    summary = trends.activityConsistency === 'high'
+      ? "Regular physical activity appears to be supporting your wellness this week."
+      : "Incorporating more movement might benefit your recovery systems.";
+  } else if (hasHydrationPattern) {
+    summary = trends.hydration === 'poor'
+      ? "Signs of lower hydration are affecting your energy and recovery."
+      : "Consistent hydration is supporting your physiological balance.";
   } else {
-    // No strong patterns - use generic summary
-    const hasGoodMetrics = assessments.some(a => 
-      a.readinessScore > 80 || (a.data && a.data.sleepQuality > 7)
-    );
-    
-    if (hasGoodMetrics) {
-      summary = "Your wellness metrics show positive trends with good recovery on consistent days.";
-    } else {
-      summary = "This week shows moderate wellness stability with room for improvement in your daily routines.";
-    }
+    // Default if no strong patterns detected
+    const readinessGood = trends.readinessScoreTrend > 0;
+    summary = readinessGood
+      ? "Your wellness metrics show positive trends with good recovery on consistent days."
+      : "This week shows moderate wellness stability with room for improvement in your daily routines.";
   }
   
   return summary;
