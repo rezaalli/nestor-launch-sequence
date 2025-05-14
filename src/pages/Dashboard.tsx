@@ -8,8 +8,6 @@ import StatusBar from '@/components/StatusBar';
 import BottomNavbar from '@/components/BottomNavbar';
 import EcgAlertDialog from '@/components/EcgAlertDialog';
 import HeartRateAlertDialog from '@/components/HeartRateAlertDialog';
-import { detectIrregularEcg } from '@/utils/ecgUtils';
-import { detectHighHeartRate } from '@/utils/healthUtils';
 import HealthMetrics from '@/components/HealthMetrics';
 import ReadinessScore from '@/components/ReadinessScore';
 import WeeklyTrendChart from '@/components/WeeklyTrendChart';
@@ -29,7 +27,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 const Dashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { showEcgAlert, addNotification } = useNotifications();
+  const { addNotification, showEcgAlert } = useNotifications();
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [showEcgDialog, setShowEcgDialog] = useState(false);
@@ -60,38 +58,14 @@ const Dashboard = () => {
   const metricsGridRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    // Show welcome toast
-    toast({
-      title: "Welcome to Nestor",
-      description: "Your device is now connected and ready to use.",
-    });
-    
+    // Remove welcome toast - as per user request
     // Simulate loading splash screen
     const timer = setTimeout(() => {
       setLoading(false);
     }, 2000);
     
-    // Simulate ECG anomaly detection after some time
-    const ecgTimer = setTimeout(() => {
-      const hasAnomaly = detectIrregularEcg();
-      if (hasAnomaly) {
-        setShowEcgDialog(true);
-      }
-    }, 15000);
-
-    // Simulate heart rate alert detection after some time
-    const heartRateTimer = setTimeout(() => {
-      const { detected, heartRate } = detectHighHeartRate();
-      if (detected) {
-        setCurrentHeartRate(heartRate);
-        setShowHeartRateDialog(true);
-      }
-    }, 8000);
-    
     return () => {
       clearTimeout(timer);
-      clearTimeout(ecgTimer);
-      clearTimeout(heartRateTimer);
     };
   }, [toast]);
   
@@ -113,6 +87,17 @@ const Dashboard = () => {
     }
   };
   
+  // Function to manually trigger health alerts for testing purposes
+  const triggerHealthAlert = (type: 'ecg' | 'heartRate' | 'spo2' | 'temperature') => {
+    if (type === 'ecg') {
+      setShowEcgDialog(true);
+    } else if (type === 'heartRate') {
+      setCurrentHeartRate(Math.floor(Math.random() * 30) + 100);
+      setShowHeartRateDialog(true);
+    }
+    // For other types, we'd dispatch custom events that would be caught by HealthAlertsManager
+  };
+  
   const handleLifestyleCheckIn = () => {
     navigate("/dailyassessment");
   };
@@ -128,9 +113,6 @@ const Dashboard = () => {
   
   const handleDismissEcg = () => {
     setShowEcgDialog(false);
-    
-    // Add to notifications even if dismissed from dialog
-    showEcgAlert();
   };
 
   const handleMonitorHeartRate = () => {
@@ -421,6 +403,26 @@ const Dashboard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Debug buttons to manually trigger alerts (for testing only) */}
+      <div className="fixed bottom-24 right-4 flex flex-col gap-2 z-50">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="text-xs bg-white border border-gray-300"
+          onClick={() => triggerHealthAlert('ecg')}
+        >
+          Test ECG Alert
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="text-xs bg-white border border-gray-300"
+          onClick={() => triggerHealthAlert('heartRate')}
+        >
+          Test Heart Rate Alert
+        </Button>
+      </div>
       
       {/* Alert Dialogs */}
       <EcgAlertDialog

@@ -17,7 +17,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const navigate = useNavigate();
 
-  // Steps in the onboarding process (removed deviceSelection and deviceConnected)
+  // Steps in the onboarding process
   const steps = [
     'welcome',
     'account',
@@ -32,11 +32,17 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Complete onboarding
+      // Complete onboarding but don't redirect
       onComplete();
-      // Navigate to dashboard when onboarding is complete
-      navigate('/dashboard');
+      // Don't navigate automatically - user will need to click on the appropriate section
+      // This prevents the auto-redirect loop
     }
+  };
+
+  // Handle manual navigation to a section
+  const handleNavigateTo = (path: string) => {
+    onComplete();
+    navigate(path);
   };
 
   const renderCurrentStep = () => {
@@ -54,7 +60,11 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       case 5:
         return <PermissionsScreen onNext={handleNext} />;
       case 6:
-        return <SetupCompleteScreen onNext={handleNext} />;
+        return (
+          <SetupCompleteScreen 
+            onNext={() => handleNavigateTo('/dashboard')}
+          />
+        );
       default:
         return <WelcomeScreen onNext={handleNext} />;
     }

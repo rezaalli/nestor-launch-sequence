@@ -23,6 +23,9 @@ import Notifications from './pages/Notifications';
 import Onboarding from './components/Onboarding';
 import AuthScreen from './screens/AuthScreen';
 
+// Development mode toggle to allow navigation without authentication
+const DEV_MODE = true;
+
 // Private route component to protect routes that require authentication
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
@@ -30,6 +33,11 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   // Show loading indicator while checking authentication
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+  
+  // Allow bypassing authentication in development mode
+  if (DEV_MODE) {
+    return <>{children}</>;
   }
   
   // Redirect to login if not authenticated
@@ -46,6 +54,11 @@ function App() {
 
   // If user is logged in and navigates to auth page, redirect to dashboard
   const handleAuthRedirect = () => {
+    // In DEV_MODE, bypass authentication redirect
+    if (DEV_MODE) {
+      return <AuthScreen />;
+    }
+    
     if (user) {
       return <Navigate to="/dashboard" replace />;
     }
