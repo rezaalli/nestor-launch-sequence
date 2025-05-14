@@ -15,9 +15,10 @@ import { useToast } from '@/hooks/use-toast';
 import AccountInfoForm from '@/components/AccountInfoForm';
 import PasswordChangeForm from '@/components/PasswordChangeForm';
 import Toggle from '@/components/Toggle';
+import DevicesDetailScreen from '@/components/DevicesDetailScreen';
 
 const Profile = () => {
-  const [activeScreen, setActiveScreen] = useState<'overview' | 'account' | 'privacy' | 'appearance' | 'firmware'>('overview');
+  const [activeScreen, setActiveScreen] = useState<'overview' | 'account' | 'privacy' | 'appearance' | 'firmware' | 'devices'>('overview');
   const [hapticSettingsOpen, setHapticSettingsOpen] = useState(false);
   const { user } = useUser();
   const navigate = useNavigate();
@@ -113,18 +114,17 @@ const Profile = () => {
         />
         
         {/* Connected Devices */}
-        <div className="p-4 bg-white rounded-lg border border-gray-200 flex flex-col">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
-                <Bluetooth className="h-5 w-5 text-nestor-blue" />
-              </div>
-              <span className="font-medium text-gray-800">Connected Devices</span>
+        <div 
+          className="p-4 bg-white rounded-lg border border-gray-200 flex items-center justify-between cursor-pointer"
+          onClick={() => setActiveScreen('devices')}
+        >
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+              <Bluetooth className="h-5 w-5 text-nestor-blue" />
             </div>
+            <span className="font-medium text-gray-800">Connected Devices</span>
           </div>
-          <div className="mt-4 pl-12">
-            <DeviceStatus />
-          </div>
+          <ChevronRight className="h-5 w-5 text-gray-400" />
         </div>
         
         {/* Firmware Update */}
@@ -319,8 +319,10 @@ const Profile = () => {
                     : activeScreen === 'privacy' 
                       ? 'Privacy & Data' 
                       : activeScreen === 'appearance' 
-                        ? 'App Appearance' 
-                        : 'Firmware Update'
+                        ? 'App Appearance'
+                        : activeScreen === 'devices'
+                          ? 'Connected Devices'
+                          : 'Firmware Update'
                 }
               </h1>
             </div>
@@ -333,6 +335,7 @@ const Profile = () => {
           {activeScreen === 'privacy' && renderPrivacy()}
           {activeScreen === 'appearance' && renderAppearance()}
           {activeScreen === 'firmware' && <FirmwareUpdatePage />}
+          {activeScreen === 'devices' && <DevicesDetailScreen />}
           <ScrollBar />
         </ScrollArea>
       </div>
