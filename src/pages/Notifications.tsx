@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
 const Notifications = () => {
-  const { notifications, markAsRead, clearAll, deleteNotification } = useNotifications();
+  const { notifications, markAsRead, clearAll, deleteNotification, loading } = useNotifications();
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<'all' | NotificationType>('all');
   const [showSettings, setShowSettings] = useState(false);
@@ -62,6 +63,25 @@ const Notifications = () => {
       </div>
     );
   };
+
+  // Loading state component
+  const LoadingNotifications = () => (
+    <div className="p-6 space-y-6">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="flex space-x-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-full" />
+            <div className="flex space-x-2 pt-1">
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-6 w-16" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -311,9 +331,9 @@ const Notifications = () => {
           </ScrollArea>
           
           <div className="flex-1 overflow-y-auto pb-24">
-            {/* Removed the "Simulate ECG Anomaly" button */}
-            
-            {Object.entries(groupedNotifications).length === 0 ? (
+            {loading ? (
+              <LoadingNotifications />
+            ) : Object.entries(groupedNotifications).length === 0 ? (
               <div className="flex flex-col items-center justify-center h-40 p-6 text-center">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                   <Bell className="text-gray-400" size={24} />

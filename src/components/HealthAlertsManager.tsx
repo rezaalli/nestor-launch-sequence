@@ -3,12 +3,14 @@ import React, { useState, useEffect } from 'react';
 import SpO2AlertDialog from "./SpO2AlertDialog";
 import TemperatureAlertDialog from "./TemperatureAlertDialog";
 import { analyzeSpO2 } from "../utils/healthUtils";
+import { useNotifications } from '@/contexts/NotificationsContext';
 
 const HealthAlertsManager = () => {
   const [showSpO2Alert, setShowSpO2Alert] = useState(false);
   const [spO2Level, setSpO2Level] = useState(92);
   const [showTempAlert, setShowTempAlert] = useState(false);
   const [tempData, setTempData] = useState({ temperature: 38.4, type: 'high' as 'high' | 'low' });
+  const { showSpO2Alert: notifySpO2Alert, showTemperatureAlert } = useNotifications();
 
   useEffect(() => {
     // Listen for vital updates
@@ -19,6 +21,8 @@ const HealthAlertsManager = () => {
       if (vitalData.spo2 && vitalData.spo2 < 92) {
         setSpO2Level(vitalData.spo2);
         setShowSpO2Alert(true);
+        // Also send notification
+        notifySpO2Alert(vitalData.spo2);
       }
     };
     
@@ -30,6 +34,8 @@ const HealthAlertsManager = () => {
         type: feverData.type
       });
       setShowTempAlert(true);
+      // Also send notification
+      showTemperatureAlert(feverData.temperature, feverData.type);
     };
     
     // Add event listeners
@@ -41,7 +47,7 @@ const HealthAlertsManager = () => {
       window.removeEventListener('nestor-vital-update', handleVitalUpdate);
       window.removeEventListener('nestor-fever-alert', handleFeverAlert);
     };
-  }, []);
+  }, [notifySpO2Alert, showTemperatureAlert]);
 
   return (
     <>

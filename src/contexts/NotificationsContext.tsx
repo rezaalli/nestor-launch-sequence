@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export type NotificationType = 'health' | 'device' | 'lifestyle';
 
@@ -15,6 +16,7 @@ export interface Notification {
   time: string;
   date: string;
   read: boolean;
+  user_id?: string;
   actions?: {
     primary?: {
       label: string;
@@ -39,6 +41,7 @@ interface NotificationsContextType {
   showHeartRateAlert: (heartRate: number) => void;
   showTemperatureAlert: (temperature: number, type: 'high' | 'low') => void;
   showSpO2Alert: (spO2Level: number) => void;
+  loading: boolean;
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
@@ -56,180 +59,194 @@ interface NotificationsProviderProps {
 }
 
 export const NotificationsProvider = ({ children }: NotificationsProviderProps) => {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      title: 'Elevated Heart Rate',
-      description: 'Your heart rate was 110 BPM while at rest. This is higher than your typical resting rate.',
-      type: 'health',
-      icon: 'heart-pulse',
-      iconBgColor: 'bg-red-100',
-      iconColor: 'text-red-600',
-      time: '10:23 AM',
-      date: 'Today',
-      read: false,
-      actions: {
-        primary: {
-          label: 'View Details',
-          action: () => console.log('View heart rate details')
-        },
-        secondary: {
-          label: 'Dismiss',
-          action: () => console.log('Dismiss heart rate notification')
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load notifications from Supabase on initial render
+  React.useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw error;
         }
-      }
-    },
-    {
-      id: '2',
-      title: 'Low Battery',
-      description: 'Your Nestor device battery is at 15%. Please charge soon to ensure continuous monitoring.',
-      type: 'device',
-      icon: 'battery-quarter',
-      iconBgColor: 'bg-blue-100',
-      iconColor: 'text-nestor-blue',
-      time: '8:45 AM',
-      date: 'Today',
-      read: false,
-      actions: {
-        secondary: {
-          label: 'Dismiss',
-          action: () => console.log('Dismiss battery notification')
+
+        if (data) {
+          setNotifications(data);
         }
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+        toast.error('Failed to load notifications');
+      } finally {
+        setLoading(false);
       }
-    },
-    {
-      id: '3',
-      title: 'Daily Step Goal Achieved',
-      description: 'Congratulations! You\'ve reached your daily step goal of 10,000 steps.',
-      type: 'lifestyle',
-      icon: 'person-walking',
-      iconBgColor: 'bg-green-100',
-      iconColor: 'text-green-600',
-      time: '6:30 PM',
-      date: 'Yesterday',
-      read: true,
-      actions: {
-        secondary: {
-          label: 'View Activity',
-          action: () => console.log('View activity details')
+    };
+
+    fetchNotifications();
+
+    // Set up real-time subscription for new notifications
+    const channel = supabase
+      .channel('public:notifications')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'notifications' }, 
+        (payload) => {
+          const newNotification = payload.new as Notification;
+          setNotifications(prev => [newNotification, ...prev]);
+          
+          // Show toast for new notification
+          toast(newNotification.title, {
+            description: newNotification.description,
+            duration: 5000,
+            closeButton: true,
+          });
         }
-      }
-    },
-    {
-      id: '4',
-      title: 'Sleep Quality Alert',
-      description: 'Your sleep was frequently interrupted last night. You had 8 wake periods during your sleep cycle.',
-      type: 'health',
-      icon: 'bed',
-      iconBgColor: 'bg-orange-100',
-      iconColor: 'text-orange-600',
-      time: '7:15 AM',
-      date: 'Yesterday',
-      read: true,
-      actions: {
-        primary: {
-          label: 'Sleep Insights',
-          action: () => console.log('View sleep insights')
-        },
-        secondary: {
-          label: 'Dismiss',
-          action: () => console.log('Dismiss sleep notification')
-        }
-      }
-    },
-    {
-      id: '5',
-      title: 'Firmware Update Available',
-      description: 'A new firmware update (v2.1.4) is available for your Nestor device with improved heart rate tracking.',
-      type: 'device',
-      icon: 'arrows-rotate',
-      iconBgColor: 'bg-blue-100',
-      iconColor: 'text-nestor-blue',
-      time: 'Monday',
-      date: 'Earlier This Week',
-      read: true,
-      actions: {
-        primary: {
-          label: 'Update Now',
-          action: () => console.log('Update firmware')
-        },
-        secondary: {
-          label: 'Later',
-          action: () => console.log('Update later')
-        }
-      }
-    },
-    {
-      id: '6',
-      title: 'Hydration Reminder',
-      description: 'You\'ve been less hydrated than usual today. Consider drinking more water.',
-      type: 'lifestyle',
-      icon: 'water',
-      iconBgColor: 'bg-purple-100',
-      iconColor: 'text-purple-600',
-      time: 'Sunday',
-      date: 'Earlier This Week',
-      read: true,
-      actions: {
-        primary: {
-          label: 'Log Water',
-          action: () => console.log('Log water intake')
-        },
-        secondary: {
-          label: 'Dismiss',
-          action: () => console.log('Dismiss hydration notification')
-        }
-      }
-    }
-  ]);
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const unreadCount = notifications.filter(notification => !notification.read).length;
 
-  const addNotification = (notification: Omit<Notification, 'id' | 'read'>) => {
-    const newNotification: Notification = {
-      ...notification,
-      id: Date.now().toString(),
-      read: false
-    };
-    setNotifications(prev => [newNotification, ...prev]);
-    
-    toast(notification.title, {
-      description: notification.description,
-      duration: 5000,
-    });
+  const addNotification = async (notification: Omit<Notification, 'id' | 'read'>) => {
+    try {
+      // Get current user ID if available (in production)
+      const { data: { session } } = await supabase.auth.getSession();
+      const user_id = session?.user?.id;
+      
+      const newNotification: Omit<Notification, 'id'> = {
+        ...notification,
+        read: false,
+        user_id: user_id || undefined,
+      };
+      
+      // Insert into Supabase
+      const { data, error } = await supabase
+        .from('notifications')
+        .insert([newNotification])
+        .select();
+        
+      if (error) throw error;
+      
+      if (data && data[0]) {
+        // Update local state
+        setNotifications(prev => [data[0], ...prev]);
+      
+        // Show toast notification
+        toast(notification.title, {
+          description: notification.description,
+          duration: 5000,
+          closeButton: true,
+        });
+      }
+    } catch (error) {
+      console.error('Error adding notification:', error);
+      toast.error('Failed to add notification');
+    }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(
-      notifications.map(notification =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
+  const markAsRead = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setNotifications(
+        notifications.map(notification =>
+          notification.id === id ? { ...notification, read: true } : notification
+        )
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(
-      notifications.map(notification => ({ ...notification, read: true }))
-    );
+  const markAllAsRead = async () => {
+    try {
+      // Get IDs of unread notifications
+      const unreadIds = notifications
+        .filter(notification => !notification.read)
+        .map(notification => notification.id);
+        
+      if (unreadIds.length === 0) return;
+      
+      // Update all unread notifications
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .in('id', unreadIds);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setNotifications(
+        notifications.map(notification => ({ ...notification, read: true }))
+      );
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      toast.error('Failed to mark all notifications as read');
+    }
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications(notifications.filter(notification => notification.id !== id));
+  const deleteNotification = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setNotifications(notifications.filter(notification => notification.id !== id));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      toast.error('Failed to delete notification');
+    }
   };
 
-  const clearAll = () => {
-    setNotifications([]);
+  const clearAll = async () => {
+    try {
+      // Get all notification IDs
+      const ids = notifications.map(notification => notification.id);
+      
+      if (ids.length === 0) return;
+      
+      // Delete all notifications
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .in('id', ids);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setNotifications([]);
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+      toast.error('Failed to clear notifications');
+    }
   };
 
   const showEcgAlert = () => {
     toast.warning("ECG Anomaly Detected", {
       description: "Your latest ECG shows an irregular pattern that may require attention.",
-      duration: 0,
+      duration: 10000, // 10 seconds instead of infinite
+      closeButton: true,
       action: {
         label: "Take ECG",
         onClick: () => console.log("Take ECG action")
       },
-      closeButton: true,
     });
     
     addNotification({
@@ -257,12 +274,12 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
   const showHeartRateAlert = (heartRate: number) => {
     toast.warning("High Heart Rate Alert", {
       description: `Your heart rate is ${heartRate} BPM, which is above your normal resting range.`,
-      duration: 0,
+      duration: 10000, // 10 seconds instead of infinite
+      closeButton: true,
       action: {
         label: "Monitor",
         onClick: () => console.log("Monitor heart rate")
       },
-      closeButton: true,
     });
     
     addNotification({
@@ -301,12 +318,12 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     
     toast.warning(title, {
       description: description,
-      duration: 0,
+      duration: 10000, // 10 seconds instead of infinite
+      closeButton: true,
       action: {
         label: "Track",
         onClick: () => console.log("Track temperature")
       },
-      closeButton: true,
     });
     
     addNotification({
@@ -334,12 +351,12 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
   const showSpO2Alert = (spO2Level: number) => {
     toast.warning("Low Blood Oxygen Alert", {
       description: `Your SpO2 level is ${spO2Level}%, which is below the normal range of 95-100%.`,
-      duration: 0,
+      duration: 10000, // 10 seconds instead of infinite
+      closeButton: true,
       action: {
         label: "Take Reading",
         onClick: () => console.log("Take SpO2 reading")
       },
-      closeButton: true,
     });
     
     addNotification({
@@ -364,8 +381,6 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     });
   };
 
-  // Removed the automatic ECG alert timer that was here previously
-
   const value = {
     notifications,
     unreadCount,
@@ -377,7 +392,8 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     showEcgAlert,
     showHeartRateAlert,
     showTemperatureAlert,
-    showSpO2Alert
+    showSpO2Alert,
+    loading
   };
 
   return (
