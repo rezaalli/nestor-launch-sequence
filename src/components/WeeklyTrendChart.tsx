@@ -47,7 +47,8 @@ const WeeklyTrendChart = ({
   const [selectedDataType, setSelectedDataType] = useState<ReadingType>(dataType);
   const [timeRange, setTimeRange] = useState<number | 'today' | 'yesterday' | 'custom'>(days);
   const { user } = useUser();
-  const unitPreference = user.unitPreference || 'imperial'; // Default to imperial
+  // Default to imperial if user is null or unitPreference is not set
+  const unitPreference = user?.unitPreference || 'imperial';
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subDays(new Date(), days),
     to: new Date()
@@ -182,7 +183,8 @@ const WeeklyTrendChart = ({
         case 'temperature':
           // Convert to Celsius first, then to Fahrenheit if needed
           const tempInC = dayReadings.reduce((sum, r) => sum + r.temp, 0) / dayReadings.length / 10;
-          value = unitPreference === 'imperial' ? (tempInC * 9/5) + 32 : tempInC;
+          // Use unitPreference safely with default to imperial if null/undefined
+          value = (unitPreference === 'imperial') ? (tempInC * 9/5) + 32 : tempInC;
           break;
         case 'spo2':
           value = dayReadings.reduce((sum, r) => sum + r.spo2, 0) / dayReadings.length;

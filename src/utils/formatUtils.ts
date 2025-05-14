@@ -8,14 +8,17 @@
  */
 export const formatTemperature = (
   tempCelsius: number,
-  unitPreference: 'metric' | 'imperial' = 'imperial',
+  unitPreference: 'metric' | 'imperial' | null | undefined = 'imperial',
   isDivided = false
 ): { value: string, unit: string } => {
   // Some components pass temperature as celsius * 10 (367 instead of 36.7)
   // Handle both cases with the isDivided parameter
   const normalizedTemp = isDivided ? tempCelsius : tempCelsius / 10;
   
-  if (unitPreference === 'imperial') {
+  // Use imperial as default if unitPreference is null or undefined
+  const effectivePreference = unitPreference || 'imperial';
+  
+  if (effectivePreference === 'imperial') {
     const fahrenheit = (normalizedTemp * 9/5) + 32;
     return { value: fahrenheit.toFixed(1), unit: '°F' };
   }
@@ -31,9 +34,12 @@ export const formatTemperature = (
  */
 export const formatWeight = (
   weightKg: number,
-  unitPreference: 'metric' | 'imperial' = 'imperial'
+  unitPreference: 'metric' | 'imperial' | null | undefined = 'imperial'
 ): { value: string, unit: string } => {
-  if (unitPreference === 'imperial') {
+  // Use imperial as default if unitPreference is null or undefined
+  const effectivePreference = unitPreference || 'imperial';
+  
+  if (effectivePreference === 'imperial') {
     const pounds = weightKg * 2.20462;
     return { value: pounds.toFixed(1), unit: 'lbs' };
   }
@@ -49,9 +55,12 @@ export const formatWeight = (
  */
 export const formatDistance = (
   distanceKm: number, 
-  unitPreference: 'metric' | 'imperial' = 'imperial'
+  unitPreference: 'metric' | 'imperial' | null | undefined = 'imperial'
 ): { value: string, unit: string } => {
-  if (unitPreference === 'imperial') {
+  // Use imperial as default if unitPreference is null or undefined
+  const effectivePreference = unitPreference || 'imperial';
+  
+  if (effectivePreference === 'imperial') {
     const miles = distanceKm * 0.621371;
     return { value: miles.toFixed(1), unit: 'mi' };
   }

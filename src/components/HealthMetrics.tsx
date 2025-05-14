@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { HeartPulse, Droplet, Activity, Thermometer, Move, Activity as HrvIcon, Wind, Footprints, Flame } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
-import { getLastReading, isDeviceWorn, formatTemperature } from '@/utils/bleUtils';
+import { getLastReading, isDeviceWorn } from '@/utils/bleUtils';
+import { formatTemperature } from '@/utils/formatUtils';
 import MacroNutrientMetric from './MacroNutrientMetric';
 
 interface HealthMetricsProps {

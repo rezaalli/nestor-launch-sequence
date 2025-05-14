@@ -56,7 +56,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: data.name || '',
           email: data.email || '',
           avatar: data.avatar_url || '',
-          unitPreference: data.unit_preference as 'metric' | 'imperial'
+          unitPreference: data.unit_preference as 'metric' | 'imperial' || 'imperial' // Default to imperial if not set
         });
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -65,6 +65,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: 'Failed to load user profile',
           variant: 'destructive',
         });
+        // Set user to null on error to avoid undefined issues
+        setUser(null);
       } finally {
         setIsLoading(false);
       }

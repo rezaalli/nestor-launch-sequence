@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3, RefreshCw, Move, Cog } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +14,7 @@ import WeeklyTrendChart from '@/components/WeeklyTrendChart';
 import DeviceStatus from '@/components/DeviceStatus';
 import { Button } from '@/components/ui/button';
 import { connectToDevice, startFlashLogUpload, isFlashLogUploadInProgress } from '@/utils/bleUtils';
+import { formatTemperature } from '@/utils/formatUtils';
 import { 
   Dialog, 
   DialogContent, 
@@ -231,19 +231,15 @@ const Dashboard = () => {
   }
 
   // Helper function for temperature conversion that safely handles user being null
-  const formatTemperature = (celsius: number): { value: string, unit: string } => {
+  const formatTempWithUserPref = (celsius: number): { value: string, unit: string } => {
     // Make sure user exists and has unitPreference before accessing it
     const unitPreference = user?.unitPreference || 'imperial';
     
-    if (unitPreference === 'imperial') {
-      const fahrenheit = (celsius * 9/5) + 32;
-      return { value: fahrenheit.toFixed(1), unit: '°F' };
-    }
-    return { value: celsius.toString(), unit: '°C' };
+    return formatTemperature(celsius, unitPreference);
   };
 
   // Get formatted temperature for display
-  const tempDisplay = formatTemperature(36.7);
+  const tempDisplay = formatTempWithUserPref(36.7);
 
   if (loading) {
     return (
