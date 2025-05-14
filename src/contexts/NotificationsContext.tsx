@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 export type NotificationType = 'health' | 'device' | 'lifestyle';
 
@@ -26,6 +27,40 @@ export interface Notification {
       label: string;
       action: () => void;
     };
+  };
+}
+
+// Conversion functions between database and application models
+function dbToAppNotification(dbNotification: DatabaseNotification): Notification {
+  return {
+    id: dbNotification.id,
+    title: dbNotification.title,
+    description: dbNotification.description,
+    type: dbNotification.type as NotificationType,
+    icon: dbNotification.icon,
+    iconBgColor: dbNotification.icon_bg_color,
+    iconColor: dbNotification.icon_color,
+    time: dbNotification.time,
+    date: dbNotification.date,
+    read: dbNotification.read,
+    user_id: dbNotification.user_id,
+    actions: dbNotification.actions as Notification['actions']
+  };
+}
+
+function appToDbNotification(notification: Omit<Notification, 'id'>): Omit<DatabaseNotification, 'id' | 'created_at'> {
+  return {
+    title: notification.title,
+    description: notification.description,
+    type: notification.type,
+    icon: notification.icon,
+    icon_bg_color: notification.iconBgColor,
+    icon_color: notification.iconColor,
+    time: notification.time,
+    date: notification.date,
+    read: false,
+    user_id: notification.user_id || '',
+    actions: notification.actions as Json
   };
 }
 
@@ -76,7 +111,9 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
         }
 
         if (data) {
-          setNotifications(data);
+          // Convert database model to application model
+          const appNotifications = data.map(dbToAppNotification);
+          setNotifications(appNotifications);
         }
       } catch (error) {
         console.error('Error fetching notifications:', error);
@@ -94,7 +131,9 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
       .on('postgres_changes', 
         { event: 'INSERT', schema: 'public', table: 'notifications' }, 
         (payload) => {
-          const newNotification = payload.new as Notification;
+          const newDbNotification = payload.new as DatabaseNotification;
+          const newNotification = dbToAppNotification(newDbNotification);
+          
           setNotifications(prev => [newNotification, ...prev]);
           
           // Show toast for new notification
@@ -120,23 +159,26 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
       const { data: { session } } = await supabase.auth.getSession();
       const user_id = session?.user?.id;
       
-      const newNotification: Omit<Notification, 'id'> = {
+      // Convert to database model
+      const dbNotification = appToDbNotification({
         ...notification,
-        read: false,
         user_id: user_id || undefined,
-      };
+      });
       
       // Insert into Supabase
       const { data, error } = await supabase
         .from('notifications')
-        .insert([newNotification])
+        .insert([dbNotification])
         .select();
         
       if (error) throw error;
       
       if (data && data[0]) {
+        // Convert back to app model for local state
+        const newNotification = dbToAppNotification(data[0]);
+        
         // Update local state
-        setNotifications(prev => [data[0], ...prev]);
+        setNotifications(prev => [newNotification, ...prev]);
       
         // Show toast notification
         toast(notification.title, {
@@ -241,7 +283,7 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
   const showEcgAlert = () => {
     toast.warning("ECG Anomaly Detected", {
       description: "Your latest ECG shows an irregular pattern that may require attention.",
-      duration: 10000, // 10 seconds instead of infinite
+      duration: 10000,
       closeButton: true,
       action: {
         label: "Take ECG",
@@ -274,7 +316,7 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
   const showHeartRateAlert = (heartRate: number) => {
     toast.warning("High Heart Rate Alert", {
       description: `Your heart rate is ${heartRate} BPM, which is above your normal resting range.`,
-      duration: 10000, // 10 seconds instead of infinite
+      duration: 10000,
       closeButton: true,
       action: {
         label: "Monitor",
@@ -318,7 +360,7 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     
     toast.warning(title, {
       description: description,
-      duration: 10000, // 10 seconds instead of infinite
+      duration: 10000,
       closeButton: true,
       action: {
         label: "Track",
@@ -351,7 +393,7 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
   const showSpO2Alert = (spO2Level: number) => {
     toast.warning("Low Blood Oxygen Alert", {
       description: `Your SpO2 level is ${spO2Level}%, which is below the normal range of 95-100%.`,
-      duration: 10000, // 10 seconds instead of infinite
+      duration: 10000,
       closeButton: true,
       action: {
         label: "Take Reading",
