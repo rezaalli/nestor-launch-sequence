@@ -34,9 +34,9 @@ const HealthMetrics = ({
     macronutrients: false
   }
 }: HealthMetricsProps) => {
-  // Get unit preference from user context
+  // Get unit preference from user context with null handling
   const { user } = useUser();
-  const unitPreference = user.unitPreference || 'imperial'; // Default to imperial (Fahrenheit)
+  const unitPreference = user?.unitPreference || 'imperial'; // Default to imperial (Fahrenheit) if user is null
   
   const [lastReading, setLastReading] = useState(getLastReading());
   const [deviceWorn, setDeviceWorn] = useState(isDeviceWorn());
@@ -230,7 +230,7 @@ const HealthMetrics = ({
   const tempCelsius = (lastReading?.temp ?? 367) / 10;
   const caloriesBurned = lastReading?.calories ?? 475; // Default calories if not available
   
-  // Display temperature based on user preference
+  // Display temperature based on user preference, safely handling null user
   const tempDisplay = formatTemperature(lastReading?.temp ?? 367, unitPreference);
 
   // Helper function to render the drag handle when in customize mode

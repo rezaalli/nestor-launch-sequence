@@ -37,8 +37,8 @@ const TemperatureAlertDialog = ({
     // No notification is added when dismissed, following the same pattern as HeartRateAlertDialog
   };
 
-  // Get unit preference from user context
-  const unitPreference = user.unitPreference || 'imperial';
+  // Get unit preference from user context, safely handling the case where user might be null
+  const unitPreference = user?.unitPreference || 'imperial';
   
   // Use the new formatting utility
   const tempDisplay = formatTemperature(temperature, unitPreference, true);

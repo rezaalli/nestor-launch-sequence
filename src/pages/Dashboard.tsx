@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { Bell, ArrowUp, ClipboardList, ChevronDown, Grid3x3, RefreshCw, Move, Cog } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -229,9 +228,12 @@ const Dashboard = () => {
     );
   }
 
-  // Helper function for temperature conversion
+  // Helper function for temperature conversion that safely handles user being null
   const formatTemperature = (celsius: number): { value: string, unit: string } => {
-    if (user.unitPreference === 'imperial') {
+    // Make sure user exists and has unitPreference before accessing it
+    const unitPreference = user?.unitPreference || 'imperial';
+    
+    if (unitPreference === 'imperial') {
       const fahrenheit = (celsius * 9/5) + 32;
       return { value: fahrenheit.toFixed(1), unit: '°F' };
     }
