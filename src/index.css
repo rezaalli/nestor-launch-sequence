@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,6 +34,36 @@
 
     --radius: 0.5rem;
   }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
 }
 
 @layer base {
@@ -57,36 +86,56 @@
     font-size: 16px;
   }
   
-  /* Mobile Text Styling */
+  /* Typography System - Using weights for hierarchy */
   h1, .h1 {
-    @apply text-2xl font-semibold tracking-tight;
-    line-height: 1.2;
+    @apply text-2xl font-semibold tracking-tight leading-tight;
     letter-spacing: -0.01em;
   }
   
   h2, .h2 {
-    @apply text-xl font-semibold tracking-tight;
-    line-height: 1.25;
+    @apply text-xl font-semibold tracking-tight leading-tight;
     letter-spacing: -0.01em;
   }
   
   h3, .h3 {
-    @apply text-lg font-medium;
-    line-height: 1.3;
+    @apply text-lg font-medium leading-snug;
+    letter-spacing: -0.005em;
   }
   
   h4, .h4 {
-    @apply text-base font-medium;
-    line-height: 1.35;
+    @apply text-base font-medium leading-snug;
   }
   
   p, .body-text {
-    @apply text-base leading-normal;
+    @apply text-base font-normal leading-normal;
     letter-spacing: -0.01em;
   }
   
-  .text-caption {
-    @apply text-sm leading-normal font-medium;
+  .body-small {
+    @apply text-sm font-normal leading-normal;
+  }
+  
+  .caption {
+    @apply text-sm font-medium leading-normal;
+  }
+  
+  .caption-small {
+    @apply text-xs font-medium leading-snug;
+  }
+  
+  /* Metric text styles */
+  .metric-value {
+    @apply text-lg font-semibold tracking-tight leading-tight;
+    letter-spacing: -0.01em;
+  }
+  
+  .metric-label {
+    @apply text-sm font-medium leading-snug;
+  }
+  
+  .metric-small {
+    @apply text-base font-semibold tracking-tight leading-tight;
+    letter-spacing: -0.01em;
   }
   
   /* Touch Targets */
@@ -104,14 +153,167 @@
   .chart-label {
     @apply font-medium text-sm tracking-tight;
   }
+}
+
+/* Device settings styles */
+.settings-card {
+  @apply bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden;
+}
+
+.settings-header {
+  @apply text-center font-medium pb-3 border-b border-gray-200 dark:border-slate-700;
+}
+
+.settings-row {
+  @apply flex justify-between items-center;
+}
+
+.settings-label {
+  @apply text-sm text-gray-700 dark:text-gray-300;
+}
+
+.settings-value {
+  @apply text-sm font-medium;
+}
+
+.settings-button {
+  @apply text-xs h-8 px-4 rounded-md border border-gray-200 dark:border-slate-700 
+         bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700;
+}
+
+/* Theme option cards */
+.theme-option {
+  @apply flex flex-col items-center justify-between rounded-md border-2 border-gray-200 
+         dark:border-slate-700 bg-white dark:bg-slate-800 p-4 hover:bg-gray-50 
+         dark:hover:bg-slate-700 cursor-pointer;
+}
+
+.theme-option[data-state="checked"] {
+  @apply border-blue-500 dark:border-blue-400;
+}
+
+/* Slider component for settings */
+.slider-container {
+  @apply space-y-2;
+}
+
+.slider-label {
+  @apply flex justify-between items-center;
+}
+
+.slider-track {
+  @apply bg-gray-200 dark:bg-slate-700 h-2 rounded-full;
+}
+
+.slider-range {
+  @apply bg-blue-500 dark:bg-blue-400 h-2 rounded-full;
+}
+
+.slider-thumb {
+  @apply bg-white border-2 border-blue-500 dark:border-blue-400 h-5 w-5 rounded-full;
+}
+
+/* High contrast mode styles */
+.high-contrast {
+  /* Override background and foreground colors for better contrast */
+  --background: 0 0% 100%; /* White background */
+  --foreground: 0 0% 0%; /* Black text */
   
-  .metric-value {
-    @apply text-lg font-semibold tracking-tight;
-  }
+  /* Increase contrast for content areas */
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
   
-  .metric-label {
-    @apply text-sm font-medium;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 0%;
+  
+  /* Make primary colors more distinct */
+  --primary: 222 90% 30%;
+  --primary-foreground: 0 0% 100%;
+  
+  /* Enhance borders for better visibility */
+  --border: 0 0% 0%;
+  --input: 0 0% 70%;
+  
+  /* Adjust focus indicators to be more noticeable */
+  --ring: 222 90% 40%;
+}
+
+/* Dark high contrast mode */
+.dark.high-contrast {
+  --background: 0 0% 0%; /* Black background */
+  --foreground: 0 0% 100%; /* White text */
+  
+  --card: 0 0% 10%;
+  --card-foreground: 0 0% 100%;
+  
+  --popover: 0 0% 10%;
+  --popover-foreground: 0 0% 100%;
+  
+  --primary: 222 90% 70%;
+  --primary-foreground: 0 0% 0%;
+  
+  --border: 0 0% 100%;
+  --input: 0 0% 80%;
+}
+
+/* Additional high contrast adjustments */
+.high-contrast * {
+  /* Increase text shadow for better readability */
+  text-shadow: none !important;
+  
+  /* Remove or enhance transparency */
+  --tw-bg-opacity: 1 !important;
+  --tw-text-opacity: 1 !important;
+  
+  /* Increase border contrast */
+  border-color: rgb(0 0 0) !important;
+}
+
+.dark.high-contrast * {
+  border-color: rgb(255 255 255) !important;
+}
+
+/* Specific element enhancements for high contrast */
+.high-contrast button,
+.high-contrast [role="button"],
+.high-contrast a:not([class^="recharts"]) {
+  text-decoration: underline !important;
+  outline: 2px solid currentColor !important;
+}
+
+.high-contrast input,
+.high-contrast select,
+.high-contrast textarea {
+  border-width: 2px !important;
+  outline: 2px solid black !important;
+}
+
+.dark.high-contrast input,
+.dark.high-contrast select,
+.dark.high-contrast textarea {
+  outline: 2px solid white !important;
+}
+
+/* Reduced motion styles for users with this preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.075s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.075s !important;
+    scroll-behavior: auto !important;
   }
+}
+
+/* Class-based reduced motion for custom toggle */
+.reduce-motion *, 
+.reduce-motion *::before, 
+.reduce-motion *::after {
+  animation-duration: 0.075s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.075s !important;
+  scroll-behavior: auto !important;
+  transition-timing-function: ease !important;
+  animation-timing-function: ease !important;
 }
 
 /* Hide scrollbar for all browsers */
@@ -125,28 +327,77 @@
 }
 
 @layer components {
-  .nestor-input {
-    @apply w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nestor-blue focus:border-nestor-blue outline-none text-base;
+  /* Card Components with refined shadows/spacing */
+  .nestor-card {
+    @apply bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden;
+    transition: box-shadow 250ms ease;
   }
   
+  .nestor-card-interactive {
+    @apply nestor-card hover:shadow-md cursor-pointer;
+  }
+  
+  .nestor-card-header {
+    @apply p-4 border-b border-neutral-100;
+  }
+  
+  .nestor-card-content {
+    @apply p-4;
+  }
+  
+  .nestor-card-footer {
+    @apply p-4 bg-neutral-50 border-t border-neutral-100;
+  }
+  
+  /* Data Badge Component */
+  .data-badge {
+    @apply inline-flex items-center rounded-lg px-2.5 py-1 text-sm font-medium;
+  }
+  
+  .data-badge-neutral {
+    @apply bg-neutral-100 text-neutral-800;
+  }
+  
+  .data-badge-brand {
+    @apply bg-brand-blue-100 text-brand-blue-800;
+  }
+  
+  .data-badge-success {
+    @apply bg-status-success-100 text-status-success-700;
+  }
+  
+  .data-badge-warning {
+    @apply bg-status-warning-100 text-status-warning-700;
+  }
+  
+  .data-badge-error {
+    @apply bg-status-error-100 text-status-error-700;
+  }
+  
+  .data-badge-info {
+    @apply bg-status-info-100 text-status-info-700;
+  }
+  
+  /* Input Components */
+  .nestor-input {
+    @apply w-full p-4 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-blue-600 focus:border-brand-blue-600 outline-none text-base;
+  }
+  
+  /* Button Components */
   .nestor-btn {
-    @apply w-full py-4 bg-nestor-blue text-white font-medium rounded-lg shadow-sm transition-colors hover:bg-opacity-90 text-base tracking-tight;
+    @apply w-full py-4 bg-brand-blue-900 text-white font-medium rounded-lg shadow-sm transition-colors hover:bg-brand-blue-800 text-base tracking-tight;
   }
   
   .nestor-btn-outline {
-    @apply w-full py-3.5 border border-gray-300 rounded-lg flex items-center justify-center space-x-2 transition-colors hover:bg-gray-50 text-base;
+    @apply w-full py-3.5 border border-neutral-300 rounded-lg flex items-center justify-center space-x-2 transition-colors hover:bg-neutral-50 text-base;
   }
   
+  /* Icon Container */
   .nestor-icon-container {
-    @apply w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center;
+    @apply w-10 h-10 bg-brand-blue-100 rounded-full flex items-center justify-center;
   }
   
-  /* Card styles for metric cards */
-  .metric-card {
-    @apply p-4 rounded-xl border border-gray-200;
-  }
-  
-  /* List item styles */
+  /* List Components */
   .list-item {
     @apply py-3 flex items-center;
   }
@@ -157,6 +408,23 @@
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+  }
+  
+  /* Skeleton Loading States */
+  .skeleton {
+    @apply animate-pulse bg-neutral-200 rounded;
+  }
+  
+  .skeleton-text {
+    @apply skeleton h-4 w-full;
+  }
+  
+  .skeleton-circle {
+    @apply skeleton rounded-full;
+  }
+  
+  .skeleton-card {
+    @apply nestor-card animate-pulse;
   }
 }
 
@@ -186,4 +454,38 @@
 .recharts-tooltip-item-value {
   font-size: 13px !important;
   color: #374151 !important;
+}
+
+/* High contrast chart styles */
+.high-contrast .recharts-cartesian-axis-tick-value {
+  fill: #000000 !important;
+  font-weight: 700 !important;
+}
+
+.high-contrast .recharts-default-tooltip {
+  background-color: white !important;
+  border: 2px solid black !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+}
+
+.high-contrast .recharts-tooltip-label,
+.high-contrast .recharts-tooltip-item-name,
+.high-contrast .recharts-tooltip-item-value {
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
+.dark.high-contrast .recharts-cartesian-axis-tick-value {
+  fill: #ffffff !important;
+}
+
+.dark.high-contrast .recharts-default-tooltip {
+  background-color: black !important;
+  border: 2px solid white !important;
+}
+
+.dark.high-contrast .recharts-tooltip-label,
+.dark.high-contrast .recharts-tooltip-item-name,
+.dark.high-contrast .recharts-tooltip-item-value {
+  color: #ffffff !important;
 }

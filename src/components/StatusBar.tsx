@@ -1,30 +1,78 @@
-
 import React from 'react';
+import { Battery, Signal, BatteryWarning } from 'lucide-react';
+import { useCloudSync } from '@/hooks/useCloudSync';
+import { useNetworkStatus } from '@/utils/networkUtils';
+import { OfflineIndicatorCompact } from './ui/offline-indicator';
+import AccessibilityControls from './AccessibilityControls';
 
-const StatusBar = () => {
+interface StatusBarProps {
+  className?: string;
+}
+
+const StatusBar: React.FC<StatusBarProps> = ({ className }) => {
+  const { offlineMode, connectionQuality } = useCloudSync();
+  const networkStatus = useNetworkStatus();
+  
+  const getSignalStrength = () => {
+    // Determine signal strength based on connection quality
+    if (offlineMode || !networkStatus.connected) {
+      return 0;
+    }
+    
+    if (connectionQuality === 'excellent') {
+      return 4;
+    } else if (connectionQuality === 'good') {
+      return 3;
+    } else if (connectionQuality === 'poor') {
+      return 1;
+    }
+    
+    return 2; // default to medium
+  };
+  
+  const getBatteryLevel = () => {
+    // Simulated battery level - in a real app, you would use the Battery API
+    // if supported, or get this from your device integration
+    return 75;
+  };
+  
+  const batteryLevel = getBatteryLevel();
+  const signalStrength = getSignalStrength();
+  
   return (
-    <div className="h-6 w-full bg-white flex justify-between items-center px-4">
+    <div className={`relative w-full h-10 bg-white flex items-center justify-between px-4 ${className}`}>
       <div className="flex items-center space-x-1">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-nestor-gray-900">
-          <path d="M6 8.5a2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0-5 0Z"/>
-          <path d="M6.5 19.5h11M10 19.5v-2.9a.6.6 0 0 1 .6-.6h2.8a.6.6 0 0 1 .6.6v2.9M8.5 2h7M14 2v6h1a2 2 0 0 1 2 2v9.5"/>
-          <path d="M10 2v6H9a2 2 0 0 0-2 2v9.5"/>
-          <path d="M3 8.5a7 7 0 0 0 14 0 7 7 0 0 0-14 0Z"/>
-          <path d="m5 13 2.5 3 4-5 5 5"/>
-        </svg>
-        <span className="text-xs text-nestor-gray-900">5G</span>
+        <Signal 
+          className={signalStrength === 0 ? "text-red-500 h-4 w-4" : "text-green-500 h-4 w-4"} 
+        />
+        {/* Show connection quality label */}
+        {signalStrength > 0 ? (
+          <span className="text-xs text-neutral-500">{signalStrength}/4</span>
+        ) : (
+          <span className="text-xs text-red-500">No Signal</span>
+        )}
       </div>
-      <div className="text-xs text-nestor-gray-900">9:41</div>
-      <div className="flex items-center space-x-1">
-        <span className="text-xs text-nestor-gray-900">100%</span>
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-nestor-gray-900">
-          <rect width="16" height="10" x="2" y="7" rx="2" ry="2"/>
-          <line x1="22" x2="22" y1="11" y2="13"/>
-          <line x1="20" x2="20" y1="7" y2="17"/>
-          <line x1="6" x2="6" y1="7" y2="17"/>
-          <line x1="10" x2="10" y1="7" y2="17"/>
-          <line x1="14" x2="14" y1="7" y2="17"/>
-        </svg>
+      
+      <div className="absolute left-1/2 transform -translate-x-1/2 text-xs text-neutral-600">
+        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        {/* Accessibility Controls */}
+        <AccessibilityControls showLabel={false} />
+        
+        {/* Show offline indicator when necessary */}
+        <OfflineIndicatorCompact 
+          offlineMode={offlineMode} 
+          connectionQuality={connectionQuality}
+        />
+        
+        {batteryLevel < 20 ? (
+          <BatteryWarning className="text-red-500 h-4 w-4" />
+        ) : (
+          <Battery className="text-green-500 h-4 w-4" />
+        )}
+        <span className="text-xs text-neutral-500">{batteryLevel}%</span>
       </div>
     </div>
   );

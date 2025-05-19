@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Settings, ArrowLeft, ChevronDown } from 'lucide-react';
@@ -10,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
+import { SimpleSkeletonLoader as Skeleton } from "@/components/ui/skeleton";
 import { toast } from 'sonner';
 
 const Notifications = () => {

@@ -1,4 +1,3 @@
-
 // Mock bleUtils file as a replacement for the removed BLE functionality
 
 /**
@@ -19,13 +18,18 @@ export const formatTemperature = (value: number, unitPreference: 'metric' | 'imp
 };
 
 // Define a type for health readings
-type HealthReading = {
+export type HealthReading = {
   hr: number; // Heart rate in bpm
+  heartRate?: number; // Alias for hr (for clarity in some components)
   spo2: number; // Blood oxygen percentage
   temp: number; // Temperature in tenths of a degree Celsius (36.7°C)
   timestamp: number;
   readiness: number; // Readiness score
   calories: number; // Calories burned
+  steps?: number; // Daily step count
+  // Sleep data comes only from user assessments, not from the device
+  sleepHours?: number; // Hours of sleep (from assessment)
+  sleepQuality?: number; // Sleep quality score (from assessment)
 };
 
 /**
@@ -34,11 +38,14 @@ type HealthReading = {
 export const getLastReading = (): HealthReading => {
   return {
     hr: 72, // Heart rate in bpm
+    heartRate: 72, // Same as hr but with a more explicit name
     spo2: 98, // Blood oxygen percentage
     temp: 367, // Temperature in tenths of a degree Celsius (36.7°C)
     timestamp: Date.now(),
     readiness: 82, // Readiness score
-    calories: 475 // Calories burned
+    calories: 475, // Calories burned
+    steps: 8742, // Example daily step count
+    // Sleep data not included since it comes from assessments, not the device
   };
 };
 
@@ -52,13 +59,18 @@ export const getReadings = (days = 7) => {
   
   for (let i = 0; i < days; i++) {
     const timestamp = now - (i * dayMs) - Math.floor(Math.random() * dayMs);
+    const hr = 60 + Math.floor(Math.random() * 30);
+    
     readings.push({
-      hr: 60 + Math.floor(Math.random() * 30),
+      hr,
+      heartRate: hr, // Same as hr but with a more explicit name
       spo2: 95 + Math.floor(Math.random() * 5),
       temp: 365 + Math.floor(Math.random() * 10),
       timestamp,
       readiness: 70 + Math.floor(Math.random() * 30),
-      calories: 300 + Math.floor(Math.random() * 500) // Random calories between 300-800
+      calories: 300 + Math.floor(Math.random() * 500), // Random calories between 300-800
+      steps: 5000 + Math.floor(Math.random() * 8000), // Random steps between 5000-13000
+      // Sleep data removed as it comes from assessments, not the device
     });
   }
   

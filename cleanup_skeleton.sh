@@ -1,0 +1,120 @@
+#!/bin/bash
+
+# Create backup
+cp src/components/ui/skeleton.tsx src/components/ui/skeleton.tsx.bak
+
+# Create new file without duplicate Skeleton export function
+cat > src/components/ui/skeleton.tsx << 'EOL'
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "text" | "circular" | "rectangular" | "metric" | "card" | "avatar";
+  width?: string | number;
+  height?: string | number;
+}
+
+// Single Skeleton component that handles all use cases
+const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
+  ({ className, variant = "text", width, height, ...props }, ref) => {
+    // Base skeleton styles
+    const baseStyles = "animate-pulse bg-neutral-200";
+    
+    // Variant-specific styles
+    const variantStyles = {
+      text: "h-4 rounded",
+      circular: "rounded-full",
+      rectangular: "rounded-md",
+      metric: "h-8 rounded w-20",
+      card: "w-full h-32 rounded-xl",
+      avatar: "rounded-full h-10 w-10"
+    };
+    
+    // Generate inline styles for width and height if provided
+    const inlineStyles: React.CSSProperties = {};
+    if (width) inlineStyles.width = typeof width === "number" ? `${width}px` : width;
+    if (height) inlineStyles.height = typeof height === "number" ? `${height}px` : height;
+    
+    return (
+      <div
+        ref={ref}
+        className={cn(baseStyles, variantStyles[variant], className)}
+        style={inlineStyles}
+        {...props}
+      />
+    );
+  }
+);
+
+Skeleton.displayName = "Skeleton";
+
+// Text skeleton with multiple lines
+export const TextSkeleton: React.FC<Omit<SkeletonProps, "variant"> & { lines?: number }> = ({ 
+  lines = 1, 
+  className,
+  ...props 
+}) => {
+  return (
+    <div className={cn("space-y-2", className)}>
+      {Array.from({ length: lines }).map((_, i) => (
+        <Skeleton 
+          key={i} 
+          variant="text" 
+          className={i === lines - 1 && lines > 1 ? "w-4/5" : "w-full"} 
+          {...props} 
+        />
+      ))}
+    </div>
+  );
+};
+
+// Metric skeleton with optional label
+export const MetricSkeleton: React.FC<Omit<SkeletonProps, "variant"> & { withLabel?: boolean }> = ({ 
+  withLabel = false, 
+  className,
+  ...props 
+}) => {
+  return (
+    <div className={cn("space-y-2", className)}>
+      {withLabel && <Skeleton variant="text" className="w-16" />}
+      <Skeleton variant="metric" {...props} />
+    </div>
+  );
+};
+
+// Card skeleton with optional header and footer
+export const CardSkeleton: React.FC<Omit<SkeletonProps, "variant"> & { withHeader?: boolean, withFooter?: boolean }> = ({ 
+  withHeader = false, 
+  withFooter = false,
+  className,
+  ...props 
+}) => {
+  return (
+    <div className={cn("nestor-card overflow-hidden", className)}>
+      {withHeader && (
+        <div className="p-4 border-b border-neutral-100">
+          <Skeleton variant="text" className="w-3/4" />
+        </div>
+      )}
+      <div className="p-4 space-y-3">
+        <Skeleton variant="rectangular" height={props.height || 100} />
+      </div>
+      {withFooter && (
+        <div className="p-4 bg-neutral-50 border-t border-neutral-100">
+          <Skeleton variant="text" className="w-1/2" />
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Simple skeleton loader alias for convenience
+export const SimpleSkeletonLoader = (props: React.HTMLAttributes<HTMLDivElement>) => {
+  return <Skeleton {...props} />;
+};
+
+// Export the main Skeleton component
+export { Skeleton };
+EOL
+
+echo "Skeleton.tsx has been fixed - only one Skeleton definition remains"

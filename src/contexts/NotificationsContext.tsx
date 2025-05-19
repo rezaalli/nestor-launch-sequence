@@ -1,15 +1,17 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
 
 export type NotificationType = 'health' | 'device' | 'lifestyle';
+export type NotificationPriority = 'high' | 'medium' | 'low';
 
 export interface Notification {
   id: string;
   title: string;
   description: string;
   type: NotificationType;
+  priority?: NotificationPriority;
   icon: string;
   iconBgColor: string;
   iconColor: string;
@@ -17,6 +19,11 @@ export interface Notification {
   date: string;
   read: boolean;
   user_id?: string;
+  contextual?: {
+    location?: string;
+    timeOfDay?: 'morning' | 'afternoon' | 'evening' | 'night';
+    activity?: string;
+  };
   actions?: {
     primary?: {
       label: string;
@@ -36,6 +43,7 @@ function dbToAppNotification(dbNotification: DatabaseNotification): Notification
     title: dbNotification.title,
     description: dbNotification.description,
     type: dbNotification.type as NotificationType,
+    priority: dbNotification.priority as NotificationPriority,
     icon: dbNotification.icon,
     iconBgColor: dbNotification.icon_bg_color,
     iconColor: dbNotification.icon_color,
@@ -43,6 +51,7 @@ function dbToAppNotification(dbNotification: DatabaseNotification): Notification
     date: dbNotification.date,
     read: dbNotification.read,
     user_id: dbNotification.user_id,
+    contextual: dbNotification.contextual as Notification['contextual'],
     actions: dbNotification.actions as Notification['actions']
   };
 }
@@ -52,21 +61,39 @@ function appToDbNotification(notification: Omit<Notification, 'id'>): Omit<Datab
     title: notification.title,
     description: notification.description,
     type: notification.type,
+    priority: notification.priority || 'medium',
     icon: notification.icon,
     icon_bg_color: notification.iconBgColor,
     icon_color: notification.iconColor,
     time: notification.time,
     date: notification.date,
-    read: notification.read, // Make sure we include the read property
+    read: notification.read,
     user_id: notification.user_id || '',
+    contextual: notification.contextual as Json,
     actions: notification.actions as Json
   };
+}
+
+// New interface for notification scheduling
+interface ScheduledNotification extends Omit<Notification, 'id' | 'read'> {
+  scheduledTime: Date;
+  conditions?: {
+    minTimeBetweenSimilar?: number; // minutes
+    requiresUserActivity?: boolean;
+    requiredBatteryLevel?: number;
+    contextualTriggers?: {
+      location?: string[];
+      timeOfDay?: ('morning' | 'afternoon' | 'evening' | 'night')[];
+      activityState?: string[];
+    }
+  }
 }
 
 interface NotificationsContextType {
   notifications: Notification[];
   unreadCount: number;
   addNotification: (notification: Omit<Notification, 'id' | 'read'>) => void;
+  scheduleNotification: (notification: ScheduledNotification) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   deleteNotification: (id: string) => void;
@@ -76,6 +103,9 @@ interface NotificationsContextType {
   showTemperatureAlert: (temperature: number, type: 'high' | 'low') => void;
   showSpO2Alert: (spO2Level: number) => void;
   loading: boolean;
+  // New context-aware methods
+  getUserOptimalNotificationTime: () => string;
+  getPriorityNotifications: (priority: NotificationPriority) => Notification[];
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
@@ -95,6 +125,14 @@ interface NotificationsProviderProps {
 export const NotificationsProvider = ({ children }: NotificationsProviderProps) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [scheduledNotifications, setScheduledNotifications] = useState<ScheduledNotification[]>([]);
+  const [userActivityPattern, setUserActivityPattern] = useState<{[hour: number]: number}>({});
+  const [currentUserContext, setCurrentUserContext] = useState({
+    timeOfDay: 'morning' as 'morning' | 'afternoon' | 'evening' | 'night',
+    isActive: true,
+    lastActiveTime: new Date(),
+    location: 'home'
+  });
 
   // Load notifications from Supabase on initial render
   React.useEffect(() => {
@@ -423,10 +461,152 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     });
   };
 
+  // Track user activity patterns to determine optimal notification times
+  useEffect(() => {
+    const trackActivity = () => {
+      const now = new Date();
+      const currentHour = now.getHours();
+      
+      setUserActivityPattern(prev => {
+        const updated = {...prev};
+        updated[currentHour] = (updated[currentHour] || 0) + 1;
+        return updated;
+      });
+      
+      setCurrentUserContext(prev => ({
+        ...prev,
+        isActive: true,
+        lastActiveTime: now
+      }));
+    };
+    
+    // Update time of day context
+    const updateTimeOfDay = () => {
+      const currentHour = new Date().getHours();
+      let timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night';
+      
+      if (currentHour >= 5 && currentHour < 12) {
+        timeOfDay = 'morning';
+      } else if (currentHour >= 12 && currentHour < 17) {
+        timeOfDay = 'afternoon';
+      } else if (currentHour >= 17 && currentHour < 22) {
+        timeOfDay = 'evening';
+      } else {
+        timeOfDay = 'night';
+      }
+      
+      setCurrentUserContext(prev => ({
+        ...prev,
+        timeOfDay
+      }));
+    };
+    
+    // Set up activity tracking
+    window.addEventListener('click', trackActivity);
+    window.addEventListener('scroll', trackActivity);
+    window.addEventListener('keypress', trackActivity);
+    
+    // Initial time of day update
+    updateTimeOfDay();
+    
+    // Update every hour
+    const hourlyUpdate = setInterval(updateTimeOfDay, 60 * 60 * 1000);
+    
+    // Check for scheduled notifications every minute
+    const scheduledNotificationsCheck = setInterval(processScheduledNotifications, 60 * 1000);
+    
+    return () => {
+      window.removeEventListener('click', trackActivity);
+      window.removeEventListener('scroll', trackActivity);
+      window.removeEventListener('keypress', trackActivity);
+      clearInterval(hourlyUpdate);
+      clearInterval(scheduledNotificationsCheck);
+    };
+  }, []);
+  
+  // Process scheduled notifications
+  const processScheduledNotifications = () => {
+    const now = new Date();
+    const currentTime = now.getTime();
+    
+    // Clone the array to avoid mutation issues during filtering
+    const notificationsToProcess = [...scheduledNotifications];
+    
+    notificationsToProcess.forEach(notification => {
+      const scheduleTime = notification.scheduledTime.getTime();
+      
+      if (scheduleTime <= currentTime) {
+        // Check conditions
+        if (notification.conditions) {
+          // Check time of day condition
+          if (notification.conditions.contextualTriggers?.timeOfDay && 
+              !notification.conditions.contextualTriggers.timeOfDay.includes(currentUserContext.timeOfDay)) {
+            return; // Skip if current time of day doesn't match required
+          }
+          
+          // Check activity condition
+          if (notification.conditions.requiresUserActivity && !currentUserContext.isActive) {
+            // If user inactive for more than 5 minutes, delay notification
+            const inactiveTime = (currentTime - currentUserContext.lastActiveTime.getTime()) / (1000 * 60);
+            if (inactiveTime > 5) {
+              return; // Skip for now, will be checked again next cycle
+            }
+          }
+        }
+        
+        // Notification meets conditions, add it
+        addNotification({
+          ...notification,
+          contextual: {
+            ...notification.contextual,
+            timeOfDay: currentUserContext.timeOfDay
+          }
+        });
+        
+        // Remove from scheduled
+        setScheduledNotifications(prev => 
+          prev.filter(n => n !== notification)
+        );
+      }
+    });
+  };
+  
+  // Get user's optimal notification time based on activity patterns
+  const getUserOptimalNotificationTime = () => {
+    // Find the hour with highest activity
+    let maxActivityHour = 9; // Default to 9 AM
+    let maxActivity = 0;
+    
+    Object.entries(userActivityPattern).forEach(([hourStr, activity]) => {
+      const hour = parseInt(hourStr);
+      // Only consider daylight hours (8am-10pm)
+      if (hour >= 8 && hour <= 22 && activity > maxActivity) {
+        maxActivity = activity;
+        maxActivityHour = hour;
+      }
+    });
+    
+    // Format the time
+    const ampm = maxActivityHour >= 12 ? 'PM' : 'AM';
+    const hour12 = maxActivityHour % 12 || 12;
+    return `${hour12}:00 ${ampm}`;
+  };
+  
+  // Get notifications filtered by priority
+  const getPriorityNotifications = (priority: NotificationPriority) => {
+    return notifications.filter(notification => notification.priority === priority);
+  };
+
+  // Schedule a notification for future delivery
+  const scheduleNotification = (notification: ScheduledNotification) => {
+    setScheduledNotifications(prev => [...prev, notification]);
+  };
+
   const value = {
     notifications,
     unreadCount,
     addNotification,
+    scheduleNotification,
     markAsRead,
     markAllAsRead,
     deleteNotification,
@@ -435,7 +615,9 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
     showHeartRateAlert,
     showTemperatureAlert,
     showSpO2Alert,
-    loading
+    loading,
+    getUserOptimalNotificationTime,
+    getPriorityNotifications
   };
 
   return (

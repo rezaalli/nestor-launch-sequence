@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,11 +8,13 @@ import { useUser } from '@/contexts/UserContext';
 interface ProfileImageUploaderProps {
   size?: 'sm' | 'md' | 'lg';
   onImageChange?: (url: string) => void;
+  centered?: boolean;
 }
 
 const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({ 
   size = 'md',
-  onImageChange 
+  onImageChange,
+  centered = true
 }) => {
   const { user, updateAvatar } = useUser();
   const { toast } = useToast();
@@ -23,8 +24,8 @@ const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
   // Determine avatar size based on prop
   const avatarSize = {
     sm: 'h-16 w-16',
-    md: 'h-24 w-24',
-    lg: 'h-32 w-32'
+    md: 'h-20 w-20',
+    lg: 'h-24 w-24'
   }[size];
 
   // Handle file selection
@@ -99,26 +100,30 @@ const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className={`flex flex-col ${centered ? 'items-center' : ''}`}>
       <div className="relative">
-        <Avatar className={`${avatarSize} border-2 border-white shadow-md`}>
+        <Avatar className={`${avatarSize} bg-blue-500 border border-blue-100`}>
           {user?.avatar ? (
             <AvatarImage src={user.avatar} alt={user?.name || 'User'} />
           ) : (
-            <AvatarFallback>
+            <AvatarFallback className="bg-blue-500 text-white">
               {getInitials()}
             </AvatarFallback>
           )}
         </Avatar>
         
-        <button
-          onClick={triggerFileInput}
-          disabled={isUploading}
-          className="absolute bottom-0 right-0 bg-blue-500 h-8 w-8 rounded-full flex items-center justify-center shadow-md border-2 border-white"
-          aria-label="Change profile picture"
-        >
-          <Camera size={16} className="text-white" />
-        </button>
+        <div className="absolute -bottom-1 -right-1 rounded-full bg-white p-0.5">
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={triggerFileInput}
+            disabled={isUploading}
+            className="h-6 w-6 bg-primary text-white hover:bg-primary/90 rounded-full"
+            aria-label="Change profile picture"
+          >
+            <Camera size={12} />
+          </Button>
+        </div>
       </div>
       
       <input 
@@ -135,16 +140,9 @@ const ProfileImageUploader: React.FC<ProfileImageUploaderProps> = ({
         size="sm" 
         onClick={triggerFileInput} 
         disabled={isUploading}
-        className="mt-3 text-sm"
+        className="mt-4 text-xs font-normal rounded-full h-8 px-4 border-gray-200"
       >
-        {isUploading ? (
-          <>Uploading...</>
-        ) : (
-          <>
-            <Upload size={14} className="mr-1" />
-            Change Photo
-          </>
-        )}
+        {isUploading ? "Uploading..." : "Change Photo"}
       </Button>
     </div>
   );

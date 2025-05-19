@@ -1,33 +1,46 @@
-
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Star, ArrowUp, Lightbulb, ArrowRight } from 'lucide-react';
+import { ChevronDown, ChevronUp, Star, ArrowUp, Clock, ArrowRight, HelpCircle } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useAssessment } from '@/contexts/AssessmentContext';
 import { getContributingFactors, getReadinessGrade } from '@/utils/readinessScoring';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SimpleSkeletonLoader as Skeleton } from "@/components/ui/skeleton";
 import { generateReadinessInsights, getTopContributingCategories, generateWeeklyWellnessSummary, generateCondensedWellnessSummary } from '@/utils/insightGenerator';
 import { getLastReading } from '@/utils/bleUtils';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
 
 interface ReadinessScoreProps {
   className?: string;
   showDetailed?: boolean;
+  score?: number;
+  showLabel?: boolean;
+  value?: number; // For backward compatibility
+  dailySummary?: string;
+  weeklySummary?: string;
 }
 
 const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScoreProps) => {
+const ReadinessScore = ({ 
+  className = '', 
+  showDetailed = false, 
+  score, 
+  showLabel, 
+  value,
+  dailySummary,
+  weeklySummary
+}: ReadinessScoreProps) => {
   const navigate = useNavigate();
   const { completedAssessments, getReadinessHistory } = useAssessment();
   
   // State to store the latest readiness score
   const [readinessData, setReadinessData] = useState({
-    readinessScore: getLastReading()?.readiness ?? 82,
+    readinessScore: (score || value) ?? getLastReading()?.readiness ?? 82,
     changePercentage: 4 as number,
     isPositiveChange: true
   });
@@ -52,6 +65,9 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
   // State for expanded view
   const [isExpanded, setIsExpanded] = useState(false);
   
+  // State for show weekly summary
+  const [showWeeklySummary, setShowWeeklySummary] = useState(false);
+  
   // State for insights
   const [insights, setInsights] = useState({
     summary: "Your readiness improved thanks to consistent sleep schedule and lower caffeine intake. Consider maintaining your current hydration levels which supported recovery.",
@@ -59,19 +75,13 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
     recommendedActions: ["Maintain your current healthy routines to support recovery"]
   });
   
-  // State for weekly wellness summary
-  const [weeklySummary, setWeeklySummary] = useState("");
-  
-  // State for condensed wellness summary (for dashboard)
-  const [condensedSummary, setCondensedSummary] = useState("");
-  
   // State for top supporters and limiters
   const [topSupporters, setTopSupporters] = useState<string[]>([]);
   const [topLimiters, setTopLimiters] = useState<string[]>([]);
   
   // Handle navigation to trends page
   const navigateToTrends = () => {
-    navigate('/trends');
+    navigate('/insights');
   };
   
   // Update readiness data when new assessments come in
@@ -141,15 +151,6 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
           setTopSupporters(supporters);
           setTopLimiters(limiters);
         }
-        
-        // Generate weekly wellness summary using the last 7 assessments
-        const pastWeekAssessments = sortedAssessments.slice(0, Math.min(7, sortedAssessments.length));
-        const summary = generateWeeklyWellnessSummary(pastWeekAssessments);
-        setWeeklySummary(summary);
-        
-        // Generate condensed wellness summary for dashboard
-        const condensed = generateCondensedWellnessSummary(pastWeekAssessments);
-        setCondensedSummary(condensed);
       }
     }
     
@@ -209,7 +210,41 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
               <Star className="text-blue-900" size={18} />
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">Readiness Score</h3>
+              <h3 className="font-medium text-gray-900 flex items-center">
+                Readiness Score
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="ml-1.5 focus:outline-none" aria-label="What affects my score?">
+                        <HelpCircle className="text-blue-500 hover:text-blue-700 transition-colors" size={14} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-sm p-4">
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-sm">What affects your score?</h4>
+                        <div className="space-y-2">
+                          {contributingFactors.map((factor, index) => (
+                            <div key={index} className="flex items-start">
+                              <div className={`w-2 h-2 rounded-full mt-1.5 ${factor.percentage > 80 ? 'bg-green-500' : factor.percentage > 60 ? 'bg-blue-500' : 'bg-yellow-500'}`} />
+                              <div className="ml-2">
+                                <div className="text-xs font-medium">{factor.name}</div>
+                                <div className="text-xs text-gray-500">
+                                  {factor.name === 'Physiological Metrics' && 'Sleep quality, resting heart rate, and recovery metrics'}
+                                  {factor.name === 'Lifestyle Consistency' && 'Regular exercise, balanced nutrition, and stress management'}
+                                  {factor.name === 'Self-Reported Health' && 'Your subjective assessment of how you feel'}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="text-xs text-blue-600 font-medium">
+                          Suggested improvement: {readinessData.readinessScore < 70 ? 'Focus on improving sleep quality and reducing stress' : 'Maintain your current healthy routines'}
+                        </div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </h3>
               <div className="flex items-center">
                 <span className="text-2xl font-semibold text-blue-900 mr-1">{readinessData.readinessScore}</span>
                 <span className="text-sm text-gray-600">/ 100</span>
@@ -263,35 +298,43 @@ const ReadinessScore = ({ className = '', showDetailed = false }: ReadinessScore
         </div>
       </div>
 
-      {/* Enhanced Weekly Wellness Insights - Conditional rendering based on showDetailed prop */}
-      <div className="bg-white rounded-lg p-4 mb-3">
-        <div className="flex items-start space-x-3">
-          <Lightbulb className="text-yellow-500 mt-1 flex-shrink-0" size={20} />
-          <div className="space-y-2 flex-1">
-            <h4 className="font-medium text-sm text-gray-800">Weekly Wellness Insights</h4>
-            
-            {/* Show condensed version for dashboard, full version for trends page */}
-            {!showDetailed ? (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  {condensedSummary || "This week, your wellness metrics show moderate stability with improved recovery on consistent routine days."}
-                </p>
-                <button 
-                  onClick={navigateToTrends} 
-                  className="ml-2 p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full flex-shrink-0 transition-colors"
-                  aria-label="View detailed insights"
-                >
-                  <ArrowRight size={16} />
-                </button>
-              </div>
-            ) : (
+      {/* Daily and Weekly Summary Section */}
+      {(dailySummary || weeklySummary) && (
+        <div className="bg-white rounded-lg p-4 mb-3">
+          {/* Daily Summary */}
+          {dailySummary && (
+            <div className="mb-3">
+              <h4 className="font-medium text-sm text-gray-800 mb-1">Daily Summary</h4>
               <p className="text-sm text-gray-700 leading-relaxed">
-                {weeklySummary || "This week, your wellness appears moderately stable, with signs of elevated stress and inconsistent activity patterns. Days with better hydration coincided with improved energy levels and fewer reported symptoms. Consistent sleep patterns seem to support your recovery processes, even on days with higher stress. Looking ahead, incorporating brief movement breaks throughout your day could help optimize your energy balance and recovery."}
+                {dailySummary}
               </p>
-            )}
-          </div>
+            </div>
+          )}
+          
+          {/* Weekly Summary - Collapsible */}
+          {weeklySummary && (
+            <div className="mt-3">
+              <h4 className="font-medium text-sm text-gray-800 mb-1">Weekly Summary</h4>
+              <div className="text-center">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs text-gray-600 h-6 px-2 mx-auto"
+                  onClick={() => setShowWeeklySummary(prev => !prev)}
+                >
+                  {showWeeklySummary ? "See less" : "See more"}
+                </Button>
+              </div>
+              
+              {showWeeklySummary && (
+                <p className="text-sm text-gray-700 leading-relaxed mt-1">
+                  {weeklySummary}
+                </p>
+              )}
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {showDetailed && (
         <Collapsible

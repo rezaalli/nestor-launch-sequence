@@ -24,6 +24,18 @@ import { DateRange } from 'react-day-picker';
 
 export type ReadingType = 'readiness' | 'heartRate' | 'temperature' | 'spo2' | 'steps';
 
+// Layout style interface for customizable positioning
+interface LayoutStyles {
+  container?: string;
+  metricSelector?: string;
+  timeSelector?: string;
+}
+
+interface StatsLayoutStyles {
+  container?: string;
+  statItem?: string;
+}
+
 interface WeeklyTrendChartProps {
   dataType?: ReadingType;
   days?: number;
@@ -31,6 +43,8 @@ interface WeeklyTrendChartProps {
   className?: string;
   onViewAllClick?: () => void;
   allowMetricChange?: boolean;
+  selectionLayoutStyle?: LayoutStyles;
+  statsLayoutStyle?: StatsLayoutStyles;
 }
 
 const WeeklyTrendChart = ({ 
@@ -39,7 +53,16 @@ const WeeklyTrendChart = ({
   compact = false,
   className = '',
   onViewAllClick,
-  allowMetricChange = false
+  allowMetricChange = false,
+  selectionLayoutStyle = {
+    container: "flex items-center justify-between mb-4",
+    metricSelector: "",
+    timeSelector: ""
+  },
+  statsLayoutStyle = {
+    container: "flex justify-between items-center mt-4",
+    statItem: "text-xs"
+  }
 }: WeeklyTrendChartProps) => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -438,171 +461,206 @@ const WeeklyTrendChart = ({
   }
   
   return (
-    <div className={`p-4 bg-white border border-gray-200 rounded-xl ${className}`}>
-      <div className="flex items-center justify-between mb-3">
-        {allowMetricChange ? (
-          <div className="flex items-center">
-            <Select value={selectedDataType} onValueChange={(value) => handleMetricChange(value as ReadingType)}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder={getChartTitle()} />
+    <div className={className}>
+      {/* Controls section */}
+      <div className={selectionLayoutStyle.container || "flex items-center justify-between mb-4"}>
+        {/* Metric selector */}
+        {allowMetricChange && (
+          <div className={selectionLayoutStyle.metricSelector || ""}>
+            <Select
+              value={selectedDataType}
+              onValueChange={(value) => handleMetricChange(value as ReadingType)}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Select metric" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="heartRate">Heart Rate</SelectItem>
-                <SelectItem value="spo2">Blood Oxygen</SelectItem>
                 <SelectItem value="temperature">Temperature</SelectItem>
+                <SelectItem value="spo2">Blood Oxygen</SelectItem>
                 <SelectItem value="readiness">Readiness</SelectItem>
                 <SelectItem value="steps">Steps</SelectItem>
               </SelectContent>
             </Select>
           </div>
-        ) : (
-          <h4 className="font-medium text-lg text-nestor-gray-900">{getChartTitle()}</h4>
         )}
         
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center gap-1 min-w-[150px] justify-between">
-              {formatDateRange()}
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleTimeRangeChange('today')}>Today</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleTimeRangeChange('yesterday')}>Yesterday</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleTimeRangeChange(7)}>Last 7 days</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleTimeRangeChange(14)}>Last 14 days</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleTimeRangeChange(30)}>Last 30 days</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleTimeRangeChange('custom')}>Custom Range</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Time range selector */}
+        <div className={selectionLayoutStyle.timeSelector || ""}>
+          {!compact && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center">
+                  {timeRange === 'custom' && dateRange?.from && dateRange?.to ? (
+                    <span>{formatDateRange()}</span>
+                  ) : (
+                    <span>
+                      {timeRange === 'today' ? 'Today' : 
+                       timeRange === 'yesterday' ? 'Yesterday' : 
+                       `Last ${timeRange} days`}
+                    </span>
+                  )}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleTimeRangeChange('today')}>
+                  Today
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleTimeRangeChange('yesterday')}>
+                  Yesterday
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleTimeRangeChange(7)}>
+                  Last 7 days
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleTimeRangeChange(14)}>
+                  Last 14 days
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleTimeRangeChange(30)}>
+                  Last 30 days
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleTimeRangeChange('custom')}>
+                  Custom Range
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
       
-      {/* Calendar popover for custom date range selection - fixed implementation */}
-      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" className="hidden">Calendar</Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 z-[100]" align="end">
-          <div className="p-3">
-            <CalendarComponent
-              initialFocus
-              mode="range"
-              defaultMonth={dateRange?.from}
-              selected={dateRange}
-              onSelect={handleCalendarSelect}
-              numberOfMonths={1}
-            />
-            <div className="mt-3 border-t pt-3">
-              <Button 
-                variant="default" 
-                className="w-full"
-                onClick={applyDateRange}
-                disabled={!dateRange?.from || !dateRange?.to}
-              >
-                Apply Range
+      {/* Custom date picker */}
+      {timeRange === 'custom' && !compact && (
+        <div className="mb-4">
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>
+                      {format(dateRange.from, 'LLL dd, y')} -{' '}
+                      {format(dateRange.to, 'LLL dd, y')}
+                    </>
+                  ) : (
+                    format(dateRange.from, 'LLL dd, y')
+                  )
+                ) : (
+                  <span>Pick a date range</span>
+                )}
+                <Calendar className="ml-auto h-4 w-4 opacity-50" />
               </Button>
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={handleCalendarSelect}
+                numberOfMonths={2}
+              />
+              <div className="p-3 border-t border-gray-100 flex justify-end">
+                <Button size="sm" onClick={applyDateRange}>Apply</Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
       
-      <div className="h-44 mb-3">
-        <ChartContainer config={chartConfig}>
+      {/* Chart */}
+      <div className="h-64">
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800"></div>
+          </div>
+        ) : !deviceWorn ? (
+          <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+            No data available for this time period
+          </div>
+        ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={chartData}
-              margin={{ top: 15, right: 10, left: 5, bottom: 20 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis 
                 dataKey="day" 
-                axisLine={false} 
+                tick={{ fontSize: 11 }} 
+                axisLine={{ stroke: '#e5e7eb' }}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: '#374151' }}
-                dy={8}
               />
               <YAxis 
-                hide={compact} 
-                domain={selectedDataType === 'readiness' ? [0, 100] : ['auto', 'auto']} 
-                tick={{ fontSize: 12, fill: '#374151' }}
-                width={40}
-                label={{ 
-                  value: getYAxisLabel(), 
-                  angle: -90, 
-                  position: 'insideLeft',
-                  style: { fontSize: '12px', fill: '#374151', textAnchor: 'middle' },
-                  offset: -5
+                domain={['auto', 'auto']}
+                tick={{ fontSize: 11 }} 
+                axisLine={{ stroke: '#e5e7eb' }}
+                tickLine={false}
+                tickFormatter={(value) => {
+                  if (selectedDataType === 'temperature' && value % 1 !== 0) {
+                    return '';
+                  }
+                  return value.toString();
                 }}
               />
-              <Tooltip
-                content={({ active, payload }) => {
+              <Tooltip 
+                content={({ active, payload, label }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-white p-3 shadow-lg rounded border border-gray-100">
-                        <p className="text-sm font-medium text-nestor-gray-800">{payload[0].payload.day} - {payload[0].payload.date}</p>
-                        <p className="text-base font-medium text-nestor-gray-900">{`${payload[0].value} ${getYAxisLabel()}`}</p>
+                      <div className="bg-white p-2 border border-gray-200 rounded shadow-sm text-xs">
+                        <p className="font-medium">{label}</p>
+                        <p className="text-gray-700">
+                          {payload[0].value} {getYAxisLabel()}
+                        </p>
+                        {payload[0].payload.min !== undefined && payload[0].payload.max !== undefined && (
+                          <p className="text-gray-500 text-[10px]">
+                            Range: {payload[0].payload.min} - {payload[0].payload.max} {getYAxisLabel()}
+                          </p>
+                        )}
                       </div>
                     );
                   }
                   return null;
                 }}
               />
-              
-              {/* Reference lines for min and max values */}
-              <ReferenceLine 
-                y={stats.max} 
-                stroke="#ef4444" 
-                strokeDasharray="3 3"
-                ifOverflow="extendDomain"
-              >
-                <Label 
-                  value={`${stats.max} ${getYAxisLabel()}`} 
-                  position="top" 
-                  fill="#ef4444"
-                  fontSize={12}
-                />
-              </ReferenceLine>
-              
-              <ReferenceLine 
-                y={stats.min} 
-                stroke="#3b82f6" 
-                strokeDasharray="3 3"
-                ifOverflow="extendDomain"
-              >
-                <Label 
-                  value={`${stats.min} ${getYAxisLabel()}`} 
-                  position="bottom" 
-                  fill="#3b82f6"
-                  fontSize={12}
-                />
-              </ReferenceLine>
-              
               <Line 
                 type="monotone" 
                 dataKey="value" 
-                stroke={getLineColor()} 
-                strokeWidth={2.5}
-                activeDot={{ r: 6, strokeWidth: 1, fill: "#fff", stroke: getLineColor() }}
-                dot={{ r: 4, strokeWidth: 2, fill: "#fff", stroke: getLineColor() }}
-                animationDuration={1000}
+                stroke={chartConfig.active.color}
+                strokeWidth={2}
+                dot={{ r: 3, fill: chartConfig.active.color, stroke: chartConfig.active.color }}
+                activeDot={{ r: 5, fill: chartConfig.active.color, stroke: 'white', strokeWidth: 2 }}
               />
+              <ReferenceLine 
+                y={chartData.reduce((sum, item) => sum + item.value, 0) / chartData.length} 
+                stroke="#e5e7eb" 
+                strokeDasharray="3 3" 
+              >
+                <Label 
+                  value="avg" 
+                  position="right" 
+                  fill="#9ca3af" 
+                  fontSize={10}
+                />
+              </ReferenceLine>
             </LineChart>
           </ResponsiveContainer>
-        </ChartContainer>
+        )}
       </div>
       
-      <div className="grid grid-cols-3 gap-3 mt-4">
-        <div className="text-center py-2 bg-gray-50 rounded-lg">
-          <p className="text-xs text-nestor-gray-500 mb-1">Average</p>
-          <p className="text-sm font-semibold text-nestor-gray-900">{stats.avg} {getYAxisLabel()}</p>
+      {/* Stats section */}
+      <div className={statsLayoutStyle.container || "flex justify-between items-center mt-4"}>
+        <div className={statsLayoutStyle.statItem || "text-xs"}>
+          <span className="text-gray-500">Avg</span>
+          <span className="font-medium text-gray-900">
+            {chartData.length > 0 ? `${Math.round(chartData.reduce((sum, item) => sum + item.value, 0) / chartData.length)} ${getYAxisLabel()}` : '-'}
+          </span>
         </div>
-        <div className="text-center py-2 bg-red-50 rounded-lg">
-          <p className="text-xs text-red-500 mb-1">Peak ({stats.maxDay})</p>
-          <p className="text-sm font-semibold text-red-600">{stats.max} {getYAxisLabel()}</p>
+        <div className={statsLayoutStyle.statItem || "text-xs"}>
+          <span className="text-gray-500">Peak</span>
+          <span className="font-medium text-gray-900">
+            {chartData.length > 0 ? `${Math.max(...chartData.map(item => item.value))} ${getYAxisLabel()}` : '-'}
+          </span>
         </div>
-        <div className="text-center py-2 bg-blue-50 rounded-lg">
-          <p className="text-xs text-blue-500 mb-1">Low ({stats.minDay})</p>
-          <p className="text-sm font-semibold text-blue-600">{stats.min} {getYAxisLabel()}</p>
+        <div className={statsLayoutStyle.statItem || "text-xs"}>
+          <span className="text-gray-500">Low</span>
+          <span className="font-medium text-gray-900">
+            {chartData.length > 0 ? `${Math.min(...chartData.map(item => item.value))} ${getYAxisLabel()}` : '-'}
+          </span>
         </div>
       </div>
     </div>

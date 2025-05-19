@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
@@ -16,7 +15,7 @@ const WeeklyTrend = ({ onViewAllClick }: WeeklyTrendProps) => {
     if (onViewAllClick) {
       onViewAllClick();
     } else {
-      navigate('/trends');
+      navigate('/insights');
     }
   };
   

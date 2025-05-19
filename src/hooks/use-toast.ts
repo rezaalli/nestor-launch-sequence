@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import {
   type ToastActionElement,
@@ -6,13 +5,14 @@ import {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 5
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_REMOVE_DELAY = 5000
 
 type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  duration?: number
 }
 
 const actionTypes = {
@@ -151,6 +151,21 @@ function toast(props: Toast) {
     },
   })
 
+  // Set up auto-dismiss timeout
+  if (props.duration === undefined) {
+    const timeout = setTimeout(() => {
+      dismiss()
+    }, TOAST_REMOVE_DELAY)
+    
+    toastTimeouts.set(id, timeout)
+  } else if (props.duration > 0) {
+    const timeout = setTimeout(() => {
+      dismiss()
+    }, props.duration)
+    
+    toastTimeouts.set(id, timeout)
+  }
+
   return {
     id,
     dismiss,
@@ -170,6 +185,23 @@ function useToast() {
       }
     }
   }, [state])
+
+  // Clear timeouts for dismissed toasts
+  React.useEffect(() => {
+    state.toasts.forEach((toast) => {
+      if (!toast.open && toastTimeouts.has(toast.id)) {
+        clearTimeout(toastTimeouts.get(toast.id))
+        toastTimeouts.delete(toast.id)
+      }
+    })
+
+    return () => {
+      toastTimeouts.forEach((timeout) => {
+        clearTimeout(timeout)
+      })
+      toastTimeouts.clear()
+    }
+  }, [state.toasts])
 
   return {
     ...state,

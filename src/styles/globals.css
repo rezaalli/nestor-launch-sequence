@@ -1,0 +1,149 @@
+/* Add these CSS rules to properly style charts in dark mode */
+
+/* Dark mode specific chart styling */
+.dark-chart .recharts-cartesian-axis-tick-value {
+  fill: var(--chart-text, #e5e5e5) !important;
+}
+
+.dark-chart .recharts-cartesian-axis-line {
+  stroke: var(--chart-axis, #a3a3a3) !important;
+}
+
+.dark-chart .recharts-cartesian-grid-horizontal line,
+.dark-chart .recharts-cartesian-grid-vertical line {
+  stroke: var(--chart-grid, #333333) !important;
+}
+
+.dark-chart .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: var(--chart-tooltip-bg, #1e293b) !important;
+  border-color: var(--chart-tooltip-border, #4b5563) !important;
+}
+
+.dark-chart .recharts-tooltip-wrapper .recharts-tooltip-label,
+.dark-chart .recharts-tooltip-wrapper .recharts-tooltip-item-name,
+.dark-chart .recharts-tooltip-wrapper .recharts-tooltip-item-value {
+  color: #e5e5e5 !important;
+}
+
+.dark-chart .recharts-reference-line line {
+  stroke: #4b5563 !important;
+}
+
+.dark-chart .recharts-reference-line text {
+  fill: #a3a3a3 !important;
+}
+
+/* Skeleton loader dark mode optimization */
+.dark .animate-pulse,
+.night .animate-pulse {
+  background-color: #374151 !important;
+}
+
+/* Progressive loading animations */
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-item {
+  animation: staggerFadeIn 0.3s ease forwards;
+}
+
+.stagger-delay-1 { animation-delay: 0.1s; }
+.stagger-delay-2 { animation-delay: 0.2s; }
+.stagger-delay-3 { animation-delay: 0.3s; }
+.stagger-delay-4 { animation-delay: 0.4s; }
+.stagger-delay-5 { animation-delay: 0.5s; }
+
+/* Insight card custom styling */
+
+/* Critical priority gradient border */
+.border-l-gradient-to-b.from-red-600.to-red-400 {
+  border-image: linear-gradient(to bottom, #dc2626, #f87171) 1 100%;
+}
+
+/* High priority gradient border */
+.border-l-gradient-to-b.from-orange-600.to-orange-400 {
+  border-image: linear-gradient(to bottom, #ea580c, #fb923c) 1 100%;
+}
+
+/* Medium priority gradient border */
+.border-l-gradient-to-b.from-yellow-600.to-yellow-400 {
+  border-image: linear-gradient(to bottom, #ca8a04, #facc15) 1 100%;
+}
+
+/* Low priority gradient border */
+.border-l-gradient-to-b.from-green-600.to-green-400 {
+  border-image: linear-gradient(to bottom, #16a34a, #4ade80) 1 100%;
+}
+
+/* Info priority gradient border */
+.border-l-gradient-to-b.from-blue-600.to-blue-400 {
+  border-image: linear-gradient(to bottom, #2563eb, #60a5fa) 1 100%;
+}
+
+/* Insight card animation */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.9;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.3);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s infinite ease-in-out;
+}
+
+/* Slide down animation for expanding sections */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 1000px;
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out forwards;
+  overflow: hidden;
+}
+
+/* Fade in animation for content */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-fadeIn.delay-100 {
+  animation-delay: 100ms;
+}
+
+.animate-fadeIn.delay-200 {
+  animation-delay: 200ms;
+}
+
+.animate-fadeIn.delay-300 {
+  animation-delay: 300ms;
+} 

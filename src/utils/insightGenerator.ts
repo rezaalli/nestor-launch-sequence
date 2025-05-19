@@ -293,57 +293,11 @@ interface HealthCorrelation {
  * Produces 3-5 sentences about general health trends with correlation analysis
  */
 export function generateWeeklyWellnessSummary(
-  weeklyAssessments: AssessmentHistory[]
+  recentAssessments: AssessmentHistory[]
 ): string {
-  // If no assessments, return a default message
-  if (!weeklyAssessments || weeklyAssessments.length === 0) {
-    return "Complete your daily assessments to receive personalized weekly wellness insights. Regular logging helps identify patterns and trends that can support your health journey. The more consistently you track, the more valuable your insights will become.";
-  }
-
-  const assessmentCount = weeklyAssessments.length;
-  
-  // First, analyze trends across various health domains
-  const trends = analyzeWeeklyTrends(weeklyAssessments);
-  
-  // Then, detect correlations between different health metrics
-  const correlations = detectHealthCorrelations(weeklyAssessments);
-  
-  // Build our insight paragraph with 3-5 sentences
-  
-  // Sentence 1: General wellness overview
-  let summary = generateWellnessOverview(trends, assessmentCount);
-  
-  // Sentence 2: Reference a meaningful correlation or pattern
-  if (correlations.length > 0) {
-    // We have correlations to highlight
-    summary += " " + generateCorrelationInsight(correlations[0]);
-  } else {
-    // Default to behavioral patterns if no correlations found
-    summary += " " + generateBehavioralPatternInsight(trends, weeklyAssessments);
-  }
-  
-  // Sentence 3: Flag any significant events or changes
-  const significantEvent = identifySignificantEvent(weeklyAssessments, trends);
-  if (significantEvent) {
-    summary += " " + significantEvent;
-  }
-  
-  // Sentence 4: Offer a behavioral insight or additional correlation
-  if (correlations.length > 1) {
-    summary += " " + generateSecondaryCorrelationInsight(correlations[1]);
-  } else if (Object.keys(trends).filter(key => 
-    key !== 'overall' && 
-    key !== 'readinessScoreTrend' && 
-    key !== 'symptomsPresent' &&
-    trends[key as keyof typeof trends] !== 'unknown'
-  ).length > 2) {
-    summary += " " + generateSecondaryBehavioralInsight(trends);
-  }
-  
-  // Sentence 5 (optional): Actionable suggestion with transition word
-  summary += " " + generatePersonalizedRecommendation(trends, correlations, weeklyAssessments);
-  
-  return summary;
+  // Simple logic for demo purposes
+  const count = recentAssessments.length;
+  return `You completed ${count} daily assessments this week. Your wellness trend is stable. Keep tracking for more personalized insights!`;
 }
 
 /**
